@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="MediatR" Version="13.0.0" />
+	  <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+	  <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
+	  <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+	  <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FitBridge_Application\FitBridge_Application.csproj" />
+    <ProjectReference Include="..\FitBridge_Infrastructure\FitBridge_Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

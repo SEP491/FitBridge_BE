@@ -416,3 +416,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+FitBridge_API/appsettings.json
+FitBridge_API/appsettings.Development.json
+/FitBridge_Infrastructure/Migrations
+ACTION_PLAN.md
+PROJECT_STRUCTURE.md
