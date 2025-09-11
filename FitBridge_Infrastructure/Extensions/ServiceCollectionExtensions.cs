@@ -1,5 +1,6 @@
 ﻿using FitBridge_Application.Interfaces.Utils.Seeding;
 using FitBridge_Domain.Entities.Identity;
+using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Infrastructure.Persistence;
 using FitBridge_Infrastructure.Seeder;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ namespace FitBridge_Infrastructure.Extensions
             .AddEntityFrameworkStores<FitBridgeDbContext>();
 
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
     }
 }
