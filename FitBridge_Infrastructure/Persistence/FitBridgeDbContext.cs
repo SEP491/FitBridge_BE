@@ -34,9 +34,8 @@ namespace FitBridge_Infrastructure.Persistence
                 modelBuilder.Entity(clrType)
                     .Property(nameof(BaseEntity.Id))
                     .IsRequired()
-                    .ValueGeneratedOnAdd()
-                    .UseIdentityColumn();
-
+                    .ValueGeneratedOnAdd();
+                    
                 var properties = clrType.GetProperties()
                     .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?));
 

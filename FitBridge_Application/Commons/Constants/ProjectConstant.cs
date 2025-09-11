@@ -4,9 +4,9 @@ public static class ProjectConstant
 {
     public static class UserRoles
     {
-        public const string PTFreelance = "PTFreelance";
+        public const string FreelancePT = "FreelancePT";
 
-        public const string PTGym = "PTGym";
+        public const string GymPT = "GymPT";
 
         public const string Admin = "Admin";
 

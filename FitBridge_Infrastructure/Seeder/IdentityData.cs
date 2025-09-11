@@ -25,13 +25,13 @@ internal static class IdentityData
             {
                 NormalizedName = ProjectConstant.UserRoles.Admin.ToUpper()
             },
-            new(ProjectConstant.UserRoles.PTFreelance)
+            new(ProjectConstant.UserRoles.FreelancePT)
             {
-                NormalizedName = ProjectConstant.UserRoles.PTFreelance.ToUpper()
+                NormalizedName = ProjectConstant.UserRoles.FreelancePT.ToUpper()
             },
-            new(ProjectConstant.UserRoles.PTGym)
+            new(ProjectConstant.UserRoles.GymPT)
             {
-                NormalizedName = ProjectConstant.UserRoles.PTGym.ToUpper()
+                NormalizedName = ProjectConstant.UserRoles.GymPT.ToUpper()
             },
             new(ProjectConstant.UserRoles.GymOwner)
             {

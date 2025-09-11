@@ -1,20 +1,21 @@
-﻿using MediatR;
+﻿using FitBridge_Domain.Entities.Identity;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 namespace FitBridge_Application.Features.Sample
 {
     internal class SampleCommand1Handler : IRequestHandler<SampleCommand1>
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public SampleCommand1Handler(UserManager<IdentityUser> userManager)
+        public SampleCommand1Handler(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
 
         public async Task Handle(SampleCommand1 request, CancellationToken cancellationToken)
         {
-            var user = new IdentityUser
+            var user = new ApplicationUser
             {
                 UserName = request.UserName,
                 Email = request.Email
