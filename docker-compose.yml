@@ -1,0 +1,29 @@
+services:
+  api-fitbridge:
+    image: rutkre/fitbridge-be:latest
+    container_name: api-fitbridge
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8003
+    expose:
+      - "8003"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-fitbridge.rule=Host(`api-fitbridge.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.api-fitbridge.entrypoints=websecure"
+      - "traefik.http.routers.api-fitbridge.tls=true"
+      - "traefik.http.routers.api-fitbridge.tls.certresolver=myresolver"
+      - "traefik.http.routers.api-fitbridge.priority=50"
+      - "traefik.http.services.api-fitbridge.loadbalancer.server.port=8003"
+      - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+      - /home/velour/deploy/stacks/fitbridge/appsettings.json:/app/appsettings.json
+    networks:
+      - postgres
+      - proxy
+networks:
+  postgres:
+    external: true
+  proxy:
+    external: true

@@ -34,6 +34,31 @@ var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 var applicationDbContext = scope.ServiceProvider.GetRequiredService<FitBridgeDbContext>();
 var identitySeeder = scope.ServiceProvider.GetRequiredService<IIdentitySeeder>();
 
+app.MapGet("/api/cats", () =>
+{
+    var cats = new List<string>
+    {
+        "Persian",
+        "Maine Coon",
+        "British Shorthair",
+        "Ragdoll",
+        "Bengal",
+        "Abyssinian",
+        "Birman",
+        "Oriental Shorthair",
+        "Manx",
+        "Russian Blue",
+        "American Shorthair",
+        "Scottish Fold",
+        "Sphynx",
+        "Siamese",
+        "Norwegian Forest Cat"
+    };
+
+    return Results.Ok(cats);
+});
+
+
 var ShouldReseedData = app.Configuration.GetValue<bool>("ClearAndReseedData");
 try
 {
