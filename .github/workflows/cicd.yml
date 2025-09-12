@@ -1,0 +1,59 @@
+name: cicd
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    environment: CICD
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Show GITHUB_REF
+        run: |
+          echo "GITHUB_REF is: $GITHUB_REF"
+      - name: Ensure tag exists
+        run: |
+          if [ -z "${GITHUB_REF##refs/tags/*}" ]; then
+            echo "Tag detected: ${GITHUB_REF#refs/tags/}"
+          else
+            echo "No tag found. Exiting."
+            exit 1
+          fi
+      - name: Ensure tag is on main
+        run: |
+          TAG_COMMIT=$(git rev-parse $GITHUB_SHA)
+          BASE_COMMIT=$(git merge-base $TAG_COMMIT origin/main)
+
+          if [ "$TAG_COMMIT" != "$BASE_COMMIT" ]; then
+            echo "Tag is not on main. Exiting."
+            exit 1
+          fi
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            rutkre/api-docker-cicd-sample
+          tags: |
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=sha
+      - name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
