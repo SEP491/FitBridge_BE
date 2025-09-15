@@ -1,5 +1,6 @@
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos;
+using FitBridge_Application.Dtos.Identities;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Domain.Entities.Identity;
 using MediatR;
@@ -9,20 +10,20 @@ using Microsoft.Extensions.Configuration;
 
 namespace FitBridge_Application.Features.Identities.Registers.RegisterAccounts;
 
-public class RegisterAccountCommandHandler(UserManager<ApplicationUser> userManager, IConfiguration _configuration, IEmailService emailService) : IRequestHandler<RegisterAccountCommand, BaseResponse<string>>
+public class RegisterAccountCommandHandler(UserManager<ApplicationUser> userManager, IConfiguration _configuration, IEmailService emailService) : IRequestHandler<RegisterAccountCommand, RegisterResponseDto>
 {
-    public async Task<BaseResponse<string>> Handle(RegisterAccountCommand request, CancellationToken cancellationToken)
+    public async Task<RegisterResponseDto> Handle(RegisterAccountCommand request, CancellationToken cancellationToken)
     {
         var isEmailExists = await userManager.FindByEmailAsync(request.Email);
         if (isEmailExists is not null)
         {
-            return new BaseResponse<string>("400", "Email already exists", null);
+            return new RegisterResponseDto { Status = "400", Message = "Email already exists", UserId = Guid.Empty };
         }
 
         var isPhoneNumberExists = await userManager.Users.AnyAsync(x => x.PhoneNumber == request.PhoneNumber);
         if (isPhoneNumberExists)
         {
-            return new BaseResponse<string>("400", "Phone number already exists", null);
+            return new RegisterResponseDto { Status = "400", Message = "Phone number already exists", UserId = Guid.Empty };
         }
 
         var user = new ApplicationUser
@@ -41,7 +42,7 @@ public class RegisterAccountCommandHandler(UserManager<ApplicationUser> userMana
 
         if (!result.Succeeded)
         {
-            return new BaseResponse<string>("400", "User creation failed", null);
+            return new RegisterResponseDto { Status = "400", Message = "User creation failed", UserId = Guid.Empty };
         }
         switch (request.Role)
         {
@@ -63,6 +64,6 @@ public class RegisterAccountCommandHandler(UserManager<ApplicationUser> userMana
                 break;
         }
 
-        return new BaseResponse<string>("200", "User created successfully", user.Id.ToString());
+        return new RegisterResponseDto { Status = "200", Message = "User created successfully", UserId = user.Id };
     }
 }

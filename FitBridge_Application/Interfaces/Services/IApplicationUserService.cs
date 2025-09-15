@@ -99,6 +99,13 @@ namespace FitBridge_Application.Interfaces.Services
         /// <returns>The user with the specified ID, or null if not found.</returns>
         Task<ApplicationUser?> GetByIdAsync(Guid userId, List<string>? includes = null, bool isTracking = false);
 
+        /// <summary>
+        /// Generates an email confirmation token for a user asynchronously.
+        /// </summary>
+        /// <param name="user">The user to generate the token for.</param>
+        /// <returns>The generated token.</returns>
+        Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user);
+
         #endregion Core methods
     }
 }

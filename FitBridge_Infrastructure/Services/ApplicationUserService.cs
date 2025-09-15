@@ -109,5 +109,15 @@ namespace FitBridge_Infrastructure.Services
                 throw new CreateFailedException($"User creation failed: {errors}");
             }
         }
+
+        public async Task<ApplicationUser?> GetUserByPhoneNumberAsync(string phoneNumber)
+        {
+            return await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+        }
+
+        public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user)
+        {
+            return await userManager.GenerateEmailConfirmationTokenAsync(user);
+        }
     }
 }

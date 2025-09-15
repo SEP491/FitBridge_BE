@@ -7,25 +7,16 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using FitBridge_Application.Dtos.Identities;
+using FitBridge_Application.Interfaces.Repositories;
+using FitBridge_Domain.Entities.Accounts;
 
 namespace FitBridge_Application.Features.Identities.Registers.RegisterCustomer;
 
-public class RegisterCommandHandler(UserManager<ApplicationUser> userManager, IEmailService emailService, IConfiguration _configuration) : IRequestHandler<RegisterCommand, BaseResponse<string>>
+public class RegisterCommandHandler(IApplicationUserService _applicationUserService, IEmailService emailService, IConfiguration _configuration, IUnitOfWork _unitOfWork) : IRequestHandler<RegisterCommand, RegisterResponseDto>
 {
-    public async Task<BaseResponse<string>> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async Task<RegisterResponseDto> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        var isEmailExists = await userManager.FindByEmailAsync(request.Email);
-        if (isEmailExists is not null)
-        {
-            return new BaseResponse<string>("400", "Email already exists", null);
-        }
-
-        var isPhoneNumberExists = await userManager.Users.AnyAsync(x => x.PhoneNumber == request.PhoneNumber);
-        if (isPhoneNumberExists)
-        {
-            return new BaseResponse<string>("400", "Phone number already exists", null);
-        }
-
         var user = new ApplicationUser
         {
             Email = request.Email,
@@ -35,16 +26,16 @@ public class RegisterCommandHandler(UserManager<ApplicationUser> userManager, IE
             IsMale = request.IsMale,
             Password = request.Password
         };
-        var result = await userManager.CreateAsync(user, request.Password);
+        await _applicationUserService.InsertUserAsync(user, request.Password);
+        await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.Customer);
         
-        if (!result.Succeeded)
-        {
-            return new BaseResponse<string>("400", "User creation failed", null);
-        }
-        await userManager.AddToRoleAsync(user, ProjectConstant.UserRoles.Customer);
-        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var userDetail = new UserDetail { Id = user.Id };
+        _unitOfWork.Repository<UserDetail>().Insert(userDetail);
+        await _unitOfWork.CommitAsync();
+
+        var token = await _applicationUserService.GenerateEmailConfirmationTokenAsync(user);
         var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?token={token}&email={user.Email}";
         await emailService.SendRegistrationConfirmationEmailAsync(user.Email, confirmationLink, user.FullName);
-        return new BaseResponse<string>("200", "User created successfully", user.Id.ToString());
+        return new RegisterResponseDto { Status = "200", Message = "User created successfully", UserId = user.Id };
     }
 }
