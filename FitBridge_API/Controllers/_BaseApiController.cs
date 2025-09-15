@@ -9,7 +9,7 @@ namespace FitBridge_API.Controllers
     [ApiVersion(1)]
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
-    public abstract class BaseApiController : ControllerBase
+    public abstract class _BaseApiController : ControllerBase
     {
         /// <summary>
         /// Returns an <see cref="ActionResult"/> containing paginated data and pagination metadata.

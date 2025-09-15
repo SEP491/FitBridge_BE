@@ -6,6 +6,8 @@ using FitBridge_Infrastructure.Seeder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using FitBridge_Application.Interfaces.Services;
+using FitBridge_Infrastructure.Services.Implements;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -25,6 +27,7 @@ namespace FitBridge_Infrastructure.Extensions
 
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IEmailService, EmailService>();
         }
     }
 }
