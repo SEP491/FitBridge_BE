@@ -1,9 +1,13 @@
 using FitBridge_API.Extensions;
+using FitBridge_API.Helpers;
 using FitBridge_Application.Extensions;
 using FitBridge_Application.Interfaces.Utils.Seeding;
+using FitBridge_Domain.Exceptions;
 using FitBridge_Infrastructure.Extensions;
 using FitBridge_Infrastructure.Persistence;
 using FitBridge_Infrastructure.Seeder;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,12 +32,40 @@ app.MapControllers();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.ContentType = "application/json";
+
+        var feature = context.Features.Get<IExceptionHandlerPathFeature>();
+        if (feature != null)
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            var errorResponse = new BaseResponse<EmptyClass>(
+                StatusCodes.Status500InternalServerError.ToString(),
+                "An unexpected error occurred.",
+                null);
+            if (feature.Error is BusinessException)
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                errorResponse = new BaseResponse<EmptyClass>(
+                    StatusCodes.Status400BadRequest.ToString(),
+                    feature.Error.Message,
+                    null);
+            }
+
+            await context.Response.WriteAsJsonAsync(errorResponse);
+        }
+    });
+});
 
 using var scope = app.Services.CreateScope();
 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 var applicationDbContext = scope.ServiceProvider.GetRequiredService<FitBridgeDbContext>();
 var identitySeeder = scope.ServiceProvider.GetRequiredService<IIdentitySeeder>();
 
+// test api
 app.MapGet("/api/cats", () =>
 {
     var cats = new List<string>
@@ -57,7 +89,6 @@ app.MapGet("/api/cats", () =>
 
     return Results.Ok(cats);
 });
-
 
 var ShouldReseedData = app.Configuration.GetValue<bool>("ClearAndReseedData");
 try
