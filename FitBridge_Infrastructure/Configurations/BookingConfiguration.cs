@@ -24,6 +24,6 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.HasOne(e => e.Customer).WithMany(e => e.Bookings).HasForeignKey(e => e.CustomerId);
         builder.HasOne(e => e.PTGymSlot).WithOne(e => e.Booking).HasForeignKey<Booking>(e => e.PTGymSlotId);
-        builder.HasOne(e => e.Order).WithOne(e => e.Booking).HasForeignKey<Booking>(e => e.OrderId);
+        builder.HasOne(e => e.Order).WithMany(e => e.Bookings).HasForeignKey(e => e.OrderId);
     }
 }

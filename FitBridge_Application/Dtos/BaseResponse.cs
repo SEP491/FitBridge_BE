@@ -1,4 +1,4 @@
-﻿namespace FitBridge_API.Helpers
+﻿namespace FitBridge_Application.Dtos
 {
     public class BaseResponse<T>(string status, string? message, T? data) where T : class
     {

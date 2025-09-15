@@ -29,7 +29,7 @@ public class Order : BaseEntity
     public ServiceInformation? ServiceInformation { get; set; }
     public UserGoal? UserGoal { get; set; }
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-    public Booking? Booking { get; set; }
+    public ICollection<Booking> Bookings { get; set; }
 }
 
 public enum OrderStatus

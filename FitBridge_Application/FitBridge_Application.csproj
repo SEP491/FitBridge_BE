@@ -26,4 +26,7 @@
 		<PackageReference Include="System.Formats.Asn1" Version="9.0.8" />
 		<PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Interfaces\Services\" />
+	</ItemGroup>
 </Project>
