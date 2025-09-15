@@ -1,5 +1,6 @@
 using FitBridge_API.Extensions;
 using FitBridge_API.Helpers;
+using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Extensions;
 using FitBridge_Application.Interfaces.Utils.Seeding;
 using FitBridge_Domain.Exceptions;
