@@ -1,8 +1,6 @@
 ﻿using Asp.Versioning;
-using FitBridge_API.Helpers;
 using FitBridge_API.Helpers.RequestHelpers;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 
 namespace FitBridge_API.Controllers
 {
