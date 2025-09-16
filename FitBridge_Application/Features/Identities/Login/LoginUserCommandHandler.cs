@@ -34,7 +34,12 @@ public class LoginUserCommandHandler(
             {
                 AccessToken = tokens.accessToken,
                 IdToken = tokens.idToken,
-                RefreshToken = tokens.refreshToken
+                RefreshToken = tokens.refreshToken,
+                Id = user.Id,
+                FullName = user.FullName,
+                Phone = user.PhoneNumber,
+                Email = user.Email,
+                AvatarUrl = user.AvatarUrl
             };
         }
         catch (Exception ex)
