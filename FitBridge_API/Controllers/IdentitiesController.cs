@@ -81,7 +81,7 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
         {
             return BadRequest(new BaseResponse<string>(
             StatusCodes.Status400BadRequest.ToString(),
-            ex.Message,
+            ex.InnerException.Message,
             null));
         }
     }
