@@ -19,12 +19,14 @@ public class RegisterCommandHandler(IApplicationUserService _applicationUserServ
     {
         var user = new ApplicationUser
         {
+            UserName = request.Email,
             Email = request.Email,
             PhoneNumber = request.PhoneNumber,
             FullName = request.FullName,
             Dob = request.Dob,
             IsMale = request.IsMale,
-            Password = request.Password
+            Password = request.Password,
+            EmailConfirmed = request.IsTestAccount,
         };
         await _applicationUserService.InsertUserAsync(user, request.Password);
         await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.Customer);
@@ -35,7 +37,11 @@ public class RegisterCommandHandler(IApplicationUserService _applicationUserServ
 
         var token = await _applicationUserService.GenerateEmailConfirmationTokenAsync(user);
         var confirmationLink = $"{_configuration["FrontendUrl"]}/confirm-email?token={token}&email={user.Email}";
-        await emailService.SendRegistrationConfirmationEmailAsync(user.Email, confirmationLink, user.FullName);
-        return new RegisterResponseDto { Status = "200", Message = "User created successfully", UserId = user.Id };
+
+        if (!request.IsTestAccount)
+        {
+            await emailService.SendRegistrationConfirmationEmailAsync(user.Email, confirmationLink, user.FullName);
+        }
+        return new RegisterResponseDto { UserId = user.Id };
     }
 }

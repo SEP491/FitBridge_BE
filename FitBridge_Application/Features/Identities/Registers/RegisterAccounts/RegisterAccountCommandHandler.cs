@@ -2,32 +2,21 @@ using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Identities;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Interfaces.Repositories;
+using FitBridge_Domain.Entities.Accounts;
 using FitBridge_Domain.Entities.Identity;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace FitBridge_Application.Features.Identities.Registers.RegisterAccounts;
 
-public class RegisterAccountCommandHandler(UserManager<ApplicationUser> userManager, IConfiguration _configuration, IEmailService emailService) : IRequestHandler<RegisterAccountCommand, RegisterResponseDto>
+public class RegisterAccountCommandHandler(IApplicationUserService _applicationUserService, IConfiguration _configuration, IEmailService emailService, IUnitOfWork _unitOfWork) : IRequestHandler<RegisterAccountCommand, RegisterResponseDto>
 {
     public async Task<RegisterResponseDto> Handle(RegisterAccountCommand request, CancellationToken cancellationToken)
     {
-        var isEmailExists = await userManager.FindByEmailAsync(request.Email);
-        if (isEmailExists is not null)
-        {
-            return new RegisterResponseDto { Status = "400", Message = "Email already exists", UserId = Guid.Empty };
-        }
-
-        var isPhoneNumberExists = await userManager.Users.AnyAsync(x => x.PhoneNumber == request.PhoneNumber);
-        if (isPhoneNumberExists)
-        {
-            return new RegisterResponseDto { Status = "400", Message = "Phone number already exists", UserId = Guid.Empty };
-        }
-
         var user = new ApplicationUser
         {
+            UserName = request.Email,
             Email = request.Email,
             PhoneNumber = request.PhoneNumber,
             FullName = request.FullName,
@@ -36,34 +25,48 @@ public class RegisterAccountCommandHandler(UserManager<ApplicationUser> userMana
             Password = request.Password,
             GymName = request.GymName ?? "",
             TaxCode = request.TaxCode ?? "",
-            EmailConfirmed = true,
+            EmailConfirmed = request.IsTestAccount,
         };
-        var result = await userManager.CreateAsync(user, request.Password);
+        await _applicationUserService.InsertUserAsync(user, request.Password);
 
-        if (!result.Succeeded)
-        {
-            return new RegisterResponseDto { Status = "400", Message = "User creation failed", UserId = Guid.Empty };
-        }
         switch (request.Role)
         {
             case ProjectConstant.UserRoles.GymOwner:
-                await userManager.AddToRoleAsync(user, ProjectConstant.UserRoles.GymOwner);
-                await emailService.SendAccountInformationEmailAsync(user.Email, request.Password);
-
+                await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.GymOwner);
+                await SendAccountInformationEmail(user, request.Password, request.IsTestAccount);
+                await InsertUserDetail(user);
                 break;
             case ProjectConstant.UserRoles.GymPT:
-                await userManager.AddToRoleAsync(user, ProjectConstant.UserRoles.GymPT);
-                await emailService.SendAccountInformationEmailAsync(user.Email, request.Password);
+                await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.GymPT);
+                await SendAccountInformationEmail(user, request.Password, request.IsTestAccount);
+                await InsertUserDetail(user);
                 break;
             case ProjectConstant.UserRoles.FreelancePT:
-                await userManager.AddToRoleAsync(user, ProjectConstant.UserRoles.FreelancePT);
-                await emailService.SendAccountInformationEmailAsync(user.Email, request.Password);
+                await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.FreelancePT);
+                await SendAccountInformationEmail(user, request.Password, request.IsTestAccount);
+                await InsertUserDetail(user);
                 break;
             case ProjectConstant.UserRoles.Admin:
-                await userManager.AddToRoleAsync(user, ProjectConstant.UserRoles.Admin);
+                await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.Admin);
                 break;
         }
 
-        return new RegisterResponseDto { Status = "200", Message = "User created successfully", UserId = user.Id };
+        return new RegisterResponseDto { UserId = user.Id };
+    }
+
+    public async Task InsertUserDetail(ApplicationUser user)
+    {
+        var userDetail = new UserDetail { Id = user.Id };
+        _unitOfWork.Repository<UserDetail>().Insert(userDetail);
+        await _unitOfWork.CommitAsync();
+    }
+
+    public async Task SendAccountInformationEmail(ApplicationUser user, string password, bool isTestAccount)
+    {
+        if (isTestAccount)
+        {
+            return;
+        }
+        await emailService.SendAccountInformationEmailAsync(user.Email, password);
     }
 }

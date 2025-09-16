@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FitBridge_Application.Interfaces.Specifications;
 using FitBridge_Domain.Entities.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace FitBridge_Application.Interfaces.Services
 {
@@ -105,6 +106,9 @@ namespace FitBridge_Application.Interfaces.Services
         /// <param name="user">The user to generate the token for.</param>
         /// <returns>The generated token.</returns>
         Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user);
+        Task<IdentityResult> ConfirmEmailAsync(ApplicationUser user, string token);
+
+        Task<List<string>> GetUserRolesAsync(ApplicationUser user);
 
         #endregion Core methods
     }

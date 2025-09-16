@@ -77,6 +77,11 @@ namespace FitBridge_Infrastructure.Services
             return (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? string.Empty;
         }
 
+        public async Task<List<string>> GetUserRolesAsync(ApplicationUser user)
+        {
+            return (await userManager.GetRolesAsync(user)).ToList();
+        }
+
         public async Task<ApplicationUser?> GetByIdAsync(Guid userId, List<string>? includes = null, bool isTracking = false)
         {
             var query = userManager.Users.AsQueryable();
@@ -118,6 +123,11 @@ namespace FitBridge_Infrastructure.Services
         public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user)
         {
             return await userManager.GenerateEmailConfirmationTokenAsync(user);
+        }
+
+        public async Task<IdentityResult> ConfirmEmailAsync(ApplicationUser user, string token)
+        {
+            return await userManager.ConfirmEmailAsync(user, token);
         }
     }
 }

@@ -15,4 +15,5 @@ public class RegisterAccountCommand : IRequest<RegisterResponseDto>
     public string? TaxCode { get; set; }
     public string Role { get; set; }
     public bool IsMale { get; set; }
+    public bool IsTestAccount { get; set; } = false;
 }
