@@ -1,7 +1,9 @@
 ﻿namespace FitBridge_Application.Dtos.Gym
 {
-    public class GetGymDetailsDto
+    public class GetAllGymsDto
     {
+        public Guid Id { get; set; }
+
         public string GymName { get; set; } = string.Empty;
 
         public string RepresentName { get; set; } = string.Empty;
