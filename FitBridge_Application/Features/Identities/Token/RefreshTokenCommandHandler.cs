@@ -36,7 +36,6 @@ namespace FitBridge_Application.Features.Identities.Token
                 var newRefreshToken = userTokenService.CreateRefreshToken(user);
 
                 user.RefreshToken = newRefreshToken;
-                await applicationUserService.UpdateAsync(user);
 
                 return new RefreshTokenResponse
                 {
