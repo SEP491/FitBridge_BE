@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -19,6 +20,12 @@ namespace FitBridge_API.Extensions
             //Add Swagger
             builder.Services.AddSwaggerGen(option =>
             {
+                option.SwaggerDoc("v1", new OpenApiInfo { Title = "FitBridge's API", Version = "v1" });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                option.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+
                 //JWT Config
                 option.DescribeAllParametersInCamelCase();
                 option.ResolveConflictingActions(conf => conf.First());     // duplicate API name if any, ex: Get() & Get(string id)
