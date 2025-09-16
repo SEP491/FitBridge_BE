@@ -14,10 +14,8 @@ namespace FitBridge_Domain.Entities.Identity
         public string FullName { get; set; }
         public bool IsMale { get; set; }
         public DateTime Dob { get; set; }
-        public string PhoneNumber { get; set; }
         public string Password { get; set; }
-        public string Email { get; set; }
-        public string GymName { get; set; }
+        public string? GymName { get; set; }
         public string TaxCode { get; set; }
         public double? Longitude { get; set; }
         public double? Latitude { get; set; }
@@ -26,6 +24,9 @@ namespace FitBridge_Domain.Entities.Identity
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public AccountStatus AccountStatus { get; set; }
+        public string? RefreshToken { get; set; }
+        public string? AvatarUrl { get; set; }
+
         public List<string> GymImages { get; set; } = new List<string>();
         public ICollection<GoalTraining> GoalTrainings { get; set; } = new List<GoalTraining>();
         public ICollection<GymCoursePT> GymCoursePTs { get; set; } = new List<GymCoursePT>();
@@ -37,7 +38,7 @@ namespace FitBridge_Domain.Entities.Identity
         public ICollection<ConversationMember> ConversationMembers { get; set; } = new List<ConversationMember>();
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
-        public UserDetail UserDetail { get; set; } = new UserDetail();
+        public UserDetail? UserDetail { get; set; }
         public ICollection<Question> Questions { get; set; } = new List<Question>();
         public ICollection<Voucher> Vouchers { get; set; } = new List<Voucher>();
         public ICollection<GymCourse> GymCourses { get; set; } = new List<GymCourse>();

@@ -1,9 +1,10 @@
 using FitBridge_Application.Dtos;
+using FitBridge_Application.Dtos.Identities;
 using MediatR;
 
 namespace FitBridge_Application.Features.Identities.Registers.RegisterAccounts;
 
-public class RegisterAccountCommand : IRequest<BaseResponse<string>>
+public class RegisterAccountCommand : IRequest<RegisterResponseDto>
 {
     public string Email { get; set; }
     public string PhoneNumber { get; set; }
@@ -14,4 +15,5 @@ public class RegisterAccountCommand : IRequest<BaseResponse<string>>
     public string? TaxCode { get; set; }
     public string Role { get; set; }
     public bool IsMale { get; set; }
+    public bool IsTestAccount { get; set; } = false;
 }

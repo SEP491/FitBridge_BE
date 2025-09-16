@@ -77,6 +77,11 @@ namespace FitBridge_Infrastructure.Services
             return (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? string.Empty;
         }
 
+        public async Task<List<string>> GetUserRolesAsync(ApplicationUser user)
+        {
+            return (await userManager.GetRolesAsync(user)).ToList();
+        }
+
         public async Task<ApplicationUser?> GetByIdAsync(Guid userId, List<string>? includes = null, bool isTracking = false)
         {
             var query = userManager.Users.AsQueryable();
@@ -108,6 +113,21 @@ namespace FitBridge_Infrastructure.Services
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new CreateFailedException($"User creation failed: {errors}");
             }
+        }
+
+        public async Task<ApplicationUser?> GetUserByPhoneNumberAsync(string phoneNumber)
+        {
+            return await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+        }
+
+        public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user)
+        {
+            return await userManager.GenerateEmailConfirmationTokenAsync(user);
+        }
+
+        public async Task<IdentityResult> ConfirmEmailAsync(ApplicationUser user, string token)
+        {
+            return await userManager.ConfirmEmailAsync(user, token);
         }
     }
 }
