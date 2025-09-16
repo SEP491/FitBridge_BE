@@ -11,6 +11,8 @@ using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Identities;
 using FitBridge_Application.Features.Identities.Login;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Dtos.Tokens;
+using FitBridge_Application.Features.Identities.Token;
 
 namespace FitBridge_API.Controllers;
 
@@ -64,5 +66,23 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
             return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), ex.Message, null));
         }
         return Ok(new BaseResponse<LoginResponseDTO>(StatusCodes.Status200OK.ToString(), "Login successful", response));
+    }
+
+    [HttpPost("refresh-token")]
+    [AllowAnonymous]
+    public async Task<ActionResult<RefreshTokenResponse>> RefreshToken([FromBody] RefreshTokenCommand refreshToken) 
+    {
+        try
+        {
+            var result = await _mediator.Send(refreshToken);
+            return Ok(new BaseResponse<RefreshTokenResponse>(StatusCodes.Status200OK.ToString(), "Token refreshed successfully", result));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new BaseResponse<string>(
+            StatusCodes.Status400BadRequest.ToString(),
+            ex.Message,
+            null));
+        }
     }
 }
