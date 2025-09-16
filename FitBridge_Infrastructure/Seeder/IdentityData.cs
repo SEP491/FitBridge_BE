@@ -1,4 +1,5 @@
 ﻿using FitBridge_Application.Commons.Constants;
+using FitBridge_Domain.Entities.Accounts;
 using FitBridge_Domain.Entities.Identity;
 
 namespace FitBridge_Infrastructure.Seeder;
@@ -11,6 +12,36 @@ internal static class IdentityData
         {
             new ApplicationUser
             {
+                Id = Guid.NewGuid(),
+                UserName = "admin",
+                NormalizedUserName = "ADMIN",
+                Email = "admin@fitbridge.com",
+                NormalizedEmail = "ADMIN@FITBRIDGE.COM",
+                EmailConfirmed = true,
+                PhoneNumber = "1234567890",
+                PhoneNumberConfirmed = true,
+                GymImages = [],
+                GoalTrainings = [],
+                GymCoursePTs = [],
+                GymFacilities = [],
+                PTGymSlots = [],
+                GymSlots = [],
+                Addresses = [],
+                Blogs = [],
+                ConversationMembers = [],
+                Bookings = [],
+                Orders = [],
+                UserDetail = new UserDetail(),
+                Questions = [],
+                Vouchers = [],
+                GymCourses = [],
+                WithdrawalRequests = [],
+                PushNotificationTokens = [],
+                InAppNotifications = [],
+                Reviews = [],
+                GymReviews = [],
+                FreelancePtReviews = [],
+                PTFreelancePackages = []
             },
         };
 

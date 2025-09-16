@@ -1,4 +1,5 @@
-﻿using FitBridge_Application.Interfaces.Utils.Seeding;
+﻿using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Interfaces.Utils.Seeding;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -40,14 +41,13 @@ public class IdentitySeeder(
     {
         foreach (var user in users)
         {
-            //student one -> student
-            //var strippedUserRole = user.FirstName.ToLower().Split(' ')[0];
-            //switch (strippedUserRole)
-            //{
-            //case "jobseeker":
-            //    await userManager.AddToRoleAsync(user, ProjectConstant.UserRoles.JobSeeker);
-            //    break;
-            //}
+            var strippedUserRole = user.UserName.ToLower().Split(' ')[0];
+            switch (strippedUserRole)
+            {
+                case "admin":
+                    await userManager.AddToRoleAsync(user, ProjectConstant.UserRoles.Admin);
+                    break;
+            }
         }
     }
 }
