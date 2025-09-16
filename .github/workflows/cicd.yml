@@ -39,7 +39,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            rutkre/fitbridge-be
+            rutkre/${{ vars.DOCKER_APP_NAME }}
           tags: |
             type=semver,pattern=v{{version}}
             type=semver,pattern=v{{major}}.{{minor}}
