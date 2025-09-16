@@ -127,4 +127,45 @@ public class UserTokenService(
         user.RefreshToken = null;
         await userManager.UpdateAsync(user);
     }
+
+    public async Task<string?> ValidateRefreshToken(string refreshToken)
+    {
+        try
+        {
+            var jwtSettings = configuration.GetSection("JwtRefreshTokenSettings");
+            var handler = new JsonWebTokenHandler();
+
+            var jsonToken = handler.ReadJsonWebToken(refreshToken);
+            var userIdClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
+
+            if (userIdClaim == null)
+            {
+                return null;
+            }
+
+            var userId = userIdClaim.Value;
+            var user = await userManager.FindByIdAsync(userId);
+
+            if (user == null || user.RefreshToken != refreshToken)
+            {
+                return null;
+            }
+
+            var expirationClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp);
+            if(expirationClaim != null)
+            {
+                var exp = long.Parse(expirationClaim.Value);
+                var expirationTime = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
+
+                if(DateTime.UtcNow > expirationTime)
+                {
+                    return null;
+                }
+            }
+            return userId;
+        } catch (Exception ex)
+        {
+            return null;
+        }
+    }
 }
