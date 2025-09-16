@@ -8,7 +8,13 @@ namespace FitBridge_Application.MappingProfiles
     {
         public GymMappingProfiles()
         {
-            CreateProjection<ApplicationUser, GetGymDetailsDto>();
+            CreateProjection<ApplicationUser, GetGymDetailsDto>()
+                .ForMember(dest => dest.RepresentName, opt => opt.MapFrom(
+                    src => src.FullName));
+
+            CreateProjection<ApplicationUser, GetAllGymsDto>()
+                .ForMember(dest => dest.RepresentName, opt => opt.MapFrom(
+                    src => src.FullName));
         }
     }
 }
