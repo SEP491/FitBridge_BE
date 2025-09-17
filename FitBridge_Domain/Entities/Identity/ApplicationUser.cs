@@ -26,6 +26,7 @@ namespace FitBridge_Domain.Entities.Identity
         public AccountStatus AccountStatus { get; set; }
         public string? RefreshToken { get; set; }
         public string? AvatarUrl { get; set; }
+        public string? GymAddress { get; set; }
 
         public List<string> GymImages { get; set; } = new List<string>();
         public ICollection<GoalTraining> GoalTrainings { get; set; } = new List<GoalTraining>();

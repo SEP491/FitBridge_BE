@@ -23,7 +23,6 @@ namespace FitBridge_Application.Features.Identities.Token
                 }
 
                 var user = await applicationUserService.GetByIdAsync(Guid.Parse(userId));
-
                 if(user == null)
                 {
                     throw new UnauthorizedAccessException("User not found");
@@ -36,6 +35,7 @@ namespace FitBridge_Application.Features.Identities.Token
                 var newRefreshToken = userTokenService.CreateRefreshToken(user);
 
                 user.RefreshToken = newRefreshToken;
+                await applicationUserService.UpdateAsync(user);
 
                 return new RefreshTokenResponse
                 {
