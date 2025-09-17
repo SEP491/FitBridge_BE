@@ -10,7 +10,7 @@
 
         public string GymAddress { get; set; } = string.Empty;
 
-        public List<string> GymImages { get; set; } = [];
+        public List<GymImageDto> GymImages { get; set; } = [];
 
         public double Longitude { get; set; } = 0.0;
 

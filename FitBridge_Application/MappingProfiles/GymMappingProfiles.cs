@@ -11,12 +11,16 @@ namespace FitBridge_Application.MappingProfiles
             CreateProjection<ApplicationUser, GetGymDetailsDto>()
                 .ForMember(dest => dest.Dob, opt => opt.MapFrom(
                     src => new DateOnly(src.Dob.Year, src.Dob.Month, src.Dob.Day)))
+                .ForMember(dest => dest.GymImages, opt => opt.MapFrom(
+                    src => src.GymImages.Select(gi => new GymImageDto { Url = gi }).ToList()))
                 .ForMember(dest => dest.RepresentName, opt => opt.MapFrom(
                     src => src.FullName));
 
             CreateProjection<ApplicationUser, GetAllGymsDto>()
                 .ForMember(dest => dest.Dob, opt => opt.MapFrom(
                     src => new DateOnly(src.Dob.Year, src.Dob.Month, src.Dob.Day)))
+                .ForMember(dest => dest.GymImages, opt => opt.MapFrom(
+                    src => src.GymImages.Select(gi => new GymImageDto { Url = gi }).ToList()))
                 .ForMember(dest => dest.RepresentName, opt => opt.MapFrom(
                     src => src.FullName));
         }
