@@ -27,7 +27,9 @@ namespace FitBridge_Domain.Entities.Identity
         public string? RefreshToken { get; set; }
         public string? AvatarUrl { get; set; }
         public string? GymAddress { get; set; }
-
+        public Guid? GymOwnerId { get; set; } //To know this gym pt belong to which gym owner
+        public ApplicationUser? GymOwner { get; set; }
+        public ICollection<ApplicationUser> GymPTs { get; set; } = new List<ApplicationUser>();
         public List<string> GymImages { get; set; } = new List<string>();
         public ICollection<GoalTraining> GoalTrainings { get; set; } = new List<GoalTraining>();
         public ICollection<GymCoursePT> GymCoursePTs { get; set; } = new List<GymCoursePT>();

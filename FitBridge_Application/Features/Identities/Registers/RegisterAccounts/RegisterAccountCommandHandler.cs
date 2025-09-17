@@ -14,6 +14,12 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
 {
     public async Task<RegisterResponseDto> Handle(RegisterAccountCommand request, CancellationToken cancellationToken)
     {
+        if (request.Role != ProjectConstant.UserRoles.Admin
+        && request.Role != ProjectConstant.UserRoles.FreelancePT
+        && request.Role != ProjectConstant.UserRoles.GymOwner)
+        {
+            throw new Exception("Role not found, only Admin, FreelancePT and GymOwner are allowed to register");
+        }
         var user = new ApplicationUser
         {
             UserName = request.Email,
@@ -34,11 +40,6 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             case ProjectConstant.UserRoles.GymOwner:
                 await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.GymOwner);
                 await SendAccountInformationEmail(user, request.Password, request.IsTestAccount, ProjectConstant.UserRoles.GymOwner);
-                await InsertUserDetail(user);
-                break;
-            case ProjectConstant.UserRoles.GymPT:
-                await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.GymPT);
-                await SendAccountInformationEmail(user, request.Password, request.IsTestAccount, ProjectConstant.UserRoles.GymPT);
                 await InsertUserDetail(user);
                 break;
             case ProjectConstant.UserRoles.FreelancePT:
