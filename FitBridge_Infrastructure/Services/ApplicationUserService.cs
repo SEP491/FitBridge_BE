@@ -129,5 +129,10 @@ namespace FitBridge_Infrastructure.Services
         {
             return await userManager.ConfirmEmailAsync(user, token);
         }
+
+        public async Task<bool> IsInRoleAsync(ApplicationUser user, string role)
+        {
+            return await userManager.IsInRoleAsync(user, role);
+        }
     }
 }

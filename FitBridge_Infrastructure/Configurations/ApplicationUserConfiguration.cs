@@ -24,6 +24,11 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(e => e.AccountStatus)
         .HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<AccountStatus>(s))
         .HasDefaultValue(AccountStatus.Active);
-        builder.Property(e => e.GymImages).IsRequired(false);
+        builder.Property(e => e.GymOwnerId).IsRequired(false);
+
+        builder.HasOne(e => e.GymOwner)
+        .WithMany(e => e.GymPTs)
+        .HasForeignKey(e => e.GymOwnerId)
+        .OnDelete(DeleteBehavior.Restrict);
     }
 }
