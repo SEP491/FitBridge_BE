@@ -1,5 +1,7 @@
+using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Helpers;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Domain.Entities.Identity;
 using FluentEmail.Core;
 using FluentEmail.Smtp;
 using Microsoft.Extensions.Configuration;
@@ -48,10 +50,16 @@ public class EmailService : IEmailService
         await SendEmailAsync(email, subject, message);
     }
     
-    public async Task SendAccountInformationEmailAsync(string email, string password)
+    public async Task SendAccountInformationEmailAsync(ApplicationUser user, string password, string role)
     {
         string subject = "Account Information";
-        string message = EmailContentBuilder.BuildAccountInformationEmail(email, password, _configuration["FrontendUrl"]);
-        await SendEmailAsync(email, subject, message);
+        string message = EmailContentBuilder.BuildPtInformationEmail(user, password, role);
+
+        if (role == ProjectConstant.UserRoles.GymOwner)
+        {
+            message = EmailContentBuilder.BuildGymOwnerInformationEmail(user, password, _configuration["FrontendUrl"]);
+        }
+
+        await SendEmailAsync(user.Email, subject, message);
     }
 }
