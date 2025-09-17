@@ -31,7 +31,7 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             Password = request.Password,
             GymName = request.GymName ?? "",
             TaxCode = request.TaxCode ?? "",
-            EmailConfirmed = request.IsTestAccount,
+            EmailConfirmed = true,
         };
         await _applicationUserService.InsertUserAsync(user, request.Password);
 
