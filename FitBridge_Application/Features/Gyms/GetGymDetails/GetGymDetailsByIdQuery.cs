@@ -2,7 +2,7 @@
 using FitBridge_Application.Dtos.Gym;
 using MediatR;
 
-namespace FitBridge_Application.Features.Gym.Queries.GetGymDetails
+namespace FitBridge_Application.Features.Gyms.GetGymDetails
 {
     public class GetGymDetailsByIdQuery : IRequest<GetGymDetailsDto>
     {

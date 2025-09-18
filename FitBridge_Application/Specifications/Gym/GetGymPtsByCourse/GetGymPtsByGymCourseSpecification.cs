@@ -1,16 +1,16 @@
 ﻿using FitBridge_Application.Commons.Utils;
 using FitBridge_Domain.Entities.Identity;
 
-namespace FitBridge_Application.Specifications.Gym
+namespace FitBridge_Application.Specifications.Gym.GetGymPtsByCourse
 {
-    public class GetGymPtsSpecification : BaseSpecification<ApplicationUser>
+    public class GetGymPtsByGymCourseSpecification : BaseSpecification<ApplicationUser>
     {
-        public GetGymPtsSpecification(
-            Guid gymId,
-            GetGymPtsParams parameters,
+        public GetGymPtsByGymCourseSpecification(
+            Guid courseId,
+            GetGymPtsByGymCourseParams parameters,
             bool includeUserDetails = true,
             bool includeUserGoalTraining = true) : base(x =>
-            x.GymOwnerId == gymId && x.GymOwnerId != null)
+            x.GymCoursePTs.Where(x => x.GymCourseId == courseId).Select(x => x.PTId).Contains(x.Id))
         {
             switch (StringCapitalizationConverter.ToUpperFirstChar(parameters.SortBy))
             {

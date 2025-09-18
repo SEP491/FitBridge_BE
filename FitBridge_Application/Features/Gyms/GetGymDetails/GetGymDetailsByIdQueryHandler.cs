@@ -5,7 +5,7 @@ using FitBridge_Application.Specifications.Gym.GetGymById;
 using MediatR;
 using System.Net;
 
-namespace FitBridge_Application.Features.Gym.Queries.GetGymDetails
+namespace FitBridge_Application.Features.Gyms.GetGymDetails
 {
     internal class GetGymDetailsByIdQueryHandler(
         IApplicationUserService applicationUserService,

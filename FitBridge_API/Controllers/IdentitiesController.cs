@@ -35,11 +35,11 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
         {
             var result = await _mediator.Send(command);
             return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "User created successfully", result.UserId.ToString()));
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), ex.Message, ex.InnerException?.Message));
         }
-
     }
 
     [AllowAnonymous]
@@ -94,7 +94,7 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
             null));
         }
     }
-    
+
     [HttpPost("register-gym-pt")]
     public async Task<IActionResult> RegisterGymPt([FromBody] RegisterGymPtCommand command)
     {
@@ -106,8 +106,9 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
                 return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), "Gym owner not found", null));
             }
             var result = await _mediator.Send(command);
-            return Ok(new BaseResponse<CreateNewPTResponse>(StatusCodes.Status200OK.ToString(), "Gym Pt created successfully", result));    
-        } catch(Exception ex)
+            return Ok(new BaseResponse<CreateNewPTResponse>(StatusCodes.Status200OK.ToString(), "Gym Pt created successfully", result));
+        }
+        catch (Exception ex)
         {
             return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), ex.Message, ex.InnerException?.Message));
         }

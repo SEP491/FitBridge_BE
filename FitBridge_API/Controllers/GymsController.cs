@@ -4,11 +4,13 @@ using FitBridge_API.Helpers;
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Gym;
-using FitBridge_Application.Features.Gym.Queries.GetAllGyms;
-using FitBridge_Application.Features.Gym.Queries.GetGymDetails;
-using FitBridge_Application.Features.Gym.Queries.GetGymPts;
+using FitBridge_Application.Features.Gyms.GetAllGyms;
+using FitBridge_Application.Features.Gyms.GetGymDetails;
+using FitBridge_Application.Features.Gyms.GetGymPtsByCourse;
+using FitBridge_Application.Features.Gyms.GetGymPtsByGymId;
 using FitBridge_Application.Specifications.Gym;
 using FitBridge_Application.Specifications.Gym.GetAllGyms;
+using FitBridge_Application.Specifications.Gym.GetGymPtsByCourse;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -89,26 +91,17 @@ namespace FitBridge_API.Controllers
                     pagedResult));
         }
 
-        /// <summary>
-        /// Retrieves paginated personal trainer (PT) profiles associated with a gym.
-        /// </summary>
-        /// <param name="gymId">The unique identifier of the gym. Bound from route.</param>
-        /// <param name="getGymPtsParam">Query parameters for paging and filtering PTs. Bound from query.</param>
-        /// <returns>
-        /// A <see cref="GetGymPtsDto"/> containing paginated PT profiles and pagination metadata.
-        /// Returns HTTP 200 with the paginated result.
-        /// </returns>
         [HttpGet("{gymId}/pts")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetGymPtsDto>>))]
-        public async Task<ActionResult<Pagination<GetGymPtsDto>>> GetGymPts([FromRoute] Guid gymId, [FromQuery] GetGymPtsParams getGymPtsParam)
+        public async Task<ActionResult<Pagination<GetGymPtsDto>>> GetGymPtsByGymId([FromRoute] Guid gymId, [FromQuery] GetGymPtsByGymIdParams getGymPtsByGymIdParams)
         {
-            var response = await mediator.Send(new GetGymPtsQuery(getGymPtsParam, gymId));
+            var response = await mediator.Send(new GetGymPtsByGymIdQuery(gymId, getGymPtsByGymIdParams));
 
             var pagedResult = new Pagination<GetGymPtsDto>(
                 response.Items,
                 response.Total,
-                getGymPtsParam.Page,
-                getGymPtsParam.Size);
+                getGymPtsByGymIdParams.Page,
+                getGymPtsByGymIdParams.Size);
             return Ok(
                 new BaseResponse<Pagination<GetGymPtsDto>>(
                     StatusCodes.Status200OK.ToString(),

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FitBridge_Application.Dtos.Gym;
 using FitBridge_Domain.Entities.Accounts;
+using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Domain.Entities.Identity;
 using System.Text;
 
@@ -41,6 +42,10 @@ namespace FitBridge_Application.MappingProfiles
                     src => src.UserDetail!.Weight))
                 .ForMember(dest => dest.Experience, opt => opt.MapFrom(
                     src => src.UserDetail!.Experience));
+
+            CreateProjection<GymCourse, GetGymCourseDto>()
+                .ForMember(dest => dest.Image, opt => opt.MapFrom(
+                    src => src.ImageUrl));
         }
     }
 }

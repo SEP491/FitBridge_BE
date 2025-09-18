@@ -5,15 +5,15 @@ using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Specifications.Gym;
 using MediatR;
 
-namespace FitBridge_Application.Features.Gym.Queries.GetGymPts
+namespace FitBridge_Application.Features.Gyms.GetGymPtsByGymId
 {
-    internal class GetGymPtsQueryHandler(
+    internal class GetGymPtsByGymIdQueryHandler(
         IApplicationUserService applicationUserService,
-        IMapper mapper) : IRequestHandler<GetGymPtsQuery, PagingResultDto<GetGymPtsDto>>
+        IMapper mapper) : IRequestHandler<GetGymPtsByGymIdQuery, PagingResultDto<GetGymPtsDto>>
     {
-        public async Task<PagingResultDto<GetGymPtsDto>> Handle(GetGymPtsQuery request, CancellationToken cancellationToken)
+        public async Task<PagingResultDto<GetGymPtsDto>> Handle(GetGymPtsByGymIdQuery request, CancellationToken cancellationToken)
         {
-            var spec = new GetGymPtsSpecification(request.GymId, request.GetGymPtsParams);
+            var spec = new GetGymPtsByGymIdSpecification(request.GymId, request.GetGymPtsByCourseParams);
             var results = await applicationUserService.GetAllUserWithSpecProjectedAsync<GetGymPtsDto>(spec, mapper.ConfigurationProvider);
             var totalItems = await applicationUserService.CountAsync(spec);
 
