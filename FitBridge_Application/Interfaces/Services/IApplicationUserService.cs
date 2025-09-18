@@ -109,6 +109,7 @@ namespace FitBridge_Application.Interfaces.Services
         Task<IdentityResult> ConfirmEmailAsync(ApplicationUser user, string token);
 
         Task<List<string>> GetUserRolesAsync(ApplicationUser user);
+        Task<bool> IsInRoleAsync(ApplicationUser user, string role);
 
         #endregion Core methods
     }
