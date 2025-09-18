@@ -6,7 +6,9 @@ using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Gym;
 using FitBridge_Application.Features.Gym.Queries.GetAllGyms;
 using FitBridge_Application.Features.Gym.Queries.GetGymDetails;
+using FitBridge_Application.Features.Gym.Queries.GetGymPts;
 using FitBridge_Application.Specifications.Gym;
+using FitBridge_Application.Specifications.Gym.GetAllGyms;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +21,8 @@ namespace FitBridge_API.Controllers
 {
     /// <summary>
     /// Controller that exposes endpoints to query gyms.
-    /// All endpoints return JSON wrapped in a BaseResponse object.
+    /// All endpoints return JSON wrapped in a <see cref="BaseResponse{T}"/> object.
+    /// Route: api/v{version:apiVersion}/Gyms
     /// </summary>
     [Produces(MediaTypeNames.Application.Json)]
     public class GymsController(IMediator mediator) : _BaseApiController
@@ -27,9 +30,10 @@ namespace FitBridge_API.Controllers
         /// <summary>
         /// Retrieves gym details by its identifier.
         /// </summary>
-        /// <param name="gymId">The unique identifier of the gym.</param>
+        /// <param name="gymId">The unique identifier of the gym. Bound from route.</param>
         /// <returns>
-        /// 200: Returns a BaseResponse containing GetGymDetailsDto when the gym is found.
+        /// A <see cref="BaseResponse{GetGymDetailsDto}"/> containing the gym details when found.
+        /// Returns HTTP 200 with the data.
         /// </returns>
         [HttpGet("{gymId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<GetGymDetailsDto>))]
@@ -52,7 +56,8 @@ namespace FitBridge_API.Controllers
         /// </summary>
         ///
         /// <remarks>
-        /// Paging is enabled by default. Use the 'DoApplyPaging' parameter to disable it. With paging enabled, page size = 10 by default, page number starts at 1.
+        /// Paging is enabled by default. Use the 'DoApplyPaging' parameter to disable it.
+        /// With paging enabled, page size = 10 by default, page number starts at 1.
         ///
         /// Filter options :
         /// - gymName: partial / case-insensitive text match against the gym name.
@@ -60,11 +65,11 @@ namespace FitBridge_API.Controllers
         /// Ordering (SortBy / SortDirection):
         /// - gymName / asc (default) | desc
         /// - representName / asc (default) | desc
-        ///
         /// </remarks>
         /// <param name="getAllGymsParams">Query parameters for paging, filtering and sorting gyms. Supported fields typically include: Page, Size, Search, SortBy, SortDirection, Latitude, Longitude, Radius, HotResearch.</param>
         /// <returns>
-        /// 200: Returns a BaseResponse containing a Pagination object with GetAllGymsDto items.
+        /// A <see cref="BaseResponse{Pagination{GetAllGymsDto}}"/> containing paginated gym data and paging metadata.
+        /// Returns HTTP 200 with the paginated result.
         /// </returns>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetAllGymsDto>>))]
@@ -81,6 +86,33 @@ namespace FitBridge_API.Controllers
                 new BaseResponse<Pagination<GetAllGymsDto>>(
                     StatusCodes.Status200OK.ToString(),
                     "Get all gyms success",
+                    pagedResult));
+        }
+
+        /// <summary>
+        /// Retrieves paginated personal trainer (PT) profiles associated with a gym.
+        /// </summary>
+        /// <param name="gymId">The unique identifier of the gym. Bound from route.</param>
+        /// <param name="getGymPtsParam">Query parameters for paging and filtering PTs. Bound from query.</param>
+        /// <returns>
+        /// A <see cref="GetGymPtsDto"/> containing paginated PT profiles and pagination metadata.
+        /// Returns HTTP 200 with the paginated result.
+        /// </returns>
+        [HttpGet("{gymId}/pts")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetGymPtsDto>>))]
+        public async Task<ActionResult<Pagination<GetGymPtsDto>>> GetGymPts([FromRoute] Guid gymId, [FromQuery] GetGymPtsParams getGymPtsParam)
+        {
+            var response = await mediator.Send(new GetGymPtsQuery(getGymPtsParam, gymId));
+
+            var pagedResult = new Pagination<GetGymPtsDto>(
+                response.Items,
+                response.Total,
+                getGymPtsParam.Page,
+                getGymPtsParam.Size);
+            return Ok(
+                new BaseResponse<Pagination<GetGymPtsDto>>(
+                    StatusCodes.Status200OK.ToString(),
+                    "Get gym pts success",
                     pagedResult));
         }
     }
