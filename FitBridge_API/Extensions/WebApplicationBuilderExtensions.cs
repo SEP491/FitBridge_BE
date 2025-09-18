@@ -163,7 +163,13 @@ namespace FitBridge_API.Extensions
 
             builder.Services.AddHttpLogging(logging =>
             {
-                logging.LoggingFields = HttpLoggingFields.All;
+                logging.LoggingFields = HttpLoggingFields.RequestPath | HttpLoggingFields.Response;
+                logging.RequestHeaders.Add("sec-ch-ua");
+                logging.ResponseHeaders.Add("MyResponseHeader");
+                logging.MediaTypeOptions.AddText("application/javascript");
+                logging.RequestBodyLogLimit = 4096;
+                logging.ResponseBodyLogLimit = 4096;
+                logging.CombineLogs = true;
             });
 
             // Add API Versioning
