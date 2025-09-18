@@ -20,7 +20,10 @@ public class GymCourseConfiguration : IEntityTypeConfiguration<GymCourse>
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
+        builder.Property(e => e.Type).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<TypeCourseEnum>(s))
+        .IsRequired(true);
 
         builder.HasOne(e => e.GymOwner).WithMany(e => e.GymCourses).HasForeignKey(e => e.GymOwnerId);
     }
+    
 }
