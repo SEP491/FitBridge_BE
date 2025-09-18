@@ -1,6 +1,6 @@
 ﻿using FitBridge_Domain.Entities.Identity;
 
-namespace FitBridge_Application.Specifications.Gym
+namespace FitBridge_Application.Specifications.Gym.GetGymById
 {
     public class GetGymByIdSpecification : BaseSpecification<ApplicationUser>
     {

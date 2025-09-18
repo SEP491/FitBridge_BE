@@ -1,6 +1,15 @@
 ﻿namespace FitBridge_Application.MappingProfiles
 {
-    internal class Class1
+    using AutoMapper;
+    using FitBridge_Application.Dtos.GoalTrainings;
+    using FitBridge_Domain.Entities.Accounts;
+    using FitBridge_Domain.Entities.Trainings;
+
+    public class GoalTrainingMappingProfile : Profile
     {
+        public GoalTrainingMappingProfile()
+        {
+            CreateMap<GoalTraining, GoalTrainingResponsDto>();
+        }
     }
 }

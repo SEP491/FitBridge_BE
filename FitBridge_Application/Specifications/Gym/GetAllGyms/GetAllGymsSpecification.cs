@@ -1,8 +1,9 @@
-﻿using FitBridge_Application.Dtos.Gym;
+﻿using FitBridge_Application.Commons.Utils;
+using FitBridge_Application.Dtos.Gym;
 using FitBridge_Domain.Entities.Identity;
 using System.Linq.Expressions;
 
-namespace FitBridge_Application.Specifications.Gym
+namespace FitBridge_Application.Specifications.Gym.GetAllGyms
 {
     public class GetAllGymsSpecification : BaseSpecification<ApplicationUser>
     {

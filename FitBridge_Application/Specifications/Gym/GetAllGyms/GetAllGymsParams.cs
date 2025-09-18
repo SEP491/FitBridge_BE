@@ -1,4 +1,4 @@
-﻿namespace FitBridge_Application.Specifications.Gym
+﻿namespace FitBridge_Application.Specifications.Gym.GetAllGyms
 {
     public class GetAllGymsParams : BaseParams
     {

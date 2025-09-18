@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace FitBridge_Application.Specifications.Gym
+namespace FitBridge_Application.Commons.Utils
 {
     public static class StringCapitalizationConverter
     {

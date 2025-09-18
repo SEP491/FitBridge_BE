@@ -26,6 +26,7 @@ public class GetProfileCommandHandler(IApplicationUserService applicationUserSer
             Height = account.UserDetail.Height,
             Gender = account.IsMale ? "Male" : "Female",
             Address = account.GymAddress,
+            AvatarUrl = account.AvatarUrl,
         };
     }
 }
