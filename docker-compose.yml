@@ -1,4 +1,22 @@
 services:
+  chatbot-fitbridge:
+    image: rutkre/fitbridge-chatbot:latest
+    restart: unless-stopped
+    expose:
+      - "8002"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chatbot-fitbridge.rule=Host(`chatbot-fitbridge.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.chatbot-fitbridge.entrypoints=websecure"
+      - "traefik.http.routers.chatbot-fitbridge.tls=true"
+      - "traefik.http.routers.chatbot-fitbridge.tls.certresolver=myresolver"
+      - "traefik.http.routers.chatbot-fitbridge.priority=50"
+      - "traefik.http.services.chatbot-fitbridge.loadbalancer.server.port=8002"
+      - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+      - ${STACKS_VOLUME_PATH}/fitbridge/chatbot.env:/usr/src/app/.env
+    networks:
+      - proxy
   api-fitbridge:
     image: rutkre/fitbridge-be:latest
     restart: unless-stopped
@@ -17,7 +35,7 @@ services:
       - "traefik.http.services.api-fitbridge.loadbalancer.server.port=8003"
       - "com.centurylinklabs.watchtower.enable=true"
     volumes:
-      - /home/velour/deploy/stacks/fitbridge/appsettings.json:/app/appsettings.json
+      - ${STACKS_VOLUME_PATH}/fitbridge/appsettings.json:/app/appsettings.json
     deploy:
       mode: replicated
       replicas: 3
@@ -29,6 +47,8 @@ services:
         loki-max-backoff: "800ms"
         loki-timeout: "1s"
         keep-file: "true"
+    depends_on:
+      - chatbot-fitbridge
     networks:
       - postgres
       - proxy
