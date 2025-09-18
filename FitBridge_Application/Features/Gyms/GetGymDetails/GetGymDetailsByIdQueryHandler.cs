@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Gym;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Specifications.Gym.GetGymById;
 using MediatR;
 using System.Net;
 
-namespace FitBridge_Application.Features.Gym.Queries.GetGymDetails
+namespace FitBridge_Application.Features.Gyms.GetGymDetails
 {
     internal class GetGymDetailsByIdQueryHandler(
         IApplicationUserService applicationUserService,
@@ -14,7 +14,7 @@ namespace FitBridge_Application.Features.Gym.Queries.GetGymDetails
         public async Task<GetGymDetailsDto> Handle(GetGymDetailsByIdQuery request, CancellationToken cancellationToken)
         {
             var dto = await applicationUserService.GetUserWithSpecProjectedAsync<GetGymDetailsDto>(
-                new Specifications.Gym.GetGymByIdSpecification(
+                new GetGymByIdSpecification(
                     request.Id),
                     mapper.ConfigurationProvider);
 

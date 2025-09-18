@@ -108,10 +108,9 @@ try
     {
         logger.LogInformation("Clearing data...");
         await applicationDbContext.Database.EnsureDeletedAsync();
+        await applicationDbContext.Database.MigrateAsync();
+        await identitySeeder.SeedAsync();
     }
-
-    await applicationDbContext.Database.MigrateAsync();
-    if (ShouldReseedData) await identitySeeder.SeedAsync();
 }
 catch (Exception ex)
 {
