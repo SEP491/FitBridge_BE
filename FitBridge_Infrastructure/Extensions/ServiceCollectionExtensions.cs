@@ -10,6 +10,8 @@ using FitBridge_Application.Interfaces.Services;
 using FitBridge_Infrastructure.Services.Implements;
 using FitBridge_Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
+using FitBridge_Application.Interfaces.Utils;
+using FitBridge_Infrastructure.Utils;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -54,6 +56,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IUserTokenService, UserTokenService>();
             services.AddScoped<IApplicationUserService, ApplicationUserService>();
+            services.AddScoped<IUserUtil, UserUtil>();
         }
     }
 }

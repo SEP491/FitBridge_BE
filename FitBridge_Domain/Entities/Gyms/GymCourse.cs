@@ -9,10 +9,16 @@ public class GymCourse : BaseEntity
     public string Name { get; set; }
     public decimal Price { get; set; }
     public int Duration { get; set; }
-    public string Type { get; set; }
+    public TypeCourseEnum Type { get; set; }
     public string Description { get; set; }
     public string ImageUrl { get; set; }
     public Guid GymOwnerId { get; set; }
     public ICollection<GymCoursePT> GymCoursePTs { get; set; } = new List<GymCoursePT>();
     public ApplicationUser GymOwner { get; set; }
+}
+
+public enum TypeCourseEnum
+{
+    WithPt,
+    Normal
 }

@@ -1,12 +1,13 @@
 using System;
-using System.Security.Claims;
 using FitBridge_Application.Interfaces.Utils;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
-namespace FitBridge_API.Helpers;
+namespace FitBridge_Infrastructure.Utils;
 
-public static class UserUtil
+public class UserUtil : IUserUtil
 {
-    public static Guid? GetAccountId(HttpContext httpContext)
+    public Guid? GetAccountId(HttpContext httpContext)
     {
         if (httpContext.User == null)
         {
