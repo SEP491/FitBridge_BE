@@ -11,10 +11,12 @@ public class GoalTrainingConfiguration : IEntityTypeConfiguration<GoalTraining>
     {
         builder.ToTable("GoalTrainings");
         builder.Property(e => e.Name).IsRequired(true);
+        builder.Property(e => e.GymOwnerId).IsRequired(true);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.HasMany(e => e.ApplicationUsers).WithMany(e => e.GoalTrainings)
         .UsingEntity(j => j.ToTable("PTGoalTrainings"));
+        builder.HasOne(e => e.GymOwner).WithMany(e => e.GymGoalTrainings).HasForeignKey(e => e.GymOwnerId);
     }
 }
