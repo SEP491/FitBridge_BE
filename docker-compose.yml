@@ -1,7 +1,6 @@
 services:
   api-fitbridge:
     image: rutkre/fitbridge-be:latest
-    container_name: api-fitbridge
     restart: unless-stopped
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
@@ -19,6 +18,17 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - /home/velour/deploy/stacks/fitbridge/appsettings.json:/app/appsettings.json
+    deploy:
+      mode: replicated
+      replicas: 3
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://127.0.0.1:3100/loki/api/v1/push"
+        loki-retries: "2"
+        loki-max-backoff: "800ms"
+        loki-timeout: "1s"
+        keep-file: "true"
     networks:
       - postgres
       - proxy
