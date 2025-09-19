@@ -24,8 +24,14 @@ namespace FitBridge_API.Controllers
     /// <summary>
     /// Controller that exposes endpoints to query gyms.
     /// All endpoints return JSON wrapped in a <see cref="BaseResponse{T}"/> object.
-    /// Route: api/v{version:apiVersion}/Gyms
     /// </summary>
+    /// <remarks>
+    /// Route: api/v{version:apiVersion}/Gyms
+    /// This controller provides endpoints to:
+    /// - Retrieve gym details by id.
+    /// - Retrieve a paginated list of gyms with filtering and sorting.
+    /// - Retrieve paginated pts (personal trainers) for a given gym.
+    /// </remarks>
     [Produces(MediaTypeNames.Application.Json)]
     public class GymsController(IMediator mediator) : _BaseApiController
     {
@@ -91,6 +97,15 @@ namespace FitBridge_API.Controllers
                     pagedResult));
         }
 
+        /// <summary>
+        /// Retrieves a paginated list of personal trainers (pts) associated with a specific gym.
+        /// </summary>
+        /// <param name="gymId">The unique identifier of the gym. Bound from route.</param>
+        /// <param name="getGymPtsByGymIdParams">Query parameters for paging, filtering and sorting pts. Typically includes: Page, Size, Search, SortBy, SortDirection.</param>
+        /// <returns>
+        /// A <see cref="BaseResponse{Pagination{GetGymPtsDto}}"/> containing paginated pts data and paging metadata.
+        /// Returns HTTP 200 with the paginated result.
+        /// </returns>
         [HttpGet("{gymId}/pts")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetGymPtsDto>>))]
         public async Task<ActionResult<Pagination<GetGymPtsDto>>> GetGymPtsByGymId([FromRoute] Guid gymId, [FromQuery] GetGymPtsByGymIdParams getGymPtsByGymIdParams)
