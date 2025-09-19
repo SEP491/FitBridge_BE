@@ -1,6 +1,6 @@
 ﻿using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Gym;
-using FitBridge_Application.Specifications.Gym.GetGymCoursesByGymId;
+using FitBridge_Application.Specifications.GymCourses.GetGymCoursesByGymId;
 using MediatR;
 
 namespace FitBridge_Application.Features.GymCourses.GetGymCoursesByGymId

@@ -2,7 +2,7 @@
 using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Gym;
 using FitBridge_Application.Interfaces.Repositories;
-using FitBridge_Application.Specifications.Gym.GetGymPackages;
+using FitBridge_Application.Specifications.GymCourses.GetGymCoursesByGymId;
 using FitBridge_Domain.Entities.Gyms;
 using MediatR;
 

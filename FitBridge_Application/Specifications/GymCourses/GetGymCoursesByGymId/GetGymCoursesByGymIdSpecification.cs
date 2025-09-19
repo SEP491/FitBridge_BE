@@ -1,8 +1,7 @@
 ﻿using FitBridge_Application.Commons.Utils;
-using FitBridge_Application.Specifications.Gym.GetGymCoursesByGymId;
 using FitBridge_Domain.Entities.Gyms;
 
-namespace FitBridge_Application.Specifications.Gym.GetGymPackages
+namespace FitBridge_Application.Specifications.GymCourses.GetGymCoursesByGymId
 {
     public class GetGymCoursesByGymIdSpecification : BaseSpecification<GymCourse>
     {
