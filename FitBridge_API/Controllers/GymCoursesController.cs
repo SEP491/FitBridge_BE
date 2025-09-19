@@ -13,8 +13,28 @@ using System.Security.Claims;
 
 namespace FitBridge_API.Controllers
 {
+    /// <summary>
+    /// Handles gym course related endpoints: retrieving courses by gym, retrieving PTs for a course,
+    /// creating gym courses (requires authenticated gym owner), and assigning PTs to courses.
+    /// </summary>
+    /// <remarks>
+    /// Endpoints:
+    /// - GET  api/v{version}/GymCourses/{gymId}            : Get paginated gym courses for a gym.
+    /// - GET  api/v{version}/GymCourses/{courseId}/pts     : Get paginated PTs for a course.
+    /// - POST api/v{version}/GymCourses                    : Create a new gym course (authenticated owner).
+    /// - POST api/v{version}/GymCourses/assign-pt-to-course: Assign a PT to a course.
+    /// </remarks>
     public class GymCoursesController(IMediator mediator) : _BaseApiController
     {
+        /// <summary>
+        /// Retrieves paginated gym courses for a specific gym.
+        /// </summary>
+        /// <param name="gymId">The unique identifier of the gym.</param>
+        /// <param name="getGymCourseByGymIdParams">Query parameters for paging and filtering gym courses.</param>
+        /// <returns>
+        /// An <see cref="ActionResult{Pagination{GetGymCourseDto}}"/> containing paginated gym courses and pagination metadata.
+        /// Returns HTTP 200 with the paginated result.
+        /// </returns>
         [HttpGet("{gymId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetGymCourseDto>>))]
         public async Task<ActionResult<Pagination<GetGymPtsDto>>> GetGymCourseByGymId([FromRoute] Guid gymId, [FromQuery] GetGymCourseByGymIdParams getGymCourseByGymIdParams)
@@ -40,7 +60,7 @@ namespace FitBridge_API.Controllers
         /// <param name="courseId">The unique identifier of the course. Bound from route.</param>
         /// <param name="getGymPtsParam">Query parameters for paging and filtering PTs. Bound from query.</param>
         /// <returns>
-        /// A <see cref="GetGymPtsDto"/> containing paginated PT profiles and pagination metadata.
+        /// An <see cref="ActionResult{Pagination{GetGymPtsDto}}"/> containing paginated PT profiles and pagination metadata.
         /// Returns HTTP 200 with the paginated result.
         /// </returns>
         [HttpGet("{courseId}/pts")]
@@ -61,6 +81,14 @@ namespace FitBridge_API.Controllers
                     pagedResult));
         }
 
+        /// <summary>
+        /// Creates a new gym course.
+        /// </summary>
+        /// <param name="command">The command containing gym course details.</param>
+        /// <returns>
+        /// An <see cref="ActionResult{CreateGymCourseResponse}"/> containing the created gym course details.
+        /// Returns HTTP 200 if successful, or HTTP 400 if the gym owner is not found.
+        /// </returns>
         [HttpPost]
         public async Task<ActionResult<Pagination<GetGymPtsDto>>> CreateGymCourse([FromBody] CreateGymCourseCommand command)
         {
@@ -77,6 +105,14 @@ namespace FitBridge_API.Controllers
                     response));
         }
 
+        /// <summary>
+        /// Assigns a personal trainer (PT) to a gym course.
+        /// </summary>
+        /// <param name="command">The command containing PT and course assignment details.</param>
+        /// <returns>
+        /// An <see cref="ActionResult{Guid}"/> containing the assignment result.
+        /// Returns HTTP 200 with the assignment identifier.
+        /// </returns>
         [HttpPost("assign-pt-to-course")]
         public async Task<ActionResult<Pagination<GetGymPtsDto>>> AssignPtToCourse([FromBody] AssignPtToCourseCommand command)
         {
