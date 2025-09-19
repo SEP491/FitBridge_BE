@@ -1,9 +1,11 @@
-﻿using MediatR;
+﻿using FitBridge_Application.Dtos.GymCourses;
+using FitBridge_Domain.Entities.Gyms;
+using MediatR;
 using System.Text.Json.Serialization;
 
 namespace FitBridge_Application.Features.GymCourses.CreateGymCourse
 {
-    public class CreateGymCourseCommand : IRequest<Guid>
+    public class CreateGymCourseCommand : IRequest<CreateGymCourseResponse>
     {
         [JsonIgnore]
         public string? GymOwnerId { get; set; }
@@ -14,7 +16,7 @@ namespace FitBridge_Application.Features.GymCourses.CreateGymCourse
 
         public int Duration { get; set; }
 
-        public string Type { get; set; }
+        public TypeCourseEnum Type { get; set; }
 
         public string Description { get; set; }
 
