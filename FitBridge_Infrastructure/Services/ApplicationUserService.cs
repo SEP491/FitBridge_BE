@@ -17,7 +17,7 @@ namespace FitBridge_Infrastructure.Services
     {
         public async Task<IReadOnlyList<ApplicationUser>> GetAllUsersAsync()
         {
-            return await userManager.Users.OfType<ApplicationUser>().ToListAsync();
+            return await userManager.Users.OfType<ApplicationUser>().AsNoTracking().ToListAsync();
         }
 
         public async Task<IList<ApplicationUser>> GetUsersByRoleAsync(string role)
@@ -27,22 +27,32 @@ namespace FitBridge_Infrastructure.Services
 
         public async Task<IReadOnlyList<ApplicationUser>> GetAllUsersWithSpecAsync(ISpecification<ApplicationUser> spec)
         {
-            return await ApplySpecification(spec).ToListAsync();
+            return await ApplySpecification(spec).AsNoTracking().ToListAsync();
         }
 
-        public async Task<ApplicationUser?> GetUserWithSpecAsync(ISpecification<ApplicationUser> spec)
+        public async Task<ApplicationUser?> GetUserWithSpecAsync(ISpecification<ApplicationUser> spec, bool asNoTracking = true)
         {
-            return await ApplySpecification(spec).FirstOrDefaultAsync();
+            var query = ApplySpecification(spec);
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+            return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<TDto?> GetUserWithSpecProjectedAsync<TDto>(ISpecification<ApplicationUser> spec, IConfigurationProvider mapperConfig)
+        public async Task<TDto?> GetUserWithSpecProjectedAsync<TDto>(ISpecification<ApplicationUser> spec, IConfigurationProvider mapperConfig, bool asNoTracking = true)
         {
-            return await ApplySpecification(spec).ProjectTo<TDto>(mapperConfig).FirstOrDefaultAsync();
+            var query = ApplySpecification(spec);
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+            return await query.ProjectTo<TDto>(mapperConfig).FirstOrDefaultAsync();
         }
 
         public async Task<List<TDto>> GetAllUserWithSpecProjectedAsync<TDto>(ISpecification<ApplicationUser> spec, IConfigurationProvider mapperConfig)
         {
-            return await ApplySpecification(spec).ProjectTo<TDto>(mapperConfig).ToListAsync();
+            return await ApplySpecification(spec).AsNoTracking().ProjectTo<TDto>(mapperConfig).ToListAsync();
         }
 
         public async Task<int> CountAsync(ISpecification<ApplicationUser> spec)
@@ -67,9 +77,15 @@ namespace FitBridge_Infrastructure.Services
             await userManager.AddToRoleAsync(user, role);
         }
 
-        public async Task<ApplicationUser?> GetUserByEmailAsync(string email)
+        public async Task<ApplicationUser?> GetUserByEmailAsync(string email, bool asNoTracking = true)
         {
-            return await userManager.FindByEmailAsync(email);
+            if (!asNoTracking)
+            {
+                return await userManager.FindByEmailAsync(email);
+            }
+
+            var normalizedEmail = email.ToUpperInvariant();
+            return await userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
         }
 
         public async Task<string> GetUserRoleAsync(ApplicationUser user)
@@ -95,13 +111,13 @@ namespace FitBridge_Infrastructure.Services
 
         public async Task InsertUserAsync(ApplicationUser user, string password)
         {
-            var existingUserByPhoneNumber = await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == user.PhoneNumber);
+            var existingUserByPhoneNumber = await userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.PhoneNumber == user.PhoneNumber);
             if (existingUserByPhoneNumber != null)
             {
                 throw new DuplicateUserException($"A user with the phone number {user.PhoneNumber} already exists.");
             }
 
-            var existingUserByEmail = await userManager.FindByEmailAsync(user.Email!);
+            var existingUserByEmail = await userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == user.Email);
             if (existingUserByEmail != null)
             {
                 throw new DuplicateUserException($"A user with the email {user.Email} already exists.");
@@ -115,9 +131,14 @@ namespace FitBridge_Infrastructure.Services
             }
         }
 
-        public async Task<ApplicationUser?> GetUserByPhoneNumberAsync(string phoneNumber)
+        public async Task<ApplicationUser?> GetUserByPhoneNumberAsync(string phoneNumber, bool asNoTracking = true)
         {
-            return await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
+            var query = userManager.Users.AsQueryable();
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+            return await query.FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber);
         }
 
         public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user)
