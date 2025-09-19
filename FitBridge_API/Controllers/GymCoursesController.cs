@@ -3,10 +3,12 @@ using FitBridge_Application.Dtos.Gym;
 using FitBridge_Application.Dtos.GymCourses;
 using FitBridge_Application.Features.GymCourses.AssignPtToCourse;
 using FitBridge_Application.Features.GymCourses.CreateGymCourse;
+using FitBridge_Application.Features.GymCourses.DeleteGymCourseById;
 using FitBridge_Application.Features.GymCourses.GetGymCoursesByGymId;
+using FitBridge_Application.Features.GymCourses.UpdateGymCourse;
 using FitBridge_Application.Features.Gyms.GetGymPtsByCourse;
-using FitBridge_Application.Specifications.Gym.GetGymCoursesByGymId;
 using FitBridge_Application.Specifications.Gym.GetGymPtsByCourse;
+using FitBridge_Application.Specifications.GymCourses.GetGymCoursesByGymId;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -106,12 +108,55 @@ namespace FitBridge_API.Controllers
         }
 
         /// <summary>
+        /// Updates an existing gym course.
+        /// </summary>
+        /// <param name="courseId">The unique identifier of the gym course to update (bound from route).</param>
+        /// <param name="command">The update command containing new values for the gym course.</param>
+        /// <returns>
+        /// An <see cref="ActionResult{UpdateGymCourseResponse}"/> containing the updated gym course details.
+        /// Returns HTTP 200 when the update succeeds.
+        /// </returns>
+        [HttpPut("{courseId}")]
+        public async Task<ActionResult<UpdateGymCourseResponse>> UpdateGymCourse([FromRoute] Guid courseId, [FromBody] UpdateGymCourseCommand command)
+        {
+            command.GymCourseId = courseId;
+            var response = await mediator.Send(command);
+            return Ok(
+                new BaseResponse<UpdateGymCourseResponse>(
+                    StatusCodes.Status200OK.ToString(),
+                    "Update gym course success",
+                    response));
+        }
+
+        /// <summary>
+        /// Deletes an existing gym course by its unique identifier.
+        /// </summary>
+        /// <param name="courseId">The unique identifier of the gym course to delete (bound from route).</param>
+        /// <returns>
+        /// An <see cref="ActionResult"/> containing an empty result wrapped in a <see cref="BaseResponse{T}"/>.
+        /// Returns HTTP 200 when the deletion succeeds.
+        /// </returns>
+        /// <response code="200">Deletion succeeded and an empty result is returned.</response>
+        /// <response code="400">Bad request (e.g. invalid id format).</response>
+        /// <response code="404">Gym course not found.</response>
+        [HttpDelete("{courseId}")]
+        public async Task<ActionResult> DeleteGymCourse([FromRoute] Guid courseId)
+        {
+            await mediator.Send(new DeleteGymCourseByIdCommand(courseId));
+            return Ok(
+                new BaseResponse<EmptyResult>(
+                    StatusCodes.Status200OK.ToString(),
+                    "Delete gym course success",
+                    Empty));
+        }
+
+        /// <summary>
         /// Assigns a personal trainer (PT) to a gym course.
         /// </summary>
-        /// <param name="command">The command containing PT and course assignment details.</param>
+        /// <param name="command">The command containing PT and course assignment details (PT id, course id, session count).</param>
         /// <returns>
-        /// An <see cref="ActionResult{Guid}"/> containing the assignment result.
-        /// Returns HTTP 200 with the assignment identifier.
+        /// An <see cref="ActionResult{Guid}"/> containing the assignment identifier.
+        /// Returns HTTP 200 with the assignment identifier when successful.
         /// </returns>
         [HttpPost("assign-pt-to-course")]
         public async Task<ActionResult<Pagination<GetGymPtsDto>>> AssignPtToCourse([FromBody] AssignPtToCourseCommand command)

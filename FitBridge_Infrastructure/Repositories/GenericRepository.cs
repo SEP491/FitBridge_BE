@@ -57,7 +57,7 @@ namespace FitBridge_Infrastructure.Repositories
         public T? SoftDelete(T entityToDelete)
         {
             _dbContext.Entry(entityToDelete).State = EntityState.Modified;
-            entityToDelete.IsEnabled = true;
+            entityToDelete.IsEnabled = false;
             return entityToDelete;
         }
 
