@@ -34,14 +34,14 @@ namespace FitBridge_Application.Interfaces.Services
         /// </summary>
         /// <param name="spec">The specification to filter the user.</param>
         /// <returns>The user that matches the specification, or null if no user matches.</returns>
-        Task<ApplicationUser?> GetUserWithSpecAsync(ISpecification<ApplicationUser> spec);
+        Task<ApplicationUser?> GetUserWithSpecAsync(ISpecification<ApplicationUser> spec, bool asNoTracking = true);
 
         /// <summary>
         /// Retrieves a single user that matches a given specification asynchronously.
         /// </summary>
         /// <param name="spec">The specification to filter the user.</param>
         /// <returns>The user that matches the specification, or null if no user matches.</returns>
-        Task<TDto?> GetUserWithSpecProjectedAsync<TDto>(ISpecification<ApplicationUser> spec, IConfigurationProvider mapperConfig);
+        Task<TDto?> GetUserWithSpecProjectedAsync<TDto>(ISpecification<ApplicationUser> spec, IConfigurationProvider mapperConfig, bool asNoTracking = true);
 
         /// <summary>
         /// Retrieves a single user that matches a given specification asynchronously.
@@ -82,7 +82,7 @@ namespace FitBridge_Application.Interfaces.Services
         /// </summary>
         /// <param name="email">The email address to search for.</param>
         /// <returns>The user with the specified email, or null if not found.</returns>
-        Task<ApplicationUser?> GetUserByEmailAsync(string email);
+        Task<ApplicationUser?> GetUserByEmailAsync(string email, bool asNoTracking = true);
 
         /// <summary>
         /// Gets the role of a specified user asynchronously.
