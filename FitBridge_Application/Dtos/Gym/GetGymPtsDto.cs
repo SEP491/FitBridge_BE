@@ -23,5 +23,7 @@ namespace FitBridge_Application.Dtos.Gym
         public int Experience { get; set; }
 
         public string Gender { get; set; } = default!;
+
+        public string AvatarUrl { get; set; }
     }
 }
