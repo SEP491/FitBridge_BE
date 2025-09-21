@@ -12,6 +12,7 @@ using FitBridge_Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Infrastructure.Utils;
+using FitBridge_Infrastructure.Services.Templating;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -57,6 +58,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<IUserTokenService, UserTokenService>();
             services.AddScoped<IApplicationUserService, ApplicationUserService>();
             services.AddScoped<IUserUtil, UserUtil>();
+            services.AddScoped<ITemplatingService, TemplatingService>();
         }
     }
 }
