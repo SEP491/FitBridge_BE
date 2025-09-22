@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities.MessageAndReview;
+using FitBridge_Domain.Enums.MessageAndReview;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

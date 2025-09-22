@@ -1,6 +1,7 @@
 using System;
 using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Domain.Entities.Trainings;
+using FitBridge_Domain.Enums.Gyms;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

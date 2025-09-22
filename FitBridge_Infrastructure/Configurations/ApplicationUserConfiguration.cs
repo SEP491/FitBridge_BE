@@ -2,6 +2,8 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using FitBridge_Domain.Entities.Identity;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using FitBridge_Domain.Enums.ApplicationUser;
+
 namespace FitBridge_Infrastructure.Configurations;
 
 public class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>

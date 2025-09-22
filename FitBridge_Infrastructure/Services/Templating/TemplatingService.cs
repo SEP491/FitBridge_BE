@@ -2,7 +2,7 @@
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Specifications.Templates;
 using FitBridge_Domain.Entities.MessageAndReview;
-using FitBridge_Domain.Enums;
+using FitBridge_Domain.Enums.MessageAndReview;
 using FitBridge_Domain.Exceptions;
 using Fluid;
 using Fluid.Values;
@@ -13,7 +13,7 @@ namespace FitBridge_Infrastructure.Services.Templating
     {
         private readonly FluidParser parser = new();
 
-        public async Task<string> ParseTemplate<T>(ContentType templateType, T model)
+        public async Task<string> ParseTemplate<T>(EnumContentType templateType, T model)
         {
             var template = await GetTemplateString(templateType);
             if (!parser.TryParse(template, out var fluidTemplate, out var error))
@@ -27,7 +27,7 @@ namespace FitBridge_Infrastructure.Services.Templating
             return await fluidTemplate.RenderAsync(context);
         }
 
-        private async Task<string> GetTemplateString(ContentType templateType)
+        private async Task<string> GetTemplateString(EnumContentType templateType)
         {
             var template = await unitOfWork.Repository<Template>().GetBySpecificationAsync(new GetByTemplateTypeSpecification(templateType));
             return template == null ? throw new NotFoundException(nameof(Template), templateType.ToString()) : template.TemplateBody;

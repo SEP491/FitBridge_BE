@@ -1,4 +1,5 @@
 using FitBridge_Domain.Entities.Gyms;
+using FitBridge_Domain.Enums.GymCourses;
 using System;
 
 namespace FitBridge_Application.Dtos.GymCourses;
