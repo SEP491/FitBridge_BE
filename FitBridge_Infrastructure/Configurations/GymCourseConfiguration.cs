@@ -1,5 +1,5 @@
-using System;
 using FitBridge_Domain.Entities.Gyms;
+using FitBridge_Domain.Enums.GymCourses;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -25,5 +25,4 @@ public class GymCourseConfiguration : IEntityTypeConfiguration<GymCourse>
 
         builder.HasOne(e => e.GymOwner).WithMany(e => e.GymCourses).HasForeignKey(e => e.GymOwnerId);
     }
-    
 }

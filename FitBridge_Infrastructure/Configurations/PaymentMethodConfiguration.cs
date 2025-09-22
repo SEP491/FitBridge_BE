@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities.Orders;
+using FitBridge_Domain.Enums.Orders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

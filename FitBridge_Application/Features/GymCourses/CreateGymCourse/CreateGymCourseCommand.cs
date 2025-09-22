@@ -1,5 +1,6 @@
 ﻿using FitBridge_Application.Dtos.GymCourses;
 using FitBridge_Domain.Entities.Gyms;
+using FitBridge_Domain.Enums.GymCourses;
 using MediatR;
 using System.Text.Json.Serialization;
 
