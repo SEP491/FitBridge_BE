@@ -17,7 +17,7 @@ public class Booking : BaseEntity
 
     public Guid CustomerId { get; set; }
 
-    public Guid? OrderId { get; set; }
+    public Guid CustomerPurchasedId { get; set; }
 
     public SessionStatus SessionStatus { get; set; }
 
@@ -29,7 +29,7 @@ public class Booking : BaseEntity
 
     public ApplicationUser Customer { get; set; }
 
-    public Order? Order { get; set; }
+    public CustomerPurchased CustomerPurchased { get; set; }
 
     public ICollection<SessionActivity> SessionActivities { get; set; } = new List<SessionActivity>();
 }

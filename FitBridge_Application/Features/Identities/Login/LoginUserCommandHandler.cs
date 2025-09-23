@@ -151,7 +151,6 @@ public class LoginUserCommandHandler(
             string refreshToken = userTokenService.CreateRefreshToken(user);
 
             user.RefreshToken = refreshToken;
-            await applicationUserService.UpdateAsync(user);
 
             logger.LogDebug("Tokens generated successfully for user: {UserId}", user.Id);
             return (accessToken, idToken, refreshToken);

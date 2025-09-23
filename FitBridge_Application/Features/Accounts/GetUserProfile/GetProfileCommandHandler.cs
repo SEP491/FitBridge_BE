@@ -2,6 +2,7 @@ using System;
 using FitBridge_Application.Dtos.Accounts;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Specifications.Accounts;
+using FitBridge_Domain.Entities.Accounts;
 using FitBridge_Domain.Exceptions;
 using MediatR;
 
@@ -16,6 +17,13 @@ public class GetProfileCommandHandler(IApplicationUserService applicationUserSer
         {
             throw new NotFoundException("Account not found");
         }
+        var addressString = "";
+        if (account.Addresses.Count > 0)
+        {
+            Address address = account.Addresses.First();
+            addressString = $"{address.Street}, {address.Ward}, {address.District}, {address.City}";
+        }
+
         return new GetUserProfileResponse
         {
             FullName = account.FullName,
@@ -25,7 +33,7 @@ public class GetProfileCommandHandler(IApplicationUserService applicationUserSer
             Weight = account.UserDetail.Weight,
             Height = account.UserDetail.Height,
             Gender = account.IsMale ? "Male" : "Female",
-            Address = account.GymAddress,
+            Address = addressString,
             AvatarUrl = account.AvatarUrl,
         };
     }
