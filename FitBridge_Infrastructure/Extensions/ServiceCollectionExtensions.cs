@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Identity;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Infrastructure.Utils;
 using FitBridge_Infrastructure.Services.Templating;
+using System.Threading.Channels;
+using FitBridge_Application.Dtos.Notifications;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -51,6 +53,15 @@ namespace FitBridge_Infrastructure.Extensions
             })
                 .AddEntityFrameworkStores<FitBridgeDbContext>()
                 .AddDefaultTokenProviders();
+
+            var channel = Channel.CreateUnbounded<NotificationDto>(new UnboundedChannelOptions
+            {
+                SingleWriter = false,
+                SingleReader = false,
+                AllowSynchronousContinuations = false
+            });
+
+            services.AddSingleton<Channel<NotificationDto>>(channel);
 
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
