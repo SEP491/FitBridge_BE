@@ -9,5 +9,5 @@ public class ServiceInformation : BaseEntity
     public decimal ServiceCharge { get; set; }
     public int? MaximumHotResearchSlot { get; set; }
     public int? AvailableHotResearchSlot { get; set; }
-    public ICollection<Order> Orders { get; set; } = new List<Order>();
+    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }
