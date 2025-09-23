@@ -12,7 +12,6 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
         builder.ToTable("Addresses");
         builder.Property(e => e.ReceiverName).IsRequired(true);
         builder.Property(e => e.PhoneNumber).IsRequired(true);
-        builder.Property(e => e.AddressDetail).IsRequired(false);
         builder.Property(e => e.Note).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");

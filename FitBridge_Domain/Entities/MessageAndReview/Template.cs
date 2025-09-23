@@ -10,5 +10,5 @@ public class Template : BaseEntity
 
     public ICollection<PushNotificationTokens> PushNotificationTokens { get; set; } = new List<PushNotificationTokens>();
 
-    public InAppNotification InAppNotification { get; set; } = new InAppNotification();
+    public Notification InAppNotification { get; set; } = new Notification();
 }
