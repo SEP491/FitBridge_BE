@@ -23,17 +23,14 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
     {
         using var reader = new StreamReader(Request.Body);
         var webhookData = await reader.ReadToEndAsync();
-        //var spec = new PaymentCallbackWebhookCommand { WebhookData = webhookData };
-        //var result = await _mediator.Send(spec);
+        var spec = new PaymentCallbackWebhookCommand { WebhookData = webhookData };
+        var result = await _mediator.Send(spec);
 
-        //if (result)
-        //{
-        //    return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Webhook processed successfully", result));
-        //}
+        if (result)
+        {
+            return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Webhook processed successfully", result));
+        }
 
-        //return BadRequest(new BaseResponse<bool>(StatusCodes.Status400BadRequest.ToString(), "Failed to process webhook", result));
-        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Webhook processed successfully", true));
-
-
+        return BadRequest(new BaseResponse<bool>(StatusCodes.Status400BadRequest.ToString(), "Failed to process webhook", result));
     }
 }
