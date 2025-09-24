@@ -1,6 +1,7 @@
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Payments;
 using FitBridge_Application.Features.Payments.CreatePaymentLink;
+using FitBridge_Application.Features.Payments.GetPaymentInfor;
 using FitBridge_Application.Features.Payments.PaymentCallbackWebhook;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -32,5 +33,13 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
         }
 
         return BadRequest(new BaseResponse<bool>(StatusCodes.Status400BadRequest.ToString(), "Failed to process webhook", result));
+    }
+
+    [HttpGet("{id}")]
+    [Authorize]
+    public async Task<IActionResult> GetPaymentInfo(string id)
+    {
+        var result = await _mediator.Send(new GetPaymentInfoCommand { Id = id });
+        return Ok(new BaseResponse<PaymentInfoResponseDto>(StatusCodes.Status200OK.ToString(), "Payment information retrieved successfully", result));
     }
 }

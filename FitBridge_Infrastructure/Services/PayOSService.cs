@@ -99,64 +99,50 @@ public class PayOSService : IPayOSService
         }
     }
 
-    // public async Task<PaymentInfoResponseDto> GetPaymentInfoAsync(string id)
-    // {
-    //     try
-    //     {
-    //         // Parse order code (id can be orderCode or paymentLinkId)
-    //         if (!long.TryParse(id, out var orderCode))
-    //         {
-    //             throw new ArgumentException("Invalid order code format");
-    //         }
+    public async Task<PaymentInfoResponseDto> GetPaymentInfoAsync(string id)
+    {
+        try
+        {
+            // Parse order code (id can be orderCode or paymentLinkId)
+            if (!long.TryParse(id, out var orderCode))
+            {
+                throw new ArgumentException("Invalid order code format");
+            }
 
-    //         var paymentInfo = await _payOS.getPaymentLinkInformation(orderCode);
+            var paymentInfo = await _payOS.getPaymentLinkInformation(orderCode);
 
-    //         if (paymentInfo == null)
-    //         {
-    //             throw new Exception($"Payment information not found for order {id}");
-    //         }
+            if (paymentInfo == null)
+            {
+                throw new Exception($"Payment information not found for order {id}");
+            }
 
-    //         _logger.LogInformation("Successfully retrieved payment info for order {OrderCode}", orderCode);
+            _logger.LogInformation("Successfully retrieved payment info for order {OrderCode}", orderCode);
 
-    //         // Convert PayOS SDK result to our DTO format
-    //         return new PaymentInfoResponseDto
-    //         {
-    //             Code = "00",
-    //             Description = "Success",
-    //             Data = new PaymentInfoDataDto
-    //             {
-    //                 Id = paymentInfo.id,
-    //                 OrderCode = (int)paymentInfo.orderCode,
-    //                 Amount = paymentInfo.amount,
-    //                 AmountPaid = paymentInfo.amountPaid,
-    //                 AmountRemaining = paymentInfo.amountRemaining,
-    //                 Status = paymentInfo.status,
-    //                 CreatedAt = DateTime.Parse(paymentInfo.createdAt),
-    //                 CancellationReason = paymentInfo.cancellationReason,
-    //                 CanceledAt = paymentInfo.canceledAt != null ? DateTime.Parse(paymentInfo.canceledAt) : null,
-    //                 Transactions = paymentInfo.transactions.Select(t => new TransactionDto
-    //                 {
-    //                     Reference = t.reference,
-    //                     Amount = t.amount,
-    //                     AccountNumber = t.accountNumber,
-    //                     Description = t.description,
-    //                     TransactionDateTime = DateTime.Parse(t.transactionDateTime),
-    //                     VirtualAccountName = t.virtualAccountName,
-    //                     VirtualAccountNumber = t.virtualAccountNumber,
-    //                     CounterAccountBankId = t.counterAccountBankId,
-    //                     CounterAccountBankName = t.counterAccountBankName,
-    //                     CounterAccountName = t.counterAccountName,
-    //                     CounterAccountNumber = t.counterAccountNumber
-    //                 }).ToList()
-    //             }
-    //         };
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Error getting payment info for {Id}", id);
-    //         throw;
-    //     }
-    // }
+            // Convert PayOS SDK result to our DTO format
+            return new PaymentInfoResponseDto
+            {
+                Code = "00",
+                Description = "Success",
+                Data = new PaymentInfoDataDto
+                {
+                    Id = paymentInfo.id,
+                    OrderCode = (int)paymentInfo.orderCode,
+                    Amount = paymentInfo.amount,
+                    AmountPaid = paymentInfo.amountPaid,
+                    AmountRemaining = paymentInfo.amountRemaining,
+                    Status = paymentInfo.status,
+                    CreatedAt = DateTime.Parse(paymentInfo.createdAt),
+                    CancellationReason = paymentInfo.cancellationReason,
+                    CanceledAt = paymentInfo.canceledAt != null ? DateTime.Parse(paymentInfo.canceledAt) : null,
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting payment info for {Id}", id);
+            throw;
+        }
+    }
 
     public async Task<bool> CancelPaymentAsync(string id, string? cancellationReason = null)
     {

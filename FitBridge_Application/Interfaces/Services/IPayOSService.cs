@@ -18,7 +18,7 @@ public interface IPayOSService
     /// </summary>
     /// <param name="id">Order code or payment link ID</param>
     /// <returns>Payment information</returns>
-    // Task<PaymentInfoResponseDto> GetPaymentInfoAsync(string id);
+    Task<PaymentInfoResponseDto> GetPaymentInfoAsync(string id);
 
     /// <summary>
     /// Cancels a payment link
@@ -34,5 +34,4 @@ public interface IPayOSService
     /// <param name="webhookData">Webhook data from PayOS</param>
     /// <returns>True if webhook was processed successfully</returns>
     Task<bool> HandlePaymentWebhookAsync(string webhookData);
-    // Task<bool> HandlePaymentAsync(string status, long orderCode);
 }
