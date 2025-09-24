@@ -8,7 +8,7 @@ public class Transaction : BaseEntity
 
     public decimal Amount { get; set; }
 
-    public string OrderCode { get; set; }
+    public long OrderCode { get; set; }
 
     public string Description { get; set; }
 

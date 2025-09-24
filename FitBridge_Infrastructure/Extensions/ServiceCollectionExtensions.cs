@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Identity;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Infrastructure.Utils;
 using FitBridge_Infrastructure.Services.Templating;
+using FitBridge_Application.Configurations;
+using Microsoft.Extensions.Options;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -51,6 +53,9 @@ namespace FitBridge_Infrastructure.Extensions
             })
                 .AddEntityFrameworkStores<FitBridgeDbContext>()
                 .AddDefaultTokenProviders();
+            
+            services.Configure<PayOSSettings>(configuration.GetSection(PayOSSettings.SectionName));
+    
 
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -59,6 +64,10 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<IApplicationUserService, ApplicationUserService>();
             services.AddScoped<IUserUtil, UserUtil>();
             services.AddScoped<ITemplatingService, TemplatingService>();
+            services.AddScoped<IPayOSService, PayOSService>();
+            
+    
+
         }
     }
 }
