@@ -14,9 +14,6 @@ public class Order : BaseEntity
     public string CheckoutUrl { get; set; }
 
     public decimal TotalAmount { get; set; }
-
-    public int AvailableSessions { get; set; }
-
     public Guid? AddressId { get; set; }
     public decimal ShippingFee { get; set; }
     public decimal SubTotalPrice { get; set; }

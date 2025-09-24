@@ -8,7 +8,7 @@
 
         Processing,
 
-        Arrrived,
+        Arrived,
 
         Cancelled
     }
