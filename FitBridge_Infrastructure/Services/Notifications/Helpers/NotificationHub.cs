@@ -1,16 +1,14 @@
 ﻿using AutoMapper;
-using FitBridge_Application.Dtos.Notifications;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services.Notifications;
 using FitBridge_Application.Interfaces.Services.Notifications.UserNotifications;
+using FitBridge_Infrastructure.Services.Notifications.Enums;
 using Microsoft.AspNetCore.SignalR;
 
-namespace FitBridge_Infrastructure.Services.Notifications
+namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 {
     internal class NotificationHub(
-        INotificationConnectionManager notificationConnectionManager,
-        IUnitOfWork unitOfWork,
-        IMapper mapper) : Hub<IUserNotifications>
+        NotificationConnectionManager notificationConnectionManager) : Hub<IUserNotifications>
     {
         public override async Task OnConnectedAsync()
         {
@@ -26,18 +24,14 @@ namespace FitBridge_Infrastructure.Services.Notifications
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task<List<NotificationDto>> GetStoredNotifications(Guid userId)
+        public async Task AddToGroup(NotificationGroups groupName)
         {
+            await Groups.AddToGroupAsync(Context.ConnectionId, groupName.ToString());
         }
 
-        public async Task AddToGroup(string groupName)
+        public async Task RemoveFromGroup(NotificationGroups groupName)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        }
-
-        public async Task RemoveFromGroup(string groupName)
-        {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName.ToString());
         }
     }
 }

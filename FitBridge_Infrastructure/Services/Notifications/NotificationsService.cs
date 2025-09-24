@@ -1,6 +1,58 @@
-﻿namespace FitBridge_Infrastructure.Services.Notifications
+﻿using AutoMapper;
+using FitBridge_Application.Dtos.Notifications;
+using FitBridge_Application.Dtos.Templates;
+using FitBridge_Application.Interfaces.Repositories;
+using FitBridge_Application.Interfaces.Services.Notifications;
+using FitBridge_Application.Specifications.Templates;
+using FitBridge_Domain.Entities.MessageAndReview;
+using FitBridge_Domain.Enums.MessageAndReview;
+using FitBridge_Domain.Exceptions;
+using FitBridge_Infrastructure.Services.Notifications.Helpers;
+using System.Collections.Concurrent;
+using System.Threading.Channels;
+using System.Threading.Tasks;
+
+namespace FitBridge_Infrastructure.Services.Notifications
 {
-    internal class NotificationsService
+    internal class NotificationsService(
+        ChannelWriter<NotificationMessage> channelWriter,
+        IUnitOfWork unitOfWork,
+        IMapper mapper) : INotificationService
     {
+        private readonly ConcurrentDictionary<EnumContentType, (TemplateDto, TemplateDto)> templateDtos = [];
+
+        public async Task NotifyUsers(NotificationMessage notificationMessage)
+        {
+            var isExists = templateDtos.TryGetValue(notificationMessage.NotificationTypes, out var templates);
+            if (!isExists)
+            {
+                var inAppTemplate = await GetInAppNotificationTemplate(notificationMessage.NotificationTypes);
+                var pushTemplate = await GetPushNotificationTemplate(notificationMessage.NotificationTypes);
+                templates = (inAppTemplate, pushTemplate);
+                templateDtos.TryAdd(notificationMessage.NotificationTypes, templates);
+            }
+
+            notificationMessage.InAppNotificationTemplate = templates.Item1;
+            notificationMessage.PushNotificationTemplate = templates.Item2;
+
+            await channelWriter.WriteAsync(notificationMessage);
+        }
+
+        private async Task<TemplateDto> GetInAppNotificationTemplate(EnumContentType contentType)
+        {
+            var spec = new GetByTemplateTypeSpecification(contentType, TemplateCategory.InAppNotification);
+            var template = await unitOfWork.Repository<Template>().GetBySpecificationProjectedAsync<TemplateDto>(spec, mapper.ConfigurationProvider)
+                ?? throw new NotFoundException(nameof(Template));
+            return template;
+        }
+
+        private async Task<TemplateDto> GetPushNotificationTemplate(EnumContentType contentType)
+        {
+            var spec = new GetByTemplateTypeSpecification(contentType, TemplateCategory.PushNotification);
+            var template = await unitOfWork.Repository<Template>().GetBySpecificationProjectedAsync<TemplateDto>(spec, mapper.ConfigurationProvider)
+                ?? throw new NotFoundException(nameof(Template));
+
+            return template;
+        }
     }
 }

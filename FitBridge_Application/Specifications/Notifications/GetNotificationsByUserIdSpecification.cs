@@ -2,7 +2,7 @@
 
 namespace FitBridge_Application.Specifications.Notifications
 {
-    public class GetNotificationsByUserIdSpecification : BaseSpecification<InAppNotification>
+    public class GetNotificationsByUserIdSpecification : BaseSpecification<Notification>
     {
         public GetNotificationsByUserIdSpecification(Guid userId) : base(x => x.UserId == userId && x.IsEnabled)
         {

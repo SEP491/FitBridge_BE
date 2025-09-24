@@ -5,13 +5,13 @@ using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using System.Text.Json;
 
-namespace FitBridge_Infrastructure.Services.Notifications
+namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 {
     internal class NotificationStorageService(
         IConnectionMultiplexer connectionMultiplexer,
         IOptions<RedisSettings> redisSettings,
         IOptions<NotificationSettings> notificationSettings
-        ) : INotificationsStorageService
+        )
     {
         private readonly IDatabase database = connectionMultiplexer.GetDatabase(
             redisSettings.Value.NotificationStorage);

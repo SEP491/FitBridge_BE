@@ -1,12 +1,12 @@
-﻿using Castle.Core.Logging;
-using FitBridge_Application.Interfaces.Services.Notifications;
+﻿using FitBridge_Application.Interfaces.Services.Notifications;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Linq;
 
-namespace FitBridge_Infrastructure.Services.Notifications
+namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 {
-    internal class NotificationConnectionManager(ILogger<NotificationConnectionManager> logger) : INotificationConnectionManager
+    internal class NotificationConnectionManager(ILogger<NotificationConnectionManager> logger)
     {
         private readonly ConcurrentDictionary<string, HashSet<string>> connections = new();
 
@@ -35,12 +35,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
             return Task.CompletedTask;
         }
 
-        public Task<List<string>> GetConnectionsAsync(string keyId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> IsConnectionExists(string keyId)
+        public Task<bool> IsConnectionExistsAsync(string keyId)
         {
             connections.TryGetValue(keyId, out var valueIds);
             return valueIds!.Count > 0 ? Task.FromResult(true) : Task.FromResult(false);
@@ -60,9 +55,9 @@ namespace FitBridge_Infrastructure.Services.Notifications
                 throw new ArgumentException("ValueIds cannot be null or empty.");
             }
 
-            var list = await GetConnectionsAsync(keyId);
+            var hashSet = GetConnections(keyId);
             var updated = false;
-            if (list.Count > 0)
+            if (hashSet.Count > 0)
             {
                 try
                 {
@@ -80,10 +75,18 @@ namespace FitBridge_Infrastructure.Services.Notifications
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex.Message);
+                    logger.LogError(ex.Message);
                 }
             }
             return updated;
+        }
+
+        private HashSet<string> GetConnections(string keyId)
+        {
+            connections.TryGetValue(keyId, out HashSet<string>? hashSet);
+
+            ArgumentNullException.ThrowIfNull(hashSet);
+            return hashSet;
         }
     }
 }

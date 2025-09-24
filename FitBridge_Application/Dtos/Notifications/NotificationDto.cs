@@ -1,19 +1,13 @@
 ﻿namespace FitBridge_Application.Dtos.Notifications
 {
-    public class NotificationDto(int id, string content, Dictionary<string, string>? additionalPayload, DateTime timestamp)
+    public class NotificationDto(Dictionary<string, string>? additionalPayload)
     {
-        public int Id { get; set; } = id;
+        public string? Title { get; set; }
 
-        public string Content { get; set; } = content;
+        public string? Content { get; set; }
 
-        public DateTime Timestamp { get; set; } = timestamp;
-
-        public bool IsRead { get; set; } = false; // whether the notification has been read by the user
+        public DateTime Timestamp { get; set; } = DateTime.Now;
 
         public Dictionary<string, string>? AdditionalPayload { get; set; } = additionalPayload;
-
-        public string Type { get; set; }
-
-        public string? Title { get; set; }
     }
 }

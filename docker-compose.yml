@@ -52,8 +52,31 @@ services:
     networks:
       - postgres
       - proxy
+
+  redis-fitbridge:
+    image: redis/redis-stack-server:latest
+    restart: unless-stopped
+    expose:
+      - "6379"
+    networks:
+      - proxy
+      - redis
+    environment:
+      - REDIS_ARGS=--requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.enable=true"
+
 networks:
   postgres:
     external: true
   proxy:
+    external: true
+  redis:
     external: true

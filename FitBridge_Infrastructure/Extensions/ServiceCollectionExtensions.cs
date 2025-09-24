@@ -54,14 +54,14 @@ namespace FitBridge_Infrastructure.Extensions
                 .AddEntityFrameworkStores<FitBridgeDbContext>()
                 .AddDefaultTokenProviders();
 
-            var channel = Channel.CreateUnbounded<NotificationDto>(new UnboundedChannelOptions
+            var channel = Channel.CreateUnbounded<NotificationMessage>(new UnboundedChannelOptions
             {
                 SingleWriter = false,
                 SingleReader = false,
                 AllowSynchronousContinuations = false
             });
 
-            services.AddSingleton<Channel<NotificationDto>>(channel);
+            services.AddSingleton<Channel<NotificationMessage>>(channel);
 
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
