@@ -6,7 +6,9 @@ namespace FitBridge_Application.Interfaces.Repositories
 {
     public interface IGenericRepository<T> where T : BaseEntity
     {
+
         // GET
+        Task<T?> GetByIdAsync(Guid id, bool asNoTracking = true);
         Task<IReadOnlyList<T>> GetAllWithSpecificationAsync(ISpecification<T> specification, bool asNoTracking = true);
 
         Task<T?> GetBySpecificationAsync(ISpecification<T> specification, bool asNoTracking = true);
@@ -15,7 +17,7 @@ namespace FitBridge_Application.Interfaces.Repositories
 
         // GET support Projection with Automapper for better performance
         Task<TDto?> GetBySpecificationProjectedAsync<TDto>(ISpecification<T> specification, IConfigurationProvider mapperConfig);
-
+        Task<TDto?> GetByIdProjectedAsync<TDto>(Guid id, IConfigurationProvider mapperConfig);
         Task<IReadOnlyList<TDto>> GetAllWithSpecificationProjectedAsync<TDto>(ISpecification<T> specification, IConfigurationProvider mapperConfig);
 
         // INSERT, DELETE, UPDATE

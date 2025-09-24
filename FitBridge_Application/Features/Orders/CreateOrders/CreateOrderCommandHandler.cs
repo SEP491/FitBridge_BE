@@ -37,7 +37,6 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
         order.TotalAmount = totalPrice;
         order.SubTotalPrice = subTotalPrice;
         order.Status = OrderStatus.PaymentProcessing;
-
         _unitOfWork.Repository<Order>().Insert(order);
         await _unitOfWork.CommitAsync();
         return order.Id.ToString();
