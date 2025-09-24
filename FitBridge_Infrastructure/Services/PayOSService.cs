@@ -4,13 +4,19 @@ using FitBridge_Application.Configurations;
 using FitBridge_Application.Dtos.Payments;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Specifications.Orders;
 using FitBridge_Domain.Entities.Accounts;
 using FitBridge_Domain.Entities.Identity;
+using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Exceptions;
+using FitBridge_Domain.Enums.Orders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Net.payOS;
 using Net.payOS.Types;
+using FitBridge_Domain.Entities.Gyms;
+using FitBridge_Application.Specifications.GymCoursePts.GetGymCoursePtById;
+using FitBridge_Application.Specifications.Transactions;
 
 namespace FitBridge_Infrastructure.Services;
 
@@ -54,7 +60,8 @@ public class PayOSService : IPayOSService
             }
             var paymentData = new PaymentData(
                 orderCode: orderCode,
-                amount: (int)request.TotalAmount,
+                //amount: (int)request.TotalAmount,
+                amount: 5000,
                 description: user.UserName,
                 items: items,
                 cancelUrl: _settings.CancelUrl,
@@ -180,77 +187,95 @@ public class PayOSService : IPayOSService
         }
     }
 
-    // public async Task<bool> HandlePaymentWebhookAsync(string webhookData)
-    // {
-    //     try
-    //     {
-    //         // Parse webhook data
-    //         var webhookType = JsonSerializer.Deserialize<WebhookType>(webhookData, new JsonSerializerOptions
-    //         {
-    //             PropertyNameCaseInsensitive = true
-    //         });
+    public async Task<bool> HandlePaymentWebhookAsync(string webhookData)
+    {
+        try
+        {
 
-    //         if (webhookType == null)
-    //         {
-    //             _logger.LogWarning("Invalid webhook payload received");
-    //             return false;
-    //         }
+            // Parse webhook data
+            var webhookType = JsonSerializer.Deserialize<WebhookType>(webhookData, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
-    //         // Verify webhook data using PayOS SDK
-    //         var verifiedWebhookData = _payOS.verifyPaymentWebhookData(webhookType);
+            if (webhookType == null)
+            {
+                _logger.LogWarning("Invalid webhook payload received");
+                return false;
+            }
 
-    //         if (verifiedWebhookData == null)
-    //         {
-    //             _logger.LogWarning("Failed to verify webhook data");
-    //             return false;
-    //         }
+            // Verify webhook data using PayOS SDK
+            var verifiedWebhookData = _payOS.verifyPaymentWebhookData(webhookType);
 
-    //         // Find transaction by order code
-    //         var transactions = await _unitOfWork.Repository<Transaction>()
-    //             .GetAllWithSpecificationAsync(new TransactionByReferenceCodeSpecification(verifiedWebhookData.orderCode));
-
-    //         var transaction = transactions.FirstOrDefault();
-    //         if (transaction == null)
-    //         {
-    //             _logger.LogWarning("Transaction not found for order code {OrderCode}", verifiedWebhookData.orderCode);
-    //             return false;
-    //         }
-
-    //         var paymentStatus = verifiedWebhookData.code switch
-    //         {
-    //             "00" => TransactionStatus.Completed, // PayOS success code
-    //             "01" => TransactionStatus.Failed,    // PayOS failure code
-    //             _ => TransactionStatus.Pending
-    //         };
+            if (verifiedWebhookData == null)
+            {
+                _logger.LogWarning("Failed to verify webhook data");
+                return false;
+            }
             
-    //         // Update transaction status based on webhook data
-    //         transaction.TransactionStatus = verifiedWebhookData.code switch
-    //         {
-    //             "00" => TransactionStatus.Completed, // PayOS success code
-    //             "01" => TransactionStatus.Failed,    // PayOS failure code
-    //             _ => TransactionStatus.Pending
-    //         };
+            var transaction = await _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeSpec(verifiedWebhookData.orderCode));
 
-    //         _unitOfWork.Repository<TransactionRecord>().Update(transaction);
-    //         await _unitOfWork.CompleteAsync();
+            if (transaction == null)
+            {
+                throw new NotFoundException("Transaction not found");
+            }
+            transaction.Status = TransactionStatus.Success;
+            _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().Update(transaction);
+            await _unitOfWork.CommitAsync();
 
-    //         // If payment is successful and it's a membership payment, activate the membership
-    //         if (transaction.TransactionStatus == TransactionStatus.Completed && transaction.MembershipId.HasValue)
-    //         {
-    //             await _membershipsService.ProcessMembershipPaymentSuccessAsync((int)verifiedWebhookData.orderCode);
-    //         }
 
-    //         _logger.LogInformation("Successfully processed webhook for order code {OrderCode}, status: {Status}", 
-    //             verifiedWebhookData.orderCode, verifiedWebhookData.desc);
 
-    //         return true;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         _logger.LogError(ex, "Error processing payment webhook");
-    //         return false;
-    //     }
-    // }
+            // Find transaction by order code
+            var OrderEntity = await _unitOfWork.Repository<Order>()
+                .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(verifiedWebhookData.orderCode), false);
+            if(OrderEntity == null)
+            {
+                throw new NotFoundException("Order not found");
+            }
+            if (OrderEntity.OrderItems.Any(item => item.ProductDetailId != null))
+            {
+                OrderEntity.Status = OrderStatus.Pending;
+            }
+            else
+            {
+                OrderEntity.Status = OrderStatus.Arrived;
+            }
+            foreach (var orderItem in OrderEntity.OrderItems)
+            {
+                if (orderItem.ProductDetailId == null)
+                {
+                    var numOfSession = 0;
+                    if(orderItem.FreelancePTPackage != null)
+                    {
+                        numOfSession = orderItem.FreelancePTPackage.NumOfSessions;
+                    }
+                    if(orderItem.GymCourseId != null && orderItem.GymPtId != null)
+                    {
+                        var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItem.GymCourseId.Value, orderItem.GymPtId.Value));
+                        if(gymCoursePT == null)
+                        {
+                            throw new NotFoundException("Gym course PT with gym course id and pt id not found");
+                        }
+                        numOfSession = gymCoursePT.Session.Value;
+                    }
+                    orderItem.CustomerPurchased = new CustomerPurchased
+                    {
+                        CustomerId = OrderEntity.AccountId,
+                        OrderItemId = orderItem.Id,
+                        AvailableSessions = orderItem.Quantity * numOfSession,
+                        ExpirationDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30 * orderItem.Quantity),
+                    };
+                }
+            }
+            await _unitOfWork.CommitAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing payment webhook");
+            return false;
+        }
+    }
 
     private long GenerateOrderCode()
     {

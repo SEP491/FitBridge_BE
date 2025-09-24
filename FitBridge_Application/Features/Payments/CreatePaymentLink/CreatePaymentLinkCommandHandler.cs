@@ -57,7 +57,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             OrderCode = paymentResponse.Data.OrderCode,
             Description = "Payment for order " + paymentResponse.Data.OrderCode,
             PaymentMethodId = paymentMethodId,
-            Status = TransactionStatus.Success,
+            Status = TransactionStatus.Pending,
             OrderId = orderId,
             Amount = paymentResponse.Data.Amount
         };
