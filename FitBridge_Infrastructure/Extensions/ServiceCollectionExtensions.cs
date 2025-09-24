@@ -15,6 +15,8 @@ using FitBridge_Infrastructure.Utils;
 using FitBridge_Infrastructure.Services.Templating;
 using System.Threading.Channels;
 using FitBridge_Application.Dtos.Notifications;
+using FitBridge_Application.Configurations;
+using Microsoft.Extensions.Options;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -54,6 +56,8 @@ namespace FitBridge_Infrastructure.Extensions
                 .AddEntityFrameworkStores<FitBridgeDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.Configure<PayOSSettings>(configuration.GetSection(PayOSSettings.SectionName));
+
             var channel = Channel.CreateUnbounded<NotificationMessage>(new UnboundedChannelOptions
             {
                 SingleWriter = false,
@@ -70,6 +74,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<IApplicationUserService, ApplicationUserService>();
             services.AddScoped<IUserUtil, UserUtil>();
             services.AddScoped<ITemplatingService, TemplatingService>();
+            services.AddScoped<IPayOSService, PayOSService>();
         }
     }
 }
