@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 {
-    internal class NotificationStorageService(
+    public class NotificationStorageService(
         IConnectionMultiplexer connectionMultiplexer,
         IOptions<RedisSettings> redisSettings,
         ILogger<NotificationStorageService> logger

@@ -3,7 +3,7 @@ using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Identities;
 using MediatR;
 
-namespace FitBridge_Application.Features.Identities.Registers;
+namespace FitBridge_Application.Features.Identities.Registers.RegisterCustomer;
 
 public class RegisterCommand : IRequest<RegisterResponseDto>
 {

@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 {
-    internal class NotificationConnectionManager(ILogger<NotificationConnectionManager> logger)
+    public class NotificationConnectionManager(ILogger<NotificationConnectionManager> logger)
     {
         private readonly ConcurrentDictionary<string, HashSet<string>> connections = new();
 

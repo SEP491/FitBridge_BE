@@ -20,6 +20,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 using System.Threading.Channels;
 
 namespace FitBridge_Infrastructure.Extensions
@@ -60,6 +61,13 @@ namespace FitBridge_Infrastructure.Extensions
                 .AddEntityFrameworkStores<FitBridgeDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.AddSingleton<IConnectionMultiplexer>(config =>
+            {
+                ArgumentException.ThrowIfNullOrEmpty(configuration.GetSection("Redis:ConnectionString").Value);
+                var connectionString = configuration.GetSection("Redis:ConnectionString").Value!;
+                return ConnectionMultiplexer.Connect(connectionString);
+            });
+
             services.Configure<FirebaseSettings>(configuration.GetSection(FirebaseSettings.SectionName));
             services.Configure<PayOSSettings>(configuration.GetSection(PayOSSettings.SectionName));
             services.Configure<NotificationSettings>(configuration.GetSection(NotificationSettings.SectionName));
@@ -70,13 +78,14 @@ namespace FitBridge_Infrastructure.Extensions
                 SingleReader = false,
                 AllowSynchronousContinuations = false
             });
-            services.AddHostedService<NotificationsBackgroundService>();
 
-            services.AddSingleton<Channel<NotificationMessage>>(channel);
+            services.AddSignalR();
+            services.AddSingleton<ChannelWriter<NotificationMessage>>(channel.Writer);
+            services.AddSingleton<ChannelReader<NotificationMessage>>(channel.Reader);
             services.AddSingleton<FirebaseService>();
             services.AddSingleton<PushNotificationService>();
-            services.AddSingleton<NotificationHandshakeManager>();
             services.AddSingleton<NotificationConnectionManager>();
+            services.AddSingleton<NotificationHandshakeManager>();
             services.AddSingleton<NotificationStorageService>();
 
             services.AddScoped<INotificationService, NotificationsService>();
@@ -88,6 +97,8 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<IUserUtil, UserUtil>();
             services.AddScoped<TemplatingService>();
             services.AddScoped<IPayOSService, PayOSService>();
+
+            services.AddHostedService<NotificationsBackgroundService>();
         }
     }
 }

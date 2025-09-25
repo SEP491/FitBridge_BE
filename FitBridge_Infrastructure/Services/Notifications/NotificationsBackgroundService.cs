@@ -6,6 +6,7 @@ using FitBridge_Application.Specifications.Notifications;
 using FitBridge_Domain.Entities.MessageAndReview;
 using FitBridge_Infrastructure.Services.Notifications.Helpers;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
@@ -21,7 +22,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
         NotificationConnectionManager notificationConnectionManager,
         PushNotificationService pushNotificationService,
         NotificationHandshakeManager notificationHandshakeManager,
-        IUnitOfWork unitOfWork) : BackgroundService
+        IServiceScopeFactory serviceScopeFactory) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -57,6 +58,9 @@ namespace FitBridge_Infrastructure.Services.Notifications
 
         private async Task<List<string>> GetDeviceTokens(Guid userId)
         {
+            using var scope = serviceScopeFactory.CreateScope();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
             var spec = new GetDeviceTokenByUserSpecification(userId);
             var tokenList = await unitOfWork.Repository<PushNotificationTokens>().GetAllWithSpecificationAsync(spec);
 

@@ -1,16 +1,16 @@
 ﻿using FitBridge_Application.Configurations;
 using FitBridge_Application.Dtos.Notifications;
+using FitBridge_Application.Interfaces.Services.Notifications.UserNotifications;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
-using static FitBridge_Infrastructure.Services.Notifications.NotificationsBackgroundService;
 
 namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 {
-    internal class NotificationHandshakeManager(
+    public class NotificationHandshakeManager(
         IOptions<NotificationSettings> notificationSettings,
-        IHubContext<NotificationHub> hubContext,
+        IHubContext<NotificationHub, IUserNotifications> hubContext,
         ILogger<NotificationHandshakeManager> logger)
     {
         private NotificationSettings settings = notificationSettings.Value;
@@ -31,7 +31,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             {
                 try
                 {
-                    await hubContext.Clients.Client(userId).SendAsync("RequestHandshake");
+                    await hubContext.Clients.Client(userId).NewNotification(notificationDto);
 
                     state.CancellationTokenSource = new CancellationTokenSource(settings.InitialRetryDelayMs);
 
@@ -54,7 +54,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             if (state.RetryCount >= settings.MaxHandshakeRetries)
             {
                 handshakeStates.TryRemove(userId, out _);
-                callback.Invoke(notificationDto, userId);
+                await callback.Invoke(notificationDto, userId);
             }
         }
 

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace FitBridge_Infrastructure.Services.Notifications
 {
     [Authorize]
-    internal class NotificationHub(
+    public class NotificationHub(
         NotificationConnectionManager notificationConnectionManager,
         NotificationHandshakeManager notificationHandshakeManager,
         NotificationStorageService notificationStorageService) : Hub<IUserNotifications>

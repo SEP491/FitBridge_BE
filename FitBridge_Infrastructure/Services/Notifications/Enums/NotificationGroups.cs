@@ -1,6 +1,6 @@
 ﻿namespace FitBridge_Infrastructure.Services.Notifications.Enums
 {
-    internal enum NotificationGroups
+    public enum NotificationGroups
     {
         Customer,
 
