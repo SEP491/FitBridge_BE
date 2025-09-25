@@ -1,7 +1,7 @@
 ﻿using FitBridge_Application.Commons.Utils;
 using FitBridge_Domain.Entities.Identity;
 
-namespace FitBridge_Application.Specifications.Gym
+namespace FitBridge_Application.Specifications.Gym.GetGymPtsByGymId
 {
     public class GetGymPtsByGymIdSpecification : BaseSpecification<ApplicationUser>
     {

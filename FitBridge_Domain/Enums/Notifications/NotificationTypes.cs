@@ -1,6 +1,6 @@
-﻿namespace FitBridge_Domain.Enums.MessageAndReview
+﻿namespace FitBridge_Domain.Enums.Notifications
 {
-    public enum EnumContentType
+    public enum NotificationTypes
     {
         NewMessage,
 
