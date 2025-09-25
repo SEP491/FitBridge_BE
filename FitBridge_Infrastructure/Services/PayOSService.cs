@@ -17,6 +17,7 @@ using Net.payOS.Types;
 using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Application.Specifications.GymCoursePts.GetGymCoursePtById;
 using FitBridge_Application.Specifications.Transactions;
+using FitBridge_Domain.Enums.Payments;
 
 namespace FitBridge_Infrastructure.Services;
 
@@ -199,7 +200,11 @@ public class PayOSService : IPayOSService
                 _logger.LogWarning("Failed to verify webhook data");
                 return false;
             }
-
+            if(verifiedWebhookData.orderCode == 123)
+            {
+                 return true; // Test webhook from PayOS
+            }
+            
             var transaction = await _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeSpec(verifiedWebhookData.orderCode));
 
             if (transaction == null)
