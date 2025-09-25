@@ -23,12 +23,15 @@ namespace FitBridge_Infrastructure.Services;
 public class PayOSService : IPayOSService
 {
     private readonly PayOSSettings _settings;
+
     private readonly ILogger<PayOSService> _logger;
+
     private readonly IUnitOfWork _unitOfWork;
+
     private readonly PayOS _payOS;
 
     public PayOSService(
-        IOptions<PayOSSettings> settings, 
+        IOptions<PayOSSettings> settings,
         ILogger<PayOSService> logger,
         IUnitOfWork unitOfWork)
     {
@@ -39,7 +42,6 @@ public class PayOSService : IPayOSService
         // Initialize PayOS SDK
         _payOS = new PayOS(_settings.ClientId, _settings.ApiKey, _settings.ChecksumKey);
     }
-
 
     public async Task<PaymentResponseDto> CreatePaymentLinkAsync(CreatePaymentRequestDto request, ApplicationUser user)
     {
@@ -177,7 +179,6 @@ public class PayOSService : IPayOSService
     {
         try
         {
-
             // Parse webhook data
             var webhookType = JsonSerializer.Deserialize<WebhookType>(webhookData, new JsonSerializerOptions
             {
@@ -198,7 +199,7 @@ public class PayOSService : IPayOSService
                 _logger.LogWarning("Failed to verify webhook data");
                 return false;
             }
-            
+
             var transaction = await _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeSpec(verifiedWebhookData.orderCode));
 
             if (transaction == null)
@@ -209,12 +210,10 @@ public class PayOSService : IPayOSService
             _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().Update(transaction);
             await _unitOfWork.CommitAsync();
 
-
-
             // Find transaction by order code
             var OrderEntity = await _unitOfWork.Repository<Order>()
                 .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(verifiedWebhookData.orderCode), false);
-            if(OrderEntity == null)
+            if (OrderEntity == null)
             {
                 throw new NotFoundException("Order not found");
             }
@@ -231,14 +230,14 @@ public class PayOSService : IPayOSService
                 if (orderItem.ProductDetailId == null)
                 {
                     var numOfSession = 0;
-                    if(orderItem.FreelancePTPackage != null)
+                    if (orderItem.FreelancePTPackage != null)
                     {
                         numOfSession = orderItem.FreelancePTPackage.NumOfSessions;
                     }
-                    if(orderItem.GymCourseId != null && orderItem.GymPtId != null)
+                    if (orderItem.GymCourseId != null && orderItem.GymPtId != null)
                     {
                         var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItem.GymCourseId.Value, orderItem.GymPtId.Value));
-                        if(gymCoursePT == null)
+                        if (gymCoursePT == null)
                         {
                             throw new NotFoundException("Gym course PT with gym course id and pt id not found");
                         }
@@ -299,5 +298,4 @@ public class PayOSService : IPayOSService
 
     //     return true;
     // }
-
 }

@@ -1,4 +1,5 @@
 ﻿using FitBridge_Domain.Enums.MessageAndReview;
+using FitBridge_Domain.Enums.Templates;
 
 namespace FitBridge_Application.Dtos.Templates
 {
@@ -8,6 +9,8 @@ namespace FitBridge_Application.Dtos.Templates
 
         public TemplateCategory Category { get; set; }
 
-        public string TemplateBody { get; set; } = null!;
+        public string TemplateTitle { get; set; }
+
+        public string TemplateBody { get; set; }
     }
 }

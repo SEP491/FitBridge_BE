@@ -1,22 +1,26 @@
-﻿using FitBridge_Application.Interfaces.Utils.Seeding;
-using FitBridge_Domain.Entities.Identity;
+﻿using FitBridge_Application.Configurations;
+using FitBridge_Application.Dtos.Notifications;
 using FitBridge_Application.Interfaces.Repositories;
+using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Interfaces.Services.Notifications;
+using FitBridge_Application.Interfaces.Utils;
+using FitBridge_Application.Interfaces.Utils.Seeding;
+using FitBridge_Domain.Entities.Identity;
 using FitBridge_Infrastructure.Persistence;
 using FitBridge_Infrastructure.Seeder;
+using FitBridge_Infrastructure.Services;
+using FitBridge_Infrastructure.Services.Implements;
+using FitBridge_Infrastructure.Services.Notifications;
+using FitBridge_Infrastructure.Services.Notifications.Helpers;
+using FitBridge_Infrastructure.Services.Templating;
+using FitBridge_Infrastructure.Utils;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using FitBridge_Application.Interfaces.Services;
-using FitBridge_Infrastructure.Services.Implements;
-using FitBridge_Infrastructure.Services;
-using Microsoft.AspNetCore.Identity;
-using FitBridge_Application.Interfaces.Utils;
-using FitBridge_Infrastructure.Utils;
-using FitBridge_Infrastructure.Services.Templating;
-using System.Threading.Channels;
-using FitBridge_Application.Dtos.Notifications;
-using FitBridge_Application.Configurations;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System.Threading.Channels;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -56,7 +60,9 @@ namespace FitBridge_Infrastructure.Extensions
                 .AddEntityFrameworkStores<FitBridgeDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.Configure<FirebaseSettings>(configuration.GetSection(FirebaseSettings.SectionName));
             services.Configure<PayOSSettings>(configuration.GetSection(PayOSSettings.SectionName));
+            services.Configure<NotificationSettings>(configuration.GetSection(NotificationSettings.SectionName));
 
             var channel = Channel.CreateUnbounded<NotificationMessage>(new UnboundedChannelOptions
             {
@@ -64,16 +70,23 @@ namespace FitBridge_Infrastructure.Extensions
                 SingleReader = false,
                 AllowSynchronousContinuations = false
             });
+            services.AddHostedService<NotificationsBackgroundService>();
 
             services.AddSingleton<Channel<NotificationMessage>>(channel);
+            services.AddSingleton<FirebaseService>();
+            services.AddSingleton<PushNotificationService>();
+            services.AddSingleton<NotificationHandshakeManager>();
+            services.AddSingleton<NotificationConnectionManager>();
+            services.AddSingleton<NotificationStorageService>();
 
+            services.AddScoped<INotificationService, NotificationsService>();
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IUserTokenService, UserTokenService>();
             services.AddScoped<IApplicationUserService, ApplicationUserService>();
             services.AddScoped<IUserUtil, UserUtil>();
-            services.AddScoped<ITemplatingService, TemplatingService>();
+            services.AddScoped<TemplatingService>();
             services.AddScoped<IPayOSService, PayOSService>();
         }
     }

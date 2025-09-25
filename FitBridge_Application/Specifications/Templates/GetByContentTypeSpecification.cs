@@ -1,5 +1,6 @@
 ﻿using FitBridge_Domain.Entities.MessageAndReview;
 using FitBridge_Domain.Enums.MessageAndReview;
+using FitBridge_Domain.Enums.Templates;
 
 namespace FitBridge_Application.Specifications.Templates
 {

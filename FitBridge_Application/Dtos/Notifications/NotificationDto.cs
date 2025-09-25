@@ -4,7 +4,7 @@
     {
         public string? Title { get; set; }
 
-        public string? Content { get; set; }
+        public string? Body { get; set; }
 
         public DateTime Timestamp { get; set; } = DateTime.Now;
 

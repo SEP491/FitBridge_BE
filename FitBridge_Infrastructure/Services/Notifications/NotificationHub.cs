@@ -1,14 +1,17 @@
-﻿using AutoMapper;
-using FitBridge_Application.Interfaces.Repositories;
-using FitBridge_Application.Interfaces.Services.Notifications;
+﻿using FitBridge_Application.Dtos.Notifications;
 using FitBridge_Application.Interfaces.Services.Notifications.UserNotifications;
 using FitBridge_Infrastructure.Services.Notifications.Enums;
+using FitBridge_Infrastructure.Services.Notifications.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace FitBridge_Infrastructure.Services.Notifications.Helpers
+namespace FitBridge_Infrastructure.Services.Notifications
 {
+    [Authorize]
     internal class NotificationHub(
-        NotificationConnectionManager notificationConnectionManager) : Hub<IUserNotifications>
+        NotificationConnectionManager notificationConnectionManager,
+        NotificationHandshakeManager notificationHandshakeManager,
+        NotificationStorageService notificationStorageService) : Hub<IUserNotifications>
     {
         public override async Task OnConnectedAsync()
         {
@@ -32,6 +35,18 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         public async Task RemoveFromGroup(NotificationGroups groupName)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName.ToString());
+        }
+
+        public async Task ConfirmHandshake()
+        {
+            var userId = Context.UserIdentifier;
+            await notificationHandshakeManager.ConfirmHandshake(userId);
+        }
+
+        public async Task<List<NotificationDto>> GetStoredNotifications()
+        {
+            var userId = Context.UserIdentifier;
+            return await notificationStorageService.GetNotificationsAsync(userId);
         }
     }
 }
