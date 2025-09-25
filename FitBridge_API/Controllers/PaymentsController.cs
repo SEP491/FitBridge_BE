@@ -1,5 +1,6 @@
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Payments;
+using FitBridge_Application.Features.Payments.CancelPaymentCommand;
 using FitBridge_Application.Features.Payments.CreatePaymentLink;
 using FitBridge_Application.Features.Payments.GetPaymentInfor;
 using FitBridge_Application.Features.Payments.PaymentCallbackWebhook;
@@ -32,6 +33,8 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
             return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Webhook processed successfully", result));
         }
 
+        //return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Webhook processed successfully", true));
+
         return BadRequest(new BaseResponse<bool>(StatusCodes.Status400BadRequest.ToString(), "Failed to process webhook", result));
     }
 
@@ -41,5 +44,13 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
     {
         var result = await _mediator.Send(new GetPaymentInfoCommand { Id = id });
         return Ok(new BaseResponse<PaymentInfoResponseDto>(StatusCodes.Status200OK.ToString(), "Payment information retrieved successfully", result));
+    }
+
+    [HttpPost("cancel")]
+    [Authorize]
+    public async Task<IActionResult> CancelPayment([FromBody] CancelPaymentCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Payment cancelled successfully", result));
     }
 }
