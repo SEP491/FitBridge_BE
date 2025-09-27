@@ -23,6 +23,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8003
+      - ConnectionStrings__FitbridgeDb=Host=postgres;Port=5432;Database=FitBridge;Username=postgres;Password=pass123;Trust Server Certificate=true
     expose:
       - "8003"
     labels:
@@ -36,6 +37,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - ${STACKS_VOLUME_PATH}/fitbridge/appsettings.json:/app/appsettings.json
+      - ${STACKS_VOLUME_PATH}/fitbridge/fitbridge-firebase-admin-sdk.json:/app/fitbridge-firebase-admin-sdk.json
     deploy:
       mode: replicated
       replicas: 3
@@ -44,7 +46,7 @@ services:
       options:
         loki-url: "http://127.0.0.1:3100/loki/api/v1/push"
         loki-retries: "2"
-        loki-max-backoff: "800ms"
+        loki-max-backoff: "900ms"
         loki-timeout: "1s"
         keep-file: "true"
     depends_on:
@@ -52,27 +54,7 @@ services:
     networks:
       - postgres
       - proxy
-
-  redis-fitbridge:
-    image: redis/redis-stack-server:latest
-    restart: unless-stopped
-    expose:
-      - "6379"
-    networks:
-      - proxy
       - redis
-    environment:
-      - REDIS_ARGS=--requirepass ${REDIS_PASSWORD}
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    labels:
-      - "traefik.enable=false"
-      - "com.centurylinklabs.watchtower.enable=true"
-
 networks:
   postgres:
     external: true
