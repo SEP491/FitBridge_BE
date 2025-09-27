@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FitBridge_Infrastructure.Configurations;
 
-public class InAppNotificationConfiguration : IEntityTypeConfiguration<InAppNotification>
+public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 {
-    public void Configure(EntityTypeBuilder<InAppNotification> builder)
+    public void Configure(EntityTypeBuilder<Notification> builder)
     {
-        builder.ToTable("InAppNotifications");
+        builder.ToTable("Notifications");
         builder.Property(e => e.Message).IsRequired(true);
         builder.Property(e => e.TemplateId).IsRequired(true);
         builder.Property(e => e.UserId).IsRequired(true);
@@ -17,7 +17,7 @@ public class InAppNotificationConfiguration : IEntityTypeConfiguration<InAppNoti
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
 
-        builder.HasOne(e => e.Template).WithOne(e => e.InAppNotification).HasForeignKey<InAppNotification>(e => e.TemplateId);
+        builder.HasOne(e => e.Template).WithOne(e => e.InAppNotification).HasForeignKey<Notification>(e => e.TemplateId);
         builder.HasOne(e => e.User).WithMany(e => e.InAppNotifications).HasForeignKey(e => e.UserId);
     }
 }

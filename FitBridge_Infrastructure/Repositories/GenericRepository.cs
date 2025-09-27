@@ -127,5 +127,23 @@ namespace FitBridge_Infrastructure.Repositories
             IQueryable<T> query = _dbContext.Set<T>().AsQueryable();
             return await SpecificationQueryBuilder<T>.BuildGroupByQuery(query, specification).ToListAsync();
         }
+
+        public async Task<T?> GetByIdAsync(Guid id, bool asNoTracking = true)
+        {
+            IQueryable<T> query = _dbContext.Set<T>();
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+            return await query.FirstOrDefaultAsync(e => e.Id == id && e.IsEnabled == true);
+        }
+
+        public async Task<TDto?> GetByIdProjectedAsync<TDto>(Guid id, IConfigurationProvider mapperConfig)
+        {
+            return await _dbContext.Set<T>()
+                .Where(e => e.Id == id && e.IsEnabled == true)
+                .ProjectTo<TDto>(mapperConfig)
+                .FirstOrDefaultAsync();
+        }
     }
 }

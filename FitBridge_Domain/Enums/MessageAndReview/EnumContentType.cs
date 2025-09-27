@@ -2,8 +2,16 @@
 {
     public enum EnumContentType
     {
-        PushNotification,
+        NewMessage,
 
-        InAppNotification
+        TrainingSlotCancelled,
+
+        IncomingTrainingSlot,
+
+        NewGymFeedback,
+
+        PaymentRequest,
+
+        PackageBought
     }
 }

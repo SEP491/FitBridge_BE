@@ -1,4 +1,3 @@
-using System;
 using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Enums.Trainings;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +24,6 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 
         builder.HasOne(e => e.Customer).WithMany(e => e.Bookings).HasForeignKey(e => e.CustomerId);
         builder.HasOne(e => e.PTGymSlot).WithOne(e => e.Booking).HasForeignKey<Booking>(e => e.PTGymSlotId);
-        builder.HasOne(e => e.Order).WithMany(e => e.Bookings).HasForeignKey(e => e.OrderId);
+        builder.HasOne(e => e.CustomerPurchased).WithMany(e => e.Bookings).HasForeignKey(e => e.CustomerPurchasedId);
     }
 }

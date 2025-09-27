@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using FitBridge_Domain.Entities.Identity;
-using FitBridge_Application.Features.Identities.Registers;
 using FitBridge_Application.Features.Identities.Registers.RegisterAccounts;
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Identities;
@@ -15,6 +14,7 @@ using FitBridge_Application.Dtos.Tokens;
 using FitBridge_Application.Features.Identities.Token;
 using FitBridge_Application.Features.Identities.Registers.RegisterGymPT;
 using System.Security.Claims;
+using FitBridge_Application.Features.Identities.Registers.RegisterCustomer;
 
 namespace FitBridge_API.Controllers;
 

@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities;
+using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Domain.Entities.Orders;
 
 namespace FitBridge_Domain.Entities.Trainings;
@@ -40,5 +41,7 @@ public class UserGoal : BaseEntity
     public string? ImageUrl { get; set; }
     public Guid OrderId { get; set; }
     public Order Order { get; set; }
+    public Guid CustomerPurchasedId { get; set; }
+    public CustomerPurchased CustomerPurchased { get; set; }
 
 }

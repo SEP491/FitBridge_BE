@@ -60,3 +60,5 @@ networks:
     external: true
   proxy:
     external: true
+  redis:
+    external: true
