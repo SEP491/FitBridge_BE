@@ -421,3 +421,4 @@ FitBridge_API/appsettings.Development.json
 /FitBridge_Infrastructure/Migrations
 ACTION_PLAN.md
 PROJECT_STRUCTURE.md
+FitBridge_API/fitbridge-firebase-admin-sdk.json
