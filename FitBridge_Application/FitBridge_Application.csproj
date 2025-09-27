@@ -30,6 +30,5 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Dtos\Orders\" />
-	  <Folder Include="Services\" />
 	</ItemGroup>
 </Project>

@@ -31,15 +31,18 @@ public class PayOSService : IPayOSService
 
     private readonly PayOS _payOS;
 
+    private readonly ITransactionService _transactionService;
+
     public PayOSService(
         IOptions<PayOSSettings> settings,
         ILogger<PayOSService> logger,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ITransactionService transactionService)
     {
         _settings = settings.Value;
         _logger = logger;
         _unitOfWork = unitOfWork;
-
+        _transactionService = transactionService;
         // Initialize PayOS SDK
         _payOS = new PayOS(_settings.ClientId, _settings.ApiKey, _settings.ChecksumKey);
     }
@@ -211,9 +214,19 @@ public class PayOSService : IPayOSService
             {
                 throw new NotFoundException("Transaction not found");
             }
+            if(transaction.Status == TransactionStatus.Success)
+            {
+                return true; // Already processed, prevent from duplicate processing of webhook
+            }
+
             transaction.Status = TransactionStatus.Success;
             _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().Update(transaction);
             await _unitOfWork.CommitAsync();
+
+            if (transaction.TransactionType == TransactionType.ExtendCourse)
+            {
+                return await _transactionService.ExtendCourse(verifiedWebhookData.orderCode);
+            }
 
             // Find transaction by order code
             var OrderEntity = await _unitOfWork.Repository<Order>()
@@ -235,7 +248,7 @@ public class PayOSService : IPayOSService
                 if (orderItem.ProductDetailId == null)
                 {
                     var numOfSession = 0;
-                    if (orderItem.FreelancePTPackage != null)
+                    if (orderItem.FreelancePTPackageId != null)
                     {
                         numOfSession = orderItem.FreelancePTPackage.NumOfSessions;
                     }
@@ -251,7 +264,6 @@ public class PayOSService : IPayOSService
                     orderItem.CustomerPurchased = new CustomerPurchased
                     {
                         CustomerId = OrderEntity.AccountId,
-                        OrderItemId = orderItem.Id,
                         AvailableSessions = orderItem.Quantity * numOfSession,
                         ExpirationDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30 * orderItem.Quantity),
                     };

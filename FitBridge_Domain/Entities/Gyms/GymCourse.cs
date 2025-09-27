@@ -9,6 +9,7 @@ public class GymCourse : BaseEntity
     public string Name { get; set; }
 
     public decimal Price { get; set; }
+    public decimal PtPrice { get; set; }
 
     public int Duration { get; set; }
 

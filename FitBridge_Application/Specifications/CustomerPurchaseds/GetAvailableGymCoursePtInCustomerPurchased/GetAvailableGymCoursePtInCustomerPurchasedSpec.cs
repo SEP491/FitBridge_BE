@@ -9,8 +9,8 @@ public class GetAvailableGymCoursePtInCustomerPurchasedSpec : BaseSpecification<
 {
     public GetAvailableGymCoursePtInCustomerPurchasedSpec(GetPurchasedGymCoursePtForScheduleParams parameters, Guid customerId) : base(x => x.IsEnabled
     && x.ExpirationDate >= DateOnly.FromDateTime(DateTime.UtcNow)
-    && x.OrderItem.GymCourseId != null
-    && x.OrderItem.GymPtId != null
+    && x.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourseId != null
+    && x.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymPtId != null
     && x.CustomerId == customerId
     && x.IsEnabled == true)
     {
@@ -23,7 +23,7 @@ public class GetAvailableGymCoursePtInCustomerPurchasedSpec : BaseSpecification<
             parameters.Size = -1;
             parameters.Page = -1;
         }
-        AddInclude(x => x.OrderItem.GymCourse);
-        AddInclude(x => x.OrderItem.GymPt);
+        AddInclude("OrderItems.GymCourse");
+        AddInclude("OrderItems.GymPt");
     }
 }

@@ -13,9 +13,7 @@ public class CustomerPurchasedConfiguration : IEntityTypeConfiguration<CustomerP
         builder.Property(e => e.AvailableSessions).IsRequired();
         builder.Property(e => e.CustomerId).IsRequired();
         builder.Property(e => e.ExpirationDate).IsRequired();
-        builder.Property(e => e.OrderItemId).IsRequired();
 
         builder.HasOne(e => e.Customer).WithMany(e => e.CustomerPurchased).HasForeignKey(e => e.CustomerId);
-        builder.HasOne(e => e.OrderItem).WithOne(e => e.CustomerPurchased).HasForeignKey<CustomerPurchased>(e => e.OrderItemId);
     }
 }
