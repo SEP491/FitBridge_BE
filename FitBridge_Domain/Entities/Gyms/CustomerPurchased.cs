@@ -10,9 +10,9 @@ public class CustomerPurchased : BaseEntity
     public int AvailableSessions { get; set; }
     public Guid CustomerId { get; set; }
     public DateOnly ExpirationDate { get; set; }
-    public Guid OrderItemId { get; set; }
     public ApplicationUser Customer { get; set; }
-    public OrderItem OrderItem { get; set; }
+    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public UserGoal? UserGoal { get; set; }
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public ICollection<Order> OrderThatExtend { get; set; } = new List<Order>();
 }

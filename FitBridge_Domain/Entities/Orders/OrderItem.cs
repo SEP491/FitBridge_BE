@@ -15,6 +15,7 @@ public class OrderItem : BaseEntity
 
     public Guid OrderId { get; set; }
     public Guid? GymPtId { get; set; }
+    public Guid? CustomerPurchasedId { get; set; }
 
     public Order Order { get; set; }
 

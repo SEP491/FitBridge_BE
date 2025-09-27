@@ -1,31 +1,31 @@
 using System;
-using FitBridge_Application.Interfaces.Services;
-using Microsoft.AspNetCore.Http;
+using FitBridge_Application.Dtos.Payments;
+using FitBridge_Domain.Exceptions;
+using FitBridge_Domain.Entities.Orders;
+using FitBridge_Domain.Enums.Orders;
 using MediatR;
 using FitBridge_Application.Interfaces.Utils;
-using FitBridge_Domain.Exceptions;
-using FitBridge_Application.Dtos.Payments;
-using FitBridge_Application.Dtos.OrderItems;
 using FitBridge_Application.Interfaces.Repositories;
-using FitBridge_Domain.Entities.Ecommerce;
+using FitBridge_Application.Interfaces.Services;
+using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using FitBridge_Application.Dtos.OrderItems;
 using FitBridge_Domain.Entities.Gyms;
-using FitBridge_Domain.Entities.ServicePackages;
-using FitBridge_Application.Specifications.ProductDetails;
 using FitBridge_Application.Specifications.GymCourses.GetGymCourseById;
 using FitBridge_Application.Specifications.Accounts;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByGymId;
+using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedById;
 using FitBridge_Application.Specifications.FreelancePtPackages.GetFreelancePtPackageById;
-using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByFreelancePtId;
-using FitBridge_Domain.Entities.Orders;
-using AutoMapper;
-using FitBridge_Domain.Enums.Orders;
+using FitBridge_Application.Specifications.ProductDetails;
+using FitBridge_Domain.Entities.Ecommerce;
+using FitBridge_Domain.Entities.ServicePackages;
 using FitBridge_Application.Specifications.Vouchers;
 
-namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
-
-public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
+namespace FitBridge_Application.Features.GymCourses.ExtendGymCourse;
+    
+public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IApplicationUserService _applicationUserService, IPayOSService _payOSService, IMapper _mapper) : IRequestHandler<ExtendGymCourseCommand, PaymentResponseDto>
 {
-    public async Task<PaymentResponseDto> Handle(CreatePaymentLinkCommand request, CancellationToken cancellationToken)
+    public async Task<PaymentResponseDto> Handle(ExtendGymCourseCommand request, CancellationToken cancellationToken)
     {
         var userId = _userUtil.GetAccountId(_httpContextAccessor.HttpContext);
         if (userId == null)
@@ -37,7 +37,12 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         {
             throw new NotFoundException("User not found");
         }
-        await GetAndValidateOrderItems(request.Request.OrderItems);
+        if (request.Request.CustomerPurchasedIdToExtend == null)
+        {
+            throw new DataValidationFailedException("Customer purchased to extend id cannot be null");
+        }
+        await GetAndValidateOrderItems(request.Request.OrderItems, request.Request.CustomerPurchasedIdToExtend.Value);
+        
         var totalPrice = CalculateTotalPrice(request.Request.OrderItems);
         request.Request.TotalAmount = totalPrice;
         request.Request.AccountId = userId;
@@ -52,13 +57,12 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
     public async Task CreateTransaction(PaymentResponseDto paymentResponse, Guid paymentMethodId, Guid orderId)
     {
-
         var newTransaction = new Transaction
         {
             OrderCode = paymentResponse.Data.OrderCode,
             Description = "Payment for order " + paymentResponse.Data.OrderCode,
             PaymentMethodId = paymentMethodId,
-            TransactionType = TransactionType.ProductOrder,
+            TransactionType = TransactionType.ExtendCourse,
             Status = TransactionStatus.Pending,
             OrderId = orderId,
             Amount = paymentResponse.Data.Amount
@@ -114,53 +118,49 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         }
     }
 
-    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems)
+    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid customerPurchasedIdToExtend)
     {
         foreach (var item in OrderItems)
         {
-            if (item.GymCourseId != null)
+            var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByIdSpec(customerPurchasedIdToExtend));
+
+            if (userPackage == null)
             {
-                var gymCoursePT = await _unitOfWork.Repository<GymCourse>().GetBySpecificationAsync(new GetGymCourseByIdSpecification(item.GymCourseId.Value));
+                throw new NotFoundException("Can't find customer purchased to extend");
+            }
+            var orderItemToExtend = userPackage.OrderItems.OrderByDescending(x => x.CreatedAt).First();
+
+            if (orderItemToExtend.GymCourseId != null)
+            {
+                var gymCoursePT = await _unitOfWork.Repository<GymCourse>().GetBySpecificationAsync(new GetGymCourseByIdSpecification(orderItemToExtend.GymCourseId.Value));
 
                 if (gymCoursePT == null)
                 {
                     throw new NotFoundException("Gym course PT not found");
                 }
 
-                if (item.GymPtId != null)
+                if (orderItemToExtend.GymPtId != null)
                 {
-                    var gymPt = await _applicationUserService.GetUserWithSpecAsync(new GetAccountByIdSpecificationForUserProfile(item.GymPtId.Value));
+                    var gymPt = await _applicationUserService.GetUserWithSpecAsync(new GetAccountByIdSpecificationForUserProfile(orderItemToExtend.GymPtId.Value));
                     if (gymPt == null)
                     {
                         throw new NotFoundException("Gym PT not found");
                     }
-                    item.Price = gymCoursePT.Price + gymCoursePT.PtPrice;
+                    item.GymPtId = orderItemToExtend.GymPtId.Value;
                 }
-                else
-                {
-                    item.Price = gymCoursePT.Price;
-                }
-
-                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByGymIdSpec(gymCoursePT.GymOwnerId));
-                if (userPackage != null)
-                {
-                    throw new PackageExistException("Package of this gym course still not expired");
-                }
+                item.GymCourseId = orderItemToExtend.GymCourseId.Value;
+                item.Price = orderItemToExtend.Price;
             }
 
-            if (item.FreelancePTPackageId != null)
+            if (orderItemToExtend.FreelancePTPackageId != null)
             {
-                var freelancePTPackage = await _unitOfWork.Repository<FreelancePTPackage>().GetBySpecificationAsync(new GetFreelancePtPackageByIdSpec(item.FreelancePTPackageId.Value));
+                var freelancePTPackage = await _unitOfWork.Repository<FreelancePTPackage>().GetBySpecificationAsync(new GetFreelancePtPackageByIdSpec(orderItemToExtend.FreelancePTPackageId.Value));
                 if (freelancePTPackage == null)
                 {
                     throw new NotFoundException("Freelance PTPackage not found");
                 }
-                item.Price = freelancePTPackage.Price;
-                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByFreelancePtIdSpec(freelancePTPackage.PtId));
-                if (userPackage != null)
-                {
-                    throw new PackageExistException("Package of this freelance PT still not expired");
-                }
+                item.FreelancePTPackageId = orderItemToExtend.FreelancePTPackageId.Value;
+                item.Price = orderItemToExtend.Price;
             }
         }
     }
@@ -185,9 +185,10 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 throw new NotFoundException("Voucher not found");
             }
             var voucherDiscountAmount = (decimal)voucher.DiscountPercent / 100 * request.TotalAmount > voucher.MaxDiscount ? voucher.MaxDiscount : (decimal)voucher.DiscountPercent / 100 * request.TotalAmount;
-            return request.TotalAmount - voucherDiscountAmount + request.ShippingFee;
+            return request.TotalAmount - voucherDiscountAmount;
         }
 
-        return request.TotalAmount + request.ShippingFee;
+        return request.TotalAmount;
     }
+
 }

@@ -24,5 +24,6 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.HasOne(e => e.GymCourse).WithMany(e => e.OrderItems).HasForeignKey(e => e.GymCourseId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(e => e.GymPt).WithMany(e => e.OrderItems).HasForeignKey(e => e.GymPtId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(e => e.FreelancePTPackage).WithMany(e => e.OrderItems).HasForeignKey(e => e.FreelancePTPackageId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(e => e.CustomerPurchased).WithMany(e => e.OrderItems).HasForeignKey(e => e.CustomerPurchasedId).OnDelete(DeleteBehavior.Restrict);
     }
 }

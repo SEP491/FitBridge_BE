@@ -5,6 +5,7 @@ using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Services.Notifications;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Interfaces.Utils.Seeding;
+using FitBridge_Application.Services;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Infrastructure.Persistence;
 using FitBridge_Infrastructure.Seeder;
@@ -97,7 +98,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<IUserUtil, UserUtil>();
             services.AddScoped<TemplatingService>();
             services.AddScoped<IPayOSService, PayOSService>();
-
+            services.AddScoped<ITransactionService, TransactionsService>();
             services.AddHostedService<NotificationsBackgroundService>();
         }
     }

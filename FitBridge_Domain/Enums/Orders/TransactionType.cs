@@ -9,5 +9,7 @@
         Withdraw,
 
         ServiceOrder,
+        AssignPt,
+        ExtendCourse
     }
 }

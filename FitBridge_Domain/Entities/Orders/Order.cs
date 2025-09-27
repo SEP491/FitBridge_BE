@@ -17,6 +17,8 @@ public class Order : BaseEntity
     public Guid? AddressId { get; set; }
     public decimal ShippingFee { get; set; }
     public decimal SubTotalPrice { get; set; }
+    public Guid? CustomerPurchasedIdToExtend { get; set; }
+    public CustomerPurchased? CustomerPurchasedToExtend { get; set; }
 
     public Address Address { get; set; }
 
