@@ -7,6 +7,7 @@ using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Entities.QAndA;
 using Microsoft.AspNetCore.Identity;
 using FitBridge_Domain.Enums.ApplicationUser;
+using FitBridge_Domain.Entities.Meetings;
 
 namespace FitBridge_Domain.Entities.Identity
 {
@@ -55,6 +56,7 @@ namespace FitBridge_Domain.Entities.Identity
         public ICollection<FreelancePTPackage> PTFreelancePackages { get; set; } = new List<FreelancePTPackage>();
         public ICollection<CustomerPurchased> CustomerPurchased { get; set; } = new List<CustomerPurchased>();
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public ICollection<MeetingSession> MeetingSessions { get; set; } = new List<MeetingSession>();
     }
 
 }
