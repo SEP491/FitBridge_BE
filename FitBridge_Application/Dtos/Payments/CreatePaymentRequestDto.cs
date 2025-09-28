@@ -11,6 +11,7 @@ public class CreatePaymentRequestDto
     [JsonIgnore]
     public decimal TotalAmount { get; set; }
     public Guid? VoucherId { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? CustomerPurchasedIdToExtend { get; set; }
     public decimal ShippingFee { get; set; } = 0;
     public Guid? AddressId { get; set; }

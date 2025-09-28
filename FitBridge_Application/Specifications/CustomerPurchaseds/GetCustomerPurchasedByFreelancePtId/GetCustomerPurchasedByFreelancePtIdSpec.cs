@@ -7,7 +7,8 @@ namespace FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPur
 
 public class GetCustomerPurchasedByFreelancePtIdSpec : BaseSpecification<CustomerPurchased>
 {
-    public GetCustomerPurchasedByFreelancePtIdSpec(Guid freelancePtId) : base(x => x.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.PtId == freelancePtId
+    public GetCustomerPurchasedByFreelancePtIdSpec(Guid freelancePtId, Guid AccountId) : base(x => x.CustomerId == AccountId
+    && x.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.PtId == freelancePtId
     && x.IsEnabled
     && x.ExpirationDate >= DateOnly.FromDateTime(DateTime.UtcNow))
     {
