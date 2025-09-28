@@ -6,10 +6,20 @@ namespace FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPur
 
 public class GetCustomerPurchasedByCustomerIdSpec : BaseSpecification<CustomerPurchased>
 {
-    public GetCustomerPurchasedByCustomerIdSpec(Guid accountId) : base(x => x.CustomerId == accountId)
+    public GetCustomerPurchasedByCustomerIdSpec(Guid accountId, GetCustomerPurchasedParams parameters, bool isGymCourse = true) : base(x => x.CustomerId == accountId && x.IsEnabled
+    && x.OrderItems.Any(x => isGymCourse ? x.GymCourseId != null : x.FreelancePTPackageId != null))
     {
         AddInclude(x => x.OrderItems);
-        AddInclude("OrderItems.GymCourse");
-        AddInclude("OrderItems.GymCourse.GymCoursePts");
+        if (isGymCourse)
+        {
+            AddInclude("OrderItems.GymCourse");
+            AddInclude("OrderItems.GymCourse.GymCoursePTs");
+        }
+        else
+        {
+            AddInclude("OrderItems.FreelancePTPackage");
+        }
+        AddOrderByDesc(x => x.ExpirationDate);
+        AddPaging((parameters.Page - 1) * parameters.Size, parameters.Size);
     }
 }

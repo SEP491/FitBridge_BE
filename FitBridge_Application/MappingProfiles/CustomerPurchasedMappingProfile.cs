@@ -32,6 +32,15 @@ public class CustomerPurchasedMappingProfile : Profile
             .ForMember(dest => dest.PTAssignmentPrice, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourse.PtPrice))
             .ForMember(dest => dest.PtList, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourse.GymCoursePTs))
             .ForMember(dest => dest.GymCourseId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourseId))
-            .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId));
+            ;
+
+        CreateProjection<CustomerPurchased, CustomerPurchasedFreelancePtResponseDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.PackageName, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Name))
+            .ForMember(dest => dest.CourseImageUrl, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.ImageUrl))
+            .ForMember(dest => dest.AvailableSessions, opt => opt.MapFrom(src => src.AvailableSessions))
+            .ForMember(dest => dest.ExpirationDate, opt => opt.MapFrom(src => src.ExpirationDate))
+            .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId))
+            ;
     }
 }
