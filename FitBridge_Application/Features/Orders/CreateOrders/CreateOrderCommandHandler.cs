@@ -29,7 +29,7 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
         {
             throw new NotFoundException("User not found");
         }
-        await GetAndValidateOrderItems(request.OrderItems);
+        await GetAndValidateOrderItems(request.OrderItems, userId.Value);
         var totalPrice = CalculateTotalPrice(request.OrderItems);
         var subTotalPrice = await CalculateSubTotalPrice(request, totalPrice);
         request.AccountId = userId.Value;
@@ -42,7 +42,7 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
         return order.Id.ToString();
     }
 
-    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems)
+    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid userId)
     {
         foreach (var item in OrderItems)
         {
@@ -64,7 +64,7 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
                     }
                 }
 
-                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByGymIdSpec(gymCoursePT.GymOwnerId));
+                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByGymIdSpec(gymCoursePT.GymOwnerId, userId));
                 if (userPackage != null)
                 {
                     throw new PackageExistException("Package of this gym course still not expired");
@@ -81,7 +81,7 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
                     throw new NotFoundException("Freelance PTPackage not found");
                 }
                 item.Price = freelancePTPackage.Price;
-                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByFreelancePtIdSpec(freelancePTPackage.PtId));
+                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByFreelancePtIdSpec(freelancePTPackage.PtId, userId));
                 if (userPackage != null)
                 {
                     throw new PackageExistException("Package of this freelance PT still not expired");

@@ -37,7 +37,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         {
             throw new NotFoundException("User not found");
         }
-        await GetAndValidateOrderItems(request.Request.OrderItems);
+        await GetAndValidateOrderItems(request.Request.OrderItems, userId.Value);
         var totalPrice = CalculateTotalPrice(request.Request.OrderItems);
         request.Request.TotalAmount = totalPrice;
         request.Request.AccountId = userId;
@@ -46,7 +46,8 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl);
         await CreateTransaction(paymentResponse, request.Request.PaymentMethodId, orderId);
         await AssignOrderItemProductName(request.Request.OrderItems);
-        
+        await _unitOfWork.CommitAsync();
+
         return paymentResponse;
     }
 
@@ -64,7 +65,6 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             Amount = paymentResponse.Data.Amount
         };
         _unitOfWork.Repository<Transaction>().Insert(newTransaction);
-        await _unitOfWork.CommitAsync();
     }
 
     public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl)
@@ -75,7 +75,6 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         order.Status = OrderStatus.PaymentProcessing;
         order.CheckoutUrl = checkoutUrl;
         _unitOfWork.Repository<Order>().Insert(order);
-        await _unitOfWork.CommitAsync();
         return order.Id;
     }
 
@@ -114,7 +113,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         }
     }
 
-    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems)
+    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid userId)
     {
         foreach (var item in OrderItems)
         {
@@ -141,7 +140,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                     item.Price = gymCoursePT.Price;
                 }
 
-                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByGymIdSpec(gymCoursePT.GymOwnerId));
+                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByGymIdSpec(gymCoursePT.GymOwnerId, userId));
                 if (userPackage != null)
                 {
                     throw new PackageExistException("Package of this gym course still not expired");
@@ -156,7 +155,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                     throw new NotFoundException("Freelance PTPackage not found");
                 }
                 item.Price = freelancePTPackage.Price;
-                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByFreelancePtIdSpec(freelancePTPackage.PtId));
+                var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByFreelancePtIdSpec(freelancePTPackage.PtId, userId));
                 if (userPackage != null)
                 {
                     throw new PackageExistException("Package of this freelance PT still not expired");
