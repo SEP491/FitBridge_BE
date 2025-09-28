@@ -13,6 +13,8 @@ public class OrderItemDto
     public Guid? ProductDetailId { get; set; }
     public Guid? GymCourseId { get; set; }
     public Guid? GymPtId { get; set; }
+    [JsonIgnore]
+    public Guid? GymCoursePTId { get; set; }
     public Guid? ServiceInformationId { get; set; }
     public Guid? FreelancePTPackageId { get; set; }
 }

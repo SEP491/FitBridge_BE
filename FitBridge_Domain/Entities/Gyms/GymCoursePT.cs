@@ -11,4 +11,5 @@ public class GymCoursePT : BaseEntity
     public GymCourse GymCourse { get; set; }
     public ApplicationUser PT { get; set; }
     public int? Session { get; set; }
+    public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

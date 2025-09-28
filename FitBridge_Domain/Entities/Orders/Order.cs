@@ -18,6 +18,7 @@ public class Order : BaseEntity
     public decimal ShippingFee { get; set; }
     public decimal SubTotalPrice { get; set; }
     public Guid? CustomerPurchasedIdToExtend { get; set; }
+    public Guid? GymCoursePTIdToAssign { get; set; }
     public CustomerPurchased? CustomerPurchasedToExtend { get; set; }
 
     public Address Address { get; set; }
@@ -29,6 +30,7 @@ public class Order : BaseEntity
     public Guid? VoucherId { get; set; }
 
     public Voucher? Voucher { get; set; }
+    public GymCoursePT? GymCoursePTToAssign { get; set; }
 
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

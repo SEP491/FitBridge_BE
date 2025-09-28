@@ -7,6 +7,7 @@ using FitBridge_Application.Features.GymCourses.CreateGymCourse;
 using FitBridge_Application.Features.GymCourses.DeleteGymCourseById;
 using FitBridge_Application.Features.GymCourses.ExtendGymCourse;
 using FitBridge_Application.Features.GymCourses.GetGymCoursesByGymId;
+using FitBridge_Application.Features.GymCourses.PurchasePt;
 using FitBridge_Application.Features.GymCourses.UpdateGymCourse;
 using FitBridge_Application.Features.Gyms.GetGymPtsByCourse;
 using FitBridge_Application.Specifications.Gym.GetGymPtsByCourse;
@@ -179,6 +180,17 @@ namespace FitBridge_API.Controllers
                 new BaseResponse<PaymentResponseDto>(
                     StatusCodes.Status200OK.ToString(),
                     "Extend gym course success",
+                    response));
+        }
+
+        [HttpPost("purchase-pt")]
+        public async Task<ActionResult> PurchasePt([FromBody] PurchasePtCommand command)
+        {
+            var response = await mediator.Send(command);
+            return Ok(
+                new BaseResponse<PaymentResponseDto>(
+                    StatusCodes.Status200OK.ToString(),
+                    "Purchase pt success",
                     response));
         }
     }

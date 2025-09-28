@@ -14,6 +14,7 @@ public class Voucher : BaseEntity
     public int Quantity { get; set; }
 
     public Guid CreatorId { get; set; }
+    public bool IsActive { get; set; }
 
     public ApplicationUser Creator { get; set; }
 

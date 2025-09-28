@@ -227,6 +227,10 @@ public class PayOSService : IPayOSService
             {
                 return await _transactionService.ExtendCourse(verifiedWebhookData.orderCode);
             }
+            if(transaction.TransactionType == TransactionType.AssignPt)
+            {
+                return await _transactionService.PurchasePt(verifiedWebhookData.orderCode);
+            }
 
             // Find transaction by order code
             var OrderEntity = await _unitOfWork.Repository<Order>()
