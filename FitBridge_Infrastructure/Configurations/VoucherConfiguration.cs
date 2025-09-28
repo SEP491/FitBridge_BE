@@ -20,6 +20,7 @@ public class VoucherConfiguration : IEntityTypeConfiguration<Voucher>
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
+        builder.Property(e => e.IsActive).HasDefaultValue(true);
 
         builder.HasOne(e => e.Creator).WithMany(e => e.Vouchers).HasForeignKey(e => e.CreatorId);
     }

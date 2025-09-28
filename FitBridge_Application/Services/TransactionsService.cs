@@ -6,6 +6,7 @@ using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Application.Specifications.GymCoursePts.GetGymCoursePtById;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Domain.Enums.Orders;
+using FitBridge_Domain.Entities.Orders;
 
 namespace FitBridge_Application.Services;
 
@@ -43,4 +44,25 @@ public class TransactionsService(IUnitOfWork _unitOfWork) : ITransactionService
         return true;
     }
 
+    public async Task<bool> PurchasePt(long orderCode)
+    {
+        var transactionEntity = await _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
+        if (transactionEntity == null)
+        {
+            throw new NotFoundException("Transaction not found with order code " + orderCode);
+        }
+        var customerPurchasedToAssignPt = transactionEntity.Order.CustomerPurchasedToExtend;
+        var orderItemToAssignPt = customerPurchasedToAssignPt.OrderItems.OrderByDescending(x => x.CreatedAt).First();
+
+        var gymCoursePTToAssign = transactionEntity.Order.GymCoursePTToAssign;
+        var numOfSession = gymCoursePTToAssign.Session;
+        
+        customerPurchasedToAssignPt.AvailableSessions = numOfSession.Value;
+        orderItemToAssignPt.GymPtId = gymCoursePTToAssign.PTId;
+
+        transactionEntity.Order.Status = OrderStatus.Arrived;
+        
+        await _unitOfWork.CommitAsync();
+        return true;
+    }
 }

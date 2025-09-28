@@ -132,9 +132,9 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
 
             if (orderItemToExtend.GymCourseId != null)
             {
-                var gymCoursePT = await _unitOfWork.Repository<GymCourse>().GetBySpecificationAsync(new GetGymCourseByIdSpecification(orderItemToExtend.GymCourseId.Value));
+                var gymCourse = await _unitOfWork.Repository<GymCourse>().GetBySpecificationAsync(new GetGymCourseByIdSpecification(orderItemToExtend.GymCourseId.Value));
 
-                if (gymCoursePT == null)
+                if (gymCourse == null)
                 {
                     throw new NotFoundException("Gym course PT not found");
                 }
@@ -147,9 +147,11 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
                         throw new NotFoundException("Gym PT not found");
                     }
                     item.GymPtId = orderItemToExtend.GymPtId.Value;
+                    item.Price = gymCourse.Price + gymCourse.PtPrice;
+                } else {
+                    item.Price = gymCourse.Price;
                 }
                 item.GymCourseId = orderItemToExtend.GymCourseId.Value;
-                item.Price = orderItemToExtend.Price;
             }
 
             if (orderItemToExtend.FreelancePTPackageId != null)
@@ -160,7 +162,7 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
                     throw new NotFoundException("Freelance PTPackage not found");
                 }
                 item.FreelancePTPackageId = orderItemToExtend.FreelancePTPackageId.Value;
-                item.Price = orderItemToExtend.Price;
+                item.Price = freelancePTPackage.Price;
             }
         }
     }
