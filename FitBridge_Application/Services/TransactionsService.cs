@@ -27,17 +27,18 @@ public class TransactionsService(IUnitOfWork _unitOfWork) : ITransactionService
         {
             numOfSession = orderItemToExtend.FreelancePTPackage.NumOfSessions;
         }
+        var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItemToExtend.GymCourseId.Value, orderItemToExtend.GymPtId.Value));
+        if (gymCoursePT == null) 
+        {
+            throw new NotFoundException("Gym course PT with gym course id and pt id not found");
+        }
         if (orderItemToExtend.GymCourseId != null && orderItemToExtend.GymPtId != null)
         {
-            var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItemToExtend.GymCourseId.Value, orderItemToExtend.GymPtId.Value));
-            if (gymCoursePT == null)
-            {
-                throw new NotFoundException("Gym course PT with gym course id and pt id not found");
-            }
+
             numOfSession = gymCoursePT.Session.Value;
         }
         customerPurchasedToExtend.AvailableSessions += orderItemToExtend.Quantity * numOfSession;
-        customerPurchasedToExtend.ExpirationDate = customerPurchasedToExtend.ExpirationDate.AddDays(30 * orderItemToExtend.Quantity);
+        customerPurchasedToExtend.ExpirationDate = customerPurchasedToExtend.ExpirationDate.AddDays(gymCoursePT.GymCourse.Duration * orderItemToExtend.Quantity);
         transactionToExtend.Order.Status = OrderStatus.Arrived;
         
         await _unitOfWork.CommitAsync();
