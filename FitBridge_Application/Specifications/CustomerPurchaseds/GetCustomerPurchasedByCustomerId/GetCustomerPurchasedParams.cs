@@ -3,5 +3,4 @@ namespace FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPur
 
 public class GetCustomerPurchasedParams : BaseParams
 {
-    public Guid CustomerId { get; set; }
 }
