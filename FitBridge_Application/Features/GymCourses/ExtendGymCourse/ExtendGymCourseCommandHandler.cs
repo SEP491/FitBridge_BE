@@ -28,6 +28,7 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
 {
     public async Task<PaymentResponseDto> Handle(ExtendGymCourseCommand request, CancellationToken cancellationToken)
     {
+
         var userId = _userUtil.GetAccountId(_httpContextAccessor.HttpContext);
         if (userId == null)
         {
@@ -38,20 +39,26 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
         {
             throw new NotFoundException("User not found");
         }
-        if (request.Request.CustomerPurchasedIdToExtend == null)
-        {
-            throw new DataValidationFailedException("Customer purchased to extend id cannot be null");
-        }
-        await GetAndValidateOrderItems(request.Request.OrderItems, request.Request.CustomerPurchasedIdToExtend.Value);
 
-        var totalPrice = CalculateTotalPrice(request.Request.OrderItems);
-        request.Request.TotalAmount = totalPrice;
-        request.Request.AccountId = userId;
+        var requestDto = new CreatePaymentRequestDto();
+        requestDto.CustomerPurchasedIdToExtend = request.CustomerPurchasedIdToExtend;
+        requestDto.PaymentMethodId = request.PaymentMethodId;
+        requestDto.OrderItems =
+        [
+            new OrderItemDto() {
+                Quantity = request.Quantity,
+            },
+        ];
+        await GetAndValidateOrderItems(requestDto.OrderItems, request.CustomerPurchasedIdToExtend);
 
-        var paymentResponse = await _payOSService.CreatePaymentLinkAsync(request.Request, user);
-        var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl);
-        await CreateTransaction(paymentResponse, request.Request.PaymentMethodId, orderId);
-        await AssignOrderItemProductName(request.Request.OrderItems);
+        var totalPrice = CalculateTotalPrice(requestDto.OrderItems);
+        requestDto.TotalAmount = totalPrice;
+        requestDto.AccountId = userId;
+
+        var paymentResponse = await _payOSService.CreatePaymentLinkAsync(requestDto, user);
+        var orderId = await CreateOrder(requestDto, paymentResponse.Data.CheckoutUrl);
+        await CreateTransaction(paymentResponse, requestDto.PaymentMethodId, orderId);
+        await AssignOrderItemProductName(requestDto.OrderItems);
 
         return paymentResponse;
     }

@@ -6,5 +6,7 @@ namespace FitBridge_Application.Features.GymCourses.ExtendGymCourse;
 
 public class ExtendGymCourseCommand : IRequest<PaymentResponseDto>
 {
-    public CreatePaymentRequestDto Request { get; set; }
+    public Guid CustomerPurchasedIdToExtend { get; set; }
+    public Guid PaymentMethodId { get; set; }
+    public int Quantity { get; set; }
 }
