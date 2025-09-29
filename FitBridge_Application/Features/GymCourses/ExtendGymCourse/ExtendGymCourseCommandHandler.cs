@@ -19,7 +19,7 @@ using FitBridge_Application.Specifications.FreelancePtPackages.GetFreelancePtPac
 using FitBridge_Application.Specifications.ProductDetails;
 using FitBridge_Domain.Entities.Ecommerce;
 using FitBridge_Domain.Entities.ServicePackages;
-using FitBridge_Application.Specifications.Vouchers;
+using FitBridge_Application.Specifications.Coupons;
 
 namespace FitBridge_Application.Features.GymCourses.ExtendGymCourse;
     
@@ -179,15 +179,15 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
 
     public async Task<decimal> CalculateSubTotalPrice(CreatePaymentRequestDto request)
     {
-        if (request.VoucherId != null)
+        if (request.CouponId != null)
         {
-            var voucher = await _unitOfWork.Repository<Voucher>().GetBySpecificationAsync(new GetVoucherByIdSpec(request.VoucherId!.Value));
-            if (voucher == null)
+            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpec(request.CouponId!.Value));
+            if (coupon == null)
             {
-                throw new NotFoundException("Voucher not found");
+                throw new NotFoundException("Coupon not found");
             }
-            var voucherDiscountAmount = (decimal)voucher.DiscountPercent / 100 * request.TotalAmount > voucher.MaxDiscount ? voucher.MaxDiscount : (decimal)voucher.DiscountPercent / 100 * request.TotalAmount;
-            return request.TotalAmount - voucherDiscountAmount;
+            var couponDiscountAmount = (decimal)coupon.DiscountPercent / 100 * request.TotalAmount > coupon.MaxDiscount ? coupon.MaxDiscount : (decimal)coupon.DiscountPercent / 100 * request.TotalAmount;
+            return request.TotalAmount - couponDiscountAmount;
         }
 
         return request.TotalAmount;

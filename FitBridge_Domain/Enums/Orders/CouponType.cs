@@ -1,6 +1,6 @@
 ﻿namespace FitBridge_Domain.Enums.Orders
 {
-    public enum VoucherType
+    public enum CouponType
     {
         FreelancePT,
 

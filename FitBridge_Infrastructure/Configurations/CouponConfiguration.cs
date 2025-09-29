@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FitBridge_Infrastructure.Configurations;
 
-public class VoucherConfiguration : IEntityTypeConfiguration<Voucher>
+public class CouponConfiguration : IEntityTypeConfiguration<Coupon>
 {
-    public void Configure(EntityTypeBuilder<Voucher> builder)
+    public void Configure(EntityTypeBuilder<Coupon> builder)
     {
-        builder.ToTable("Vouchers");
+        builder.ToTable("Coupons");
         builder.Property(e => e.MaxDiscount).IsRequired(true);
         builder.Property(e => e.Type).IsRequired(true)
-        .HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<VoucherType>(s));
+        .HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<CouponType>(s));
         builder.Property(e => e.DiscountPercent).IsRequired(true);
         builder.Property(e => e.Quantity).IsRequired(true);
         builder.Property(e => e.CreatorId).IsRequired(true);
@@ -22,6 +22,6 @@ public class VoucherConfiguration : IEntityTypeConfiguration<Voucher>
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.Property(e => e.IsActive).HasDefaultValue(true);
 
-        builder.HasOne(e => e.Creator).WithMany(e => e.Vouchers).HasForeignKey(e => e.CreatorId);
+        builder.HasOne(e => e.Creator).WithMany(e => e.Coupons).HasForeignKey(e => e.CreatorId);
     }
 }

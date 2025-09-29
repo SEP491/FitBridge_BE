@@ -10,7 +10,7 @@ public class CreatePaymentRequestDto
     public Guid? AccountId { get; set; }
     [JsonIgnore]
     public decimal TotalAmount { get; set; }
-    public Guid? VoucherId { get; set; }
+    public Guid? CouponId { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? CustomerPurchasedIdToExtend { get; set; }
     public decimal ShippingFee { get; set; } = 0;

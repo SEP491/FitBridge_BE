@@ -19,7 +19,7 @@ using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchas
 using FitBridge_Domain.Entities.Orders;
 using AutoMapper;
 using FitBridge_Domain.Enums.Orders;
-using FitBridge_Application.Specifications.Vouchers;
+using FitBridge_Application.Specifications.Coupons;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
@@ -176,15 +176,15 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
     public async Task<decimal> CalculateSubTotalPrice(CreatePaymentRequestDto request)
     {
-        if (request.VoucherId != null)
+        if (request.CouponId != null)
         {
-            var voucher = await _unitOfWork.Repository<Voucher>().GetBySpecificationAsync(new GetVoucherByIdSpec(request.VoucherId!.Value));
-            if (voucher == null)
+            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpec(request.CouponId!.Value));
+            if (coupon == null)
             {
-                throw new NotFoundException("Voucher not found");
+                throw new NotFoundException("Coupon not found");
             }
-            var voucherDiscountAmount = (decimal)voucher.DiscountPercent / 100 * request.TotalAmount > voucher.MaxDiscount ? voucher.MaxDiscount : (decimal)voucher.DiscountPercent / 100 * request.TotalAmount;
-            return request.TotalAmount - voucherDiscountAmount + request.ShippingFee;
+            var couponDiscountAmount = (decimal)coupon.DiscountPercent / 100 * request.TotalAmount > coupon.MaxDiscount ? coupon.MaxDiscount : (decimal)coupon.DiscountPercent / 100 * request.TotalAmount;
+            return request.TotalAmount - couponDiscountAmount + request.ShippingFee;
         }
 
         return request.TotalAmount + request.ShippingFee;

@@ -27,9 +27,9 @@ public class Order : BaseEntity
 
     public ApplicationUser Account { get; set; }
 
-    public Guid? VoucherId { get; set; }
+    public Guid? CouponId { get; set; }
 
-    public Voucher? Voucher { get; set; }
+    public Coupon? Coupon { get; set; }
     public GymCoursePT? GymCoursePTToAssign { get; set; }
 
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
