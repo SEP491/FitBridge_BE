@@ -2,6 +2,5 @@
 {
     public class GetAllGymsParams : BaseParams
     {
-        public string? Name { get; set; }
     }
 }
