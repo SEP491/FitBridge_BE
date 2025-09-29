@@ -1,5 +1,6 @@
 ﻿using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Vouchers;
+using FitBridge_Application.Features.Vouchers.ApplyVoucher;
 using FitBridge_Application.Features.Vouchers.CreateFreelancePTVoucher;
 using FitBridge_Application.Features.Vouchers.GetUserVouchers;
 using FitBridge_Application.Features.Vouchers.RemoveVoucher;
@@ -47,6 +48,17 @@ namespace FitBridge_API.Controllers
                     StatusCodes.Status200OK.ToString(),
                     "Voucher updated successfully",
                     Empty));
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> ApplyVoucher([FromBody] ApplyVoucherCommand applyVoucherCommand)
+        {
+            var response = await mediator.Send(applyVoucherCommand);
+            return Ok(
+                new BaseResponse<ApplyVoucherDto>(
+                    StatusCodes.Status200OK.ToString(),
+                    "Voucher applied successfully",
+                    response));
         }
 
         [HttpDelete("{voucherId}")]
