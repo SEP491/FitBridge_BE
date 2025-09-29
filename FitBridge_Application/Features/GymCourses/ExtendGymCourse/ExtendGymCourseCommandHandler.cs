@@ -20,9 +20,10 @@ using FitBridge_Application.Specifications.ProductDetails;
 using FitBridge_Domain.Entities.Ecommerce;
 using FitBridge_Domain.Entities.ServicePackages;
 using FitBridge_Application.Specifications.Vouchers;
+using FitBridge_Application.Specifications.Vouchers.GetVoucherById;
 
 namespace FitBridge_Application.Features.GymCourses.ExtendGymCourse;
-    
+
 public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IApplicationUserService _applicationUserService, IPayOSService _payOSService, IMapper _mapper) : IRequestHandler<ExtendGymCourseCommand, PaymentResponseDto>
 {
     public async Task<PaymentResponseDto> Handle(ExtendGymCourseCommand request, CancellationToken cancellationToken)
@@ -42,16 +43,16 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
             throw new DataValidationFailedException("Customer purchased to extend id cannot be null");
         }
         await GetAndValidateOrderItems(request.Request.OrderItems, request.Request.CustomerPurchasedIdToExtend.Value);
-        
+
         var totalPrice = CalculateTotalPrice(request.Request.OrderItems);
         request.Request.TotalAmount = totalPrice;
         request.Request.AccountId = userId;
-        
+
         var paymentResponse = await _payOSService.CreatePaymentLinkAsync(request.Request, user);
         var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl);
         await CreateTransaction(paymentResponse, request.Request.PaymentMethodId, orderId);
         await AssignOrderItemProductName(request.Request.OrderItems);
-        
+
         return paymentResponse;
     }
 
@@ -148,7 +149,9 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
                     }
                     item.GymPtId = orderItemToExtend.GymPtId.Value;
                     item.Price = gymCourse.Price + gymCourse.PtPrice;
-                } else {
+                }
+                else
+                {
                     item.Price = gymCourse.Price;
                 }
                 item.GymCourseId = orderItemToExtend.GymCourseId.Value;
@@ -166,7 +169,7 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
             }
         }
     }
-    
+
     public decimal CalculateTotalPrice(List<OrderItemDto> OrderItems)
     {
         decimal totalPrice = 0;
@@ -181,7 +184,7 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
     {
         if (request.VoucherId != null)
         {
-            var voucher = await _unitOfWork.Repository<Voucher>().GetBySpecificationAsync(new GetVoucherByIdSpec(request.VoucherId!.Value));
+            var voucher = await _unitOfWork.Repository<Voucher>().GetBySpecificationAsync(new GetVoucherByIdSpecification(request.VoucherId!.Value));
             if (voucher == null)
             {
                 throw new NotFoundException("Voucher not found");
@@ -192,5 +195,4 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
 
         return request.TotalAmount;
     }
-
 }

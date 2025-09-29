@@ -20,6 +20,7 @@ using FitBridge_Domain.Entities.Orders;
 using AutoMapper;
 using FitBridge_Domain.Enums.Orders;
 using FitBridge_Application.Specifications.Vouchers;
+using FitBridge_Application.Specifications.Vouchers.GetVoucherById;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
@@ -41,7 +42,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         var totalPrice = CalculateTotalPrice(request.Request.OrderItems);
         request.Request.TotalAmount = totalPrice;
         request.Request.AccountId = userId;
-        
+
         var paymentResponse = await _payOSService.CreatePaymentLinkAsync(request.Request, user);
         var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl);
         await CreateTransaction(paymentResponse, request.Request.PaymentMethodId, orderId);
@@ -53,7 +54,6 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
     public async Task CreateTransaction(PaymentResponseDto paymentResponse, Guid paymentMethodId, Guid orderId)
     {
-
         var newTransaction = new Transaction
         {
             OrderCode = paymentResponse.Data.OrderCode,
@@ -163,7 +163,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             }
         }
     }
-    
+
     public decimal CalculateTotalPrice(List<OrderItemDto> OrderItems)
     {
         decimal totalPrice = 0;
@@ -178,7 +178,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
     {
         if (request.VoucherId != null)
         {
-            var voucher = await _unitOfWork.Repository<Voucher>().GetBySpecificationAsync(new GetVoucherByIdSpec(request.VoucherId!.Value));
+            var voucher = await _unitOfWork.Repository<Voucher>().GetBySpecificationAsync(new GetVoucherByIdSpecification(request.VoucherId!.Value));
             if (voucher == null)
             {
                 throw new NotFoundException("Voucher not found");

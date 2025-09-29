@@ -17,6 +17,7 @@ using FitBridge_Application.Specifications.Vouchers;
 using FitBridge_Application.Specifications.GymCourses.GetGymCourseById;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Specifications.Accounts;
+using FitBridge_Application.Specifications.Vouchers.GetVoucherById;
 
 namespace FitBridge_Application.Features.Orders.CreateOrders;
 
@@ -70,7 +71,6 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
                     throw new PackageExistException("Package of this gym course still not expired");
                 }
                 item.Price = gymCoursePT.Price;
-
             }
 
             if (item.FreelancePTPackageId != null)
@@ -104,7 +104,7 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
     {
         if (request.VoucherId != null)
         {
-            var voucher = await _unitOfWork.Repository<Voucher>().GetBySpecificationAsync(new GetVoucherByIdSpec(request.VoucherId!.Value));
+            var voucher = await _unitOfWork.Repository<Voucher>().GetBySpecificationAsync(new GetVoucherByIdSpecification(request.VoucherId!.Value));
             if (voucher == null)
             {
                 throw new NotFoundException("Voucher not found");
