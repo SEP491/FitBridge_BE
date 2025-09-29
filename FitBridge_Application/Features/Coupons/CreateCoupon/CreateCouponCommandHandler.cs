@@ -11,16 +11,16 @@ using FitBridge_Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace FitBridge_Application.Features.Vouchers.CreateFreelancePTVoucher
+namespace FitBridge_Application.Features.Coupons.CreateCoupon
 {
-    internal class CreateVoucherCommandHandler(
+    internal class CreateCouponCommandHandler(
         IMapper mapper,
         IUnitOfWork unitOfWork,
         IUserUtil userUtil,
         IHttpContextAccessor httpContext,
-        IApplicationUserService applicationUserService) : IRequestHandler<CreateVoucherCommand, CreateNewCouponDto>
+        IApplicationUserService applicationUserService) : IRequestHandler<CreateCouponCommand, CreateNewCouponDto>
     {
-        public async Task<CreateNewCouponDto> Handle(CreateVoucherCommand request, CancellationToken cancellationToken)
+        public async Task<CreateNewCouponDto> Handle(CreateCouponCommand request, CancellationToken cancellationToken)
         {
             var creatorId = userUtil.GetAccountId(httpContext.HttpContext)
                 ?? throw new NotFoundException("User not found");
@@ -29,24 +29,24 @@ namespace FitBridge_Application.Features.Vouchers.CreateFreelancePTVoucher
 
             var creatorRole = await applicationUserService.GetUserRoleAsync(creator);
 
-            var voucherType = creatorRole.Equals(ProjectConstant.UserRoles.FreelancePT) ? CouponType.FreelancePT
+            var couponType = creatorRole.Equals(ProjectConstant.UserRoles.FreelancePT) ? CouponType.FreelancePT
                 : CouponType.System;
 
-            var newVoucher = new Coupon
+            var newCoupon = new Coupon
             {
                 MaxDiscount = request.MaxDiscount,
-                Type = voucherType,
+                Type = couponType,
                 DiscountPercent = request.DiscountPercent,
                 Quantity = request.Quantity,
                 CreatorId = creatorId,
                 Id = Guid.NewGuid()
             };
 
-            unitOfWork.Repository<Coupon>().Insert(newVoucher);
+            unitOfWork.Repository<Coupon>().Insert(newCoupon);
 
             await unitOfWork.CommitAsync();
 
-            return mapper.Map<CreateNewCouponDto>(newVoucher);
+            return mapper.Map<CreateNewCouponDto>(newCoupon);
         }
     }
 }

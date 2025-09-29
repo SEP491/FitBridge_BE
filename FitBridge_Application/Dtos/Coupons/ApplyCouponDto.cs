@@ -2,9 +2,9 @@
 {
     public class ApplyCouponDto
     {
-        public Guid VoucherId { get; set; }
+        public Guid CouponId { get; set; }
 
-        public decimal VoucherDiscount { get; set; }
+        public decimal DiscountAmount { get; set; }
 
         public double DiscountPercent { get; set; }
     }

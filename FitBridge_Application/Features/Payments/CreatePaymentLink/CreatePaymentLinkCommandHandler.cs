@@ -20,6 +20,7 @@ using FitBridge_Domain.Entities.Orders;
 using AutoMapper;
 using FitBridge_Domain.Enums.Orders;
 using FitBridge_Application.Specifications.Coupons;
+using FitBridge_Application.Specifications.Coupons.GetCouponById;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
@@ -177,7 +178,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
     {
         if (request.CouponId != null)
         {
-            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpec(request.CouponId!.Value));
+            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpecification(request.CouponId!.Value));
             if (coupon == null)
             {
                 throw new NotFoundException("Coupon not found");

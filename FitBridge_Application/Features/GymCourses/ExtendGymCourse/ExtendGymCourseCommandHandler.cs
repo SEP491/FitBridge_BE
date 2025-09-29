@@ -20,6 +20,7 @@ using FitBridge_Application.Specifications.ProductDetails;
 using FitBridge_Domain.Entities.Ecommerce;
 using FitBridge_Domain.Entities.ServicePackages;
 using FitBridge_Application.Specifications.Coupons;
+using FitBridge_Application.Specifications.Coupons.GetCouponById;
 
 namespace FitBridge_Application.Features.GymCourses.ExtendGymCourse;
 
@@ -183,7 +184,7 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
     {
         if (request.CouponId != null)
         {
-            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpec(request.CouponId!.Value));
+            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpecification(request.CouponId!.Value));
             if (coupon == null)
             {
                 throw new NotFoundException("Coupon not found");

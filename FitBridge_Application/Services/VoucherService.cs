@@ -2,7 +2,7 @@
 
 namespace FitBridge_Application.Services
 {
-    internal class VoucherService(IUnitOfWork unitOfWork)
+    internal class CouponService(IUnitOfWork unitOfWork)
     {
     }
 }
