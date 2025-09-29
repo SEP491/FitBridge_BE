@@ -16,8 +16,8 @@ namespace FitBridge_Application.Features.Vouchers.UpdateVoucher
         public async Task Handle(UpdateVoucherCommand request, CancellationToken cancellationToken)
         {
             var spec = new GetVoucherByIdSpecification(request.VoucherId);
-            var existingVoucher = await unitOfWork.Repository<Voucher>().GetBySpecificationAsync(spec, false)
-                ?? throw new NotFoundException(nameof(Voucher));
+            var existingVoucher = await unitOfWork.Repository<Coupon>().GetBySpecificationAsync(spec, false)
+                ?? throw new NotFoundException(nameof(Coupon));
             if (request.MaxDiscount.HasValue && request.MaxDiscount > 0m)
             {
                 existingVoucher.MaxDiscount = request.MaxDiscount.Value;
@@ -38,7 +38,7 @@ namespace FitBridge_Application.Features.Vouchers.UpdateVoucher
                 existingVoucher.IsActive = request.IsActive.Value;
             }
 
-            unitOfWork.Repository<Voucher>().Update(existingVoucher);
+            unitOfWork.Repository<Coupon>().Update(existingVoucher);
             await unitOfWork.CommitAsync();
         }
     }

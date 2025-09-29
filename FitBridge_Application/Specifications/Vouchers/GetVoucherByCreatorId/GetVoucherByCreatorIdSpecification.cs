@@ -2,7 +2,7 @@
 
 namespace FitBridge_Application.Specifications.Vouchers.GetVoucherByCreatorId
 {
-    public class GetVoucherByCreatorIdSpecification : BaseSpecification<Voucher>
+    public class GetVoucherByCreatorIdSpecification : BaseSpecification<Coupon>
     {
         public GetVoucherByCreatorIdSpecification(GetVouchersByCreatorIdParam param, Guid creatorId) : base(x =>
             x.IsEnabled && x.CreatorId == creatorId)

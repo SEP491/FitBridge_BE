@@ -13,11 +13,11 @@ namespace FitBridge_Application.Features.Vouchers.RemoveVoucher
         public async Task Handle(RemoveVoucherCommand request, CancellationToken cancellationToken)
         {
             var spec = new GetVoucherByIdSpecification(request.VoucherId);
-            var existingVoucher = await unitOfWork.Repository<Voucher>().GetBySpecificationAsync(spec, false)
-                ?? throw new NotFoundException(nameof(Voucher));
+            var existingVoucher = await unitOfWork.Repository<Coupon>().GetBySpecificationAsync(spec, false)
+                ?? throw new NotFoundException(nameof(Coupon));
 
             existingVoucher.IsActive = false;
-            unitOfWork.Repository<Voucher>().SoftDelete(existingVoucher);
+            unitOfWork.Repository<Coupon>().SoftDelete(existingVoucher);
 
             await unitOfWork.CommitAsync();
         }

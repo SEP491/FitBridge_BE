@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FitBridge_Application.Dtos;
-using FitBridge_Application.Dtos.Vouchers;
+using FitBridge_Application.Dtos.Coupons;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Utils;
@@ -18,18 +18,18 @@ namespace FitBridge_Application.Features.Vouchers.GetUserVouchers
         IHttpContextAccessor httpContextAccessor,
         IUnitOfWork unitOfWork,
         IUserUtil userUtil,
-        IMapper mapper) : IRequestHandler<GetUserCreatedVouchersQuery, PagingResultDto<GetVouchersDto>>
+        IMapper mapper) : IRequestHandler<GetUserCreatedVouchersQuery, PagingResultDto<GetCouponsDto>>
     {
-        public async Task<PagingResultDto<GetVouchersDto>> Handle(GetUserCreatedVouchersQuery request, CancellationToken cancellationToken)
+        public async Task<PagingResultDto<GetCouponsDto>> Handle(GetUserCreatedVouchersQuery request, CancellationToken cancellationToken)
         {
             var creatorId = userUtil.GetAccountId(httpContextAccessor.HttpContext) ?? throw new NotFoundException(nameof(ApplicationUser));
 
             var spec = new GetVoucherByCreatorIdSpecification(request.Params, creatorId);
-            var voucherDtos = await unitOfWork.Repository<Voucher>()
-                .GetAllWithSpecificationProjectedAsync<GetVouchersDto>(spec, mapper.ConfigurationProvider);
-            var voucherTotalCount = await unitOfWork.Repository<Voucher>().CountAsync(spec);
+            var voucherDtos = await unitOfWork.Repository<Coupon>()
+                .GetAllWithSpecificationProjectedAsync<GetCouponsDto>(spec, mapper.ConfigurationProvider);
+            var voucherTotalCount = await unitOfWork.Repository<Coupon>().CountAsync(spec);
 
-            return new PagingResultDto<GetVouchersDto>(voucherTotalCount, voucherDtos.ToList());
+            return new PagingResultDto<GetCouponsDto>(voucherTotalCount, voucherDtos.ToList());
         }
     }
 }

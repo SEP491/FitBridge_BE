@@ -2,7 +2,7 @@
 
 namespace FitBridge_Application.Specifications.Vouchers.GetVoucherToApply
 {
-    public class GetVoucherToApplySpecification : BaseSpecification<Voucher>
+    public class GetVoucherToApplySpecification : BaseSpecification<Coupon>
     {
         public GetVoucherToApplySpecification(Guid voucherId) : base(x => x.IsActive && x.IsEnabled && x.Id == voucherId)
         {

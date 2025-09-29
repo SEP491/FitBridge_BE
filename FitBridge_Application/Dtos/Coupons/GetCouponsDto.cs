@@ -1,6 +1,6 @@
-﻿namespace FitBridge_Application.Dtos.Vouchers
+﻿namespace FitBridge_Application.Dtos.Coupons
 {
-    public class GetVouchersDto
+    public class GetCouponsDto
     {
         public Guid Id { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿using FitBridge_API.Helpers.RequestHelpers;
-using FitBridge_Application.Dtos.Vouchers;
-using FitBridge_Application.Features.Vouchers.ApplyVoucher;
+using FitBridge_Application.Dtos.Coupons;
+using FitBridge_Application.Features.Vouchers.ApplyCoupon;
 using FitBridge_Application.Features.Vouchers.CreateFreelancePTVoucher;
 using FitBridge_Application.Features.Vouchers.GetUserVouchers;
 using FitBridge_Application.Features.Vouchers.RemoveVoucher;
@@ -13,34 +13,34 @@ using Microsoft.AspNetCore.Mvc;
 namespace FitBridge_API.Controllers
 {
     [Authorize]
-    public class VouchersController(IMediator mediator) : _BaseApiController
+    public class CouponsController(IMediator mediator) : _BaseApiController
     {
         [HttpGet]
-        public async Task<IActionResult> GetVouchers([FromQuery] GetVouchersByCreatorIdParam parameters)
+        public async Task<IActionResult> GetCoupons([FromQuery] GetVouchersByCreatorIdParam parameters)
         {
             var result = await mediator.Send(new GetUserCreatedVouchersQuery { Params = parameters });
             var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
             return Ok(
-                new BaseResponse<Pagination<GetVouchersDto>>(
+                new BaseResponse<Pagination<GetCouponsDto>>(
                     StatusCodes.Status200OK.ToString(),
                     "Vouchers retrieved successfully",
                     pagination));
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateVoucher([FromBody] CreateVoucherCommand command)
+        public async Task<IActionResult> CreateCoupon([FromBody] CreateVoucherCommand command)
         {
-            var voucherDto = await mediator.Send(command);
+            var couponDto = await mediator.Send(command);
             return Created(
-                nameof(CreateVoucher),
-                new BaseResponse<CreateNewVoucherDto>(
+                nameof(CreateCoupon),
+                new BaseResponse<CreateNewCouponDto>(
                     StatusCodes.Status201Created.ToString(),
-                    "Voucher created successfully",
-                    voucherDto));
+                    "Coupon created successfully",
+                    couponDto));
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateVoucher([FromBody] UpdateVoucherCommand updateVoucherCommand)
+        public async Task<IActionResult> UpdateCoupon([FromBody] UpdateVoucherCommand updateVoucherCommand)
         {
             await mediator.Send(updateVoucherCommand);
             return Ok(
@@ -51,19 +51,19 @@ namespace FitBridge_API.Controllers
         }
 
         [HttpPost("apply/{voucherId}")]
-        public async Task<IActionResult> CheckApplyVoucher([FromRoute] Guid voucherId, [FromBody] ApplyVoucherQuery applyVoucherCommand)
+        public async Task<IActionResult> CheckApplyCoupon([FromRoute] Guid voucherId, [FromBody] ApplyCouponQuery applyVoucherCommand)
         {
             applyVoucherCommand.VoucherId = voucherId;
             var response = await mediator.Send(applyVoucherCommand);
             return Ok(
-                new BaseResponse<ApplyVoucherDto>(
+                new BaseResponse<ApplyCouponDto>(
                     StatusCodes.Status200OK.ToString(),
                     "Voucher applied successfully",
                     response));
         }
 
         [HttpDelete("{voucherId}")]
-        public async Task<IActionResult> DeleteVoucher([FromRoute] string voucherId)
+        public async Task<IActionResult> DeleteCoupon([FromRoute] string voucherId)
         {
             await mediator.Send(new RemoveVoucherCommand { VoucherId = Guid.Parse(voucherId) });
             return Ok(
