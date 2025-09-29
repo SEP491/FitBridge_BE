@@ -68,7 +68,7 @@ namespace FitBridge_API.Controllers
         /// With paging enabled, page size = 10 by default, page number starts at 1.
         ///
         /// Filter options :
-        /// - gymName: partial / case-insensitive text match against the gym name.
+        /// - searchTerm: partial / case-insensitive text match against the gym name.
         ///
         /// Ordering (SortBy / SortDirection):
         /// - gymName / asc (default) | desc

@@ -12,7 +12,7 @@ namespace FitBridge_Application.Specifications.Gym.GetAllGyms
             bool includeGymFacilities = false,
             bool includeGymCoursePTs = false) : base(x =>
                 (!string.IsNullOrEmpty(x.GymName) &&
-                    (string.IsNullOrEmpty(parameters.Name) || x.GymName!.ToLower().Contains(parameters.Name.ToLower())))
+                    (string.IsNullOrEmpty(parameters.SearchTerm) || x.GymName!.ToLower().Contains(parameters.SearchTerm.ToLower())))
             )
         {
             switch (StringCapitalizationConverter.ToUpperFirstChar(parameters.SortBy))

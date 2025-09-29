@@ -19,5 +19,7 @@
         public string SortBy { get; set; } = "Id";
 
         public string SortOrder { get; set; } = "asc";
+
+        public string SearchTerm { get; set; } = string.Empty;
     }
 }
