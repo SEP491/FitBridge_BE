@@ -50,9 +50,10 @@ namespace FitBridge_API.Controllers
                     Empty));
         }
 
-        [HttpPut]
-        public async Task<IActionResult> ApplyVoucher([FromBody] ApplyVoucherCommand applyVoucherCommand)
+        [HttpPost("apply/{voucherId}")]
+        public async Task<IActionResult> CheckApplyVoucher([FromRoute] Guid voucherId, [FromBody] ApplyVoucherQuery applyVoucherCommand)
         {
+            applyVoucherCommand.VoucherId = voucherId;
             var response = await mediator.Send(applyVoucherCommand);
             return Ok(
                 new BaseResponse<ApplyVoucherDto>(
