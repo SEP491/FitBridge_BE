@@ -13,7 +13,6 @@ public class GetCustomerPurchasedByCustomerIdSpec : BaseSpecification<CustomerPu
         if (isGymCourse)
         {
             AddInclude("OrderItems.GymCourse");
-            AddInclude("OrderItems.GymCourse.GymCoursePTs");
         }
         else
         {

@@ -44,7 +44,7 @@ namespace FitBridge_Domain.Entities.Identity
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public UserDetail? UserDetail { get; set; }
         public ICollection<Question> Questions { get; set; } = new List<Question>();
-        public ICollection<Voucher> Vouchers { get; set; } = new List<Voucher>();
+        public ICollection<Coupon> Coupons { get; set; } = new List<Coupon>();
         public ICollection<GymCourse> GymCourses { get; set; } = new List<GymCourse>();
         public ICollection<WithdrawalRequest> WithdrawalRequests { get; set; } = new List<WithdrawalRequest>();
         public ICollection<PushNotificationTokens> PushNotificationTokens { get; set; } = new List<PushNotificationTokens>();

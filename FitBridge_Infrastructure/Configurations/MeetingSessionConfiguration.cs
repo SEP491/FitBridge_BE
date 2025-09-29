@@ -10,7 +10,6 @@ public class MeetingSessionConfiguration : IEntityTypeConfiguration<MeetingSessi
     public void Configure(EntityTypeBuilder<MeetingSession> builder)
     {
         builder.ToTable("MeetingSessions");
-        builder.Property(e => e.StartTime).IsRequired(true);
         builder.Property(e => e.UserOneId).IsRequired(true);
         builder.Property(e => e.UserTwoId).IsRequired(true);
 

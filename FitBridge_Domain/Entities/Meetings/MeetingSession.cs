@@ -5,7 +5,6 @@ namespace FitBridge_Domain.Entities.Meetings;
 
 public class MeetingSession : BaseEntity
 {
-    public DateTime StartTime { get; set; }
     public Guid UserOneId { get; set; }
     public Guid UserTwoId { get; set; }
     public ApplicationUser UserOne { get; set; }

@@ -33,7 +33,7 @@ internal static class IdentityData
                 Orders = [],
                 UserDetail = new UserDetail(),
                 Questions = [],
-                Vouchers = [],
+                Coupons = [],
                 GymCourses = [],
                 WithdrawalRequests = [],
                 PushNotificationTokens = [],

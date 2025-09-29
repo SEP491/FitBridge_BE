@@ -13,7 +13,7 @@ using FitBridge_Application.Specifications.GymCoursePts.GetGymCoursePtById;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByGymId;
 using FitBridge_Application.Specifications.FreelancePtPackages.GetFreelancePtPackageById;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByFreelancePtId;
-using FitBridge_Application.Specifications.Vouchers;
+using FitBridge_Application.Specifications.Coupons;
 using FitBridge_Application.Specifications.GymCourses.GetGymCourseById;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Specifications.Accounts;
@@ -102,15 +102,15 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
 
     public async Task<decimal> CalculateSubTotalPrice(CreateOrderCommand request, decimal totalPrice)
     {
-        if (request.VoucherId != null)
+        if (request.CouponId != null)
         {
-            var voucher = await _unitOfWork.Repository<Voucher>().GetBySpecificationAsync(new GetVoucherByIdSpecification(request.VoucherId!.Value));
-            if (voucher == null)
+            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpec(request.CouponId!.Value));
+            if (coupon == null)
             {
-                throw new NotFoundException("Voucher not found");
+                throw new NotFoundException("Coupon not found");
             }
-            var voucherDiscountAmount = (decimal)voucher.DiscountPercent / 100 * totalPrice > voucher.MaxDiscount ? voucher.MaxDiscount : (decimal)voucher.DiscountPercent / 100 * totalPrice;
-            return totalPrice - voucherDiscountAmount + request.ShippingFee;
+            var couponDiscountAmount = (decimal)coupon.DiscountPercent / 100 * totalPrice > coupon.MaxDiscount ? coupon.MaxDiscount : (decimal)coupon.DiscountPercent / 100 * totalPrice;
+            return totalPrice - couponDiscountAmount + request.ShippingFee;
         }
 
         return totalPrice + request.ShippingFee;

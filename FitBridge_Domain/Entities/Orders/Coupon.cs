@@ -3,11 +3,11 @@ using FitBridge_Domain.Enums.Orders;
 
 namespace FitBridge_Domain.Entities.Orders;
 
-public class Voucher : BaseEntity
+public class Coupon : BaseEntity
 {
     public decimal MaxDiscount { get; set; }
 
-    public VoucherType Type { get; set; }
+    public CouponType Type { get; set; }
 
     public double DiscountPercent { get; set; }
 
