@@ -17,7 +17,7 @@ using FitBridge_Application.Specifications.Coupons;
 using FitBridge_Application.Specifications.GymCourses.GetGymCourseById;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Specifications.Accounts;
-using FitBridge_Application.Specifications.Vouchers.GetVoucherById;
+using FitBridge_Application.Specifications.Coupons.GetCouponById;
 
 namespace FitBridge_Application.Features.Orders.CreateOrders;
 
@@ -104,7 +104,7 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
     {
         if (request.CouponId != null)
         {
-            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpec(request.CouponId!.Value));
+            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpecification(request.CouponId!.Value));
             if (coupon == null)
             {
                 throw new NotFoundException("Coupon not found");

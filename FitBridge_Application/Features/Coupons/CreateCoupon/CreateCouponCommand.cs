@@ -1,9 +1,9 @@
 ﻿using FitBridge_Application.Dtos.Coupons;
 using MediatR;
 
-namespace FitBridge_Application.Features.Vouchers.CreateFreelancePTVoucher
+namespace FitBridge_Application.Features.Coupons.CreateCoupon
 {
-    public class CreateVoucherCommand : IRequest<CreateNewCouponDto>
+    public class CreateCouponCommand : IRequest<CreateNewCouponDto>
     {
         public decimal MaxDiscount { get; set; }
 

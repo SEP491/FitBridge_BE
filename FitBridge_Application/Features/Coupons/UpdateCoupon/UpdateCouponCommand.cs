@@ -1,10 +1,10 @@
 ﻿using MediatR;
 
-namespace FitBridge_Application.Features.Vouchers.UpdateVoucher
+namespace FitBridge_Application.Features.Coupons.UpdateCoupon
 {
-    public class UpdateVoucherCommand : IRequest
+    public class UpdateCouponCommand : IRequest
     {
-        public Guid VoucherId { get; set; }
+        public Guid CouponId { get; set; }
 
         public decimal? MaxDiscount { get; set; }
 

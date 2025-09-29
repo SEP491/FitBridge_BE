@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
 using FitBridge_Application.Dtos.Coupons;
-using FitBridge_Application.Features.Vouchers.CreateFreelancePTVoucher;
 using FitBridge_Domain.Entities.Orders;
 
 namespace FitBridge_Application.MappingProfiles
 {
-    public class VoucherMappingProfile : Profile
+    public class CouponMappingProfile : Profile
     {
-        public VoucherMappingProfile()
+        public CouponMappingProfile()
         {
             CreateMap<Coupon, CreateNewCouponDto>();
             CreateProjection<Coupon, GetCouponsDto>();

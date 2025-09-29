@@ -1,11 +1,11 @@
 ﻿using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Coupons;
-using FitBridge_Application.Features.Vouchers.ApplyCoupon;
-using FitBridge_Application.Features.Vouchers.CreateFreelancePTVoucher;
-using FitBridge_Application.Features.Vouchers.GetUserVouchers;
-using FitBridge_Application.Features.Vouchers.RemoveVoucher;
-using FitBridge_Application.Features.Vouchers.UpdateVoucher;
-using FitBridge_Application.Specifications.Vouchers.GetVoucherByCreatorId;
+using FitBridge_Application.Features.Coupons.ApplyCoupon;
+using FitBridge_Application.Features.Coupons.CreateCoupon;
+using FitBridge_Application.Features.Coupons.GetUserCreatedCoupons;
+using FitBridge_Application.Features.Coupons.RemoveCoupon;
+using FitBridge_Application.Features.Coupons.UpdateCoupon;
+using FitBridge_Application.Specifications.Coupons.GetCouponByCreatorId;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,19 +16,19 @@ namespace FitBridge_API.Controllers
     public class CouponsController(IMediator mediator) : _BaseApiController
     {
         [HttpGet]
-        public async Task<IActionResult> GetCoupons([FromQuery] GetVouchersByCreatorIdParam parameters)
+        public async Task<IActionResult> GetCoupons([FromQuery] GetCouponsByCreatorIdParam parameters)
         {
-            var result = await mediator.Send(new GetUserCreatedVouchersQuery { Params = parameters });
+            var result = await mediator.Send(new GetUserCreatedCouponsQuery { Params = parameters });
             var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
             return Ok(
                 new BaseResponse<Pagination<GetCouponsDto>>(
                     StatusCodes.Status200OK.ToString(),
-                    "Vouchers retrieved successfully",
+                    "Coupons retrieved successfully",
                     pagination));
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCoupon([FromBody] CreateVoucherCommand command)
+        public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponCommand command)
         {
             var couponDto = await mediator.Send(command);
             return Created(
@@ -40,36 +40,36 @@ namespace FitBridge_API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateCoupon([FromBody] UpdateVoucherCommand updateVoucherCommand)
+        public async Task<IActionResult> UpdateCoupon([FromBody] UpdateCouponCommand updateCouponCommand)
         {
-            await mediator.Send(updateVoucherCommand);
+            await mediator.Send(updateCouponCommand);
             return Ok(
                 new BaseResponse<EmptyResult>(
                     StatusCodes.Status200OK.ToString(),
-                    "Voucher updated successfully",
+                    "Coupon updated successfully",
                     Empty));
         }
 
-        [HttpPost("apply/{voucherId}")]
-        public async Task<IActionResult> CheckApplyCoupon([FromRoute] Guid voucherId, [FromBody] ApplyCouponQuery applyVoucherCommand)
+        [HttpPost("apply/{couponId}")]
+        public async Task<IActionResult> CheckApplyCoupon([FromRoute] Guid couponId, [FromBody] ApplyCouponQuery applyCouponQuery)
         {
-            applyVoucherCommand.VoucherId = voucherId;
-            var response = await mediator.Send(applyVoucherCommand);
+            applyCouponQuery.CouponId = couponId;
+            var response = await mediator.Send(applyCouponQuery);
             return Ok(
                 new BaseResponse<ApplyCouponDto>(
                     StatusCodes.Status200OK.ToString(),
-                    "Voucher applied successfully",
+                    "Coupon applied successfully",
                     response));
         }
 
-        [HttpDelete("{voucherId}")]
-        public async Task<IActionResult> DeleteCoupon([FromRoute] string voucherId)
+        [HttpDelete("{couponId}")]
+        public async Task<IActionResult> DeleteCoupon([FromRoute] string couponId)
         {
-            await mediator.Send(new RemoveVoucherCommand { VoucherId = Guid.Parse(voucherId) });
+            await mediator.Send(new RemoveCouponCommand { CouponId = Guid.Parse(couponId) });
             return Ok(
                 new BaseResponse<EmptyResult>(
                     StatusCodes.Status200OK.ToString(),
-                    "Voucher deleted successfully",
+                    "Coupon deleted successfully",
                     Empty));
         }
     }
