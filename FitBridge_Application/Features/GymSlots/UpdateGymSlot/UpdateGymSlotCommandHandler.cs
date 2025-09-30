@@ -10,9 +10,9 @@ using FitBridge_Application.Specifications.GymSlots;
 
 namespace FitBridge_Application.Features.GymSlots.UpdateGymSlot;
 
-public class UpdateGymSlotCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<UpdateGymSlotCommand, CreateNewSlotResponse>
+public class UpdateGymSlotCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<UpdateGymSlotCommand, SlotResponseDto>
 {
-    public async Task<CreateNewSlotResponse> Handle(UpdateGymSlotCommand request, CancellationToken cancellationToken)
+    public async Task<SlotResponseDto> Handle(UpdateGymSlotCommand request, CancellationToken cancellationToken)
     {
         var entity = await _unitOfWork.Repository<GymSlot>().GetByIdAsync(request.Id);
         if (entity == null)
@@ -32,7 +32,7 @@ public class UpdateGymSlotCommandHandler(IUnitOfWork _unitOfWork, IMapper _mappe
         _unitOfWork.Repository<GymSlot>().Update(entity);
         await _unitOfWork.CommitAsync();
 
-        return _mapper.Map<GymSlot, CreateNewSlotResponse>(entity);
+        return _mapper.Map<GymSlot, SlotResponseDto>(entity);
     }
 
     public async Task ValidateGymSlot(UpdateGymSlotCommand request, GymSlot entity)

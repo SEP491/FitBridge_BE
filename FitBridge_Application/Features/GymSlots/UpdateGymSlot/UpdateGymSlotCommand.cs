@@ -4,7 +4,7 @@ using MediatR;
 
 namespace FitBridge_Application.Features.GymSlots.UpdateGymSlot;
 
-public class UpdateGymSlotCommand : IRequest<CreateNewSlotResponse>
+public class UpdateGymSlotCommand : IRequest<SlotResponseDto>
 {
     public Guid Id { get; set; }
     public string Name { get; set; }

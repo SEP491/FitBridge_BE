@@ -11,6 +11,7 @@ public class PTGymSlot : BaseEntity
     public Guid GymSlotId { get; set; }
 
     public PTGymSlotStatus Status { get; set; }
+    public DateOnly RegisterDate { get; set; }
 
     public ApplicationUser PT { get; set; }
 
