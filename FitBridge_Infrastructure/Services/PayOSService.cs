@@ -122,7 +122,7 @@ public class PayOSService : IPayOSService
                 throw new Exception($"Payment information not found for order {id}");
             }
 
-            _logger.LogInformation("Successfully retrieved payment info for order {OrderCode}", orderCode);
+            _logger.LogInformation($"Successfully retrieved payment info for order {orderCode}", orderCode);
 
             // Convert PayOS SDK result to our DTO format
             return new PaymentInfoResponseDto

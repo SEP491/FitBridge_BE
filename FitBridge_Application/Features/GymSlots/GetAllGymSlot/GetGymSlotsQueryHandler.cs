@@ -12,9 +12,9 @@ using FitBridge_Domain.Exceptions;
 
 namespace FitBridge_Application.Features.GymSlots.GetAllGymSlot;
 
-public class GetGymSlotsQueryHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor) : IRequestHandler<GetGymSlotsQuery, PagingResultDto<CreateNewSlotResponse>>
+public class GetGymSlotsQueryHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor) : IRequestHandler<GetGymSlotsQuery, PagingResultDto<SlotResponseDto>>
 {
-    public async Task<PagingResultDto<CreateNewSlotResponse>> Handle(GetGymSlotsQuery request, CancellationToken cancellationToken)
+    public async Task<PagingResultDto<SlotResponseDto>> Handle(GetGymSlotsQuery request, CancellationToken cancellationToken)
     {
         var gymId = _userUtil.GetAccountId(_httpContextAccessor.HttpContext);
         if (gymId == null)
@@ -22,9 +22,9 @@ public class GetGymSlotsQueryHandler(IUnitOfWork _unitOfWork, IMapper _mapper, I
             throw new NotFoundException("Gym not found");
         }
         var spec = new GetAllGymSlotsSpec(request.Params, gymId.Value);
-        var result = await _unitOfWork.Repository<GymSlot>().GetAllWithSpecificationProjectedAsync<CreateNewSlotResponse>(spec, _mapper.ConfigurationProvider);
+        var result = await _unitOfWork.Repository<GymSlot>().GetAllWithSpecificationProjectedAsync<SlotResponseDto>(spec, _mapper.ConfigurationProvider);
         var totalItems = await _unitOfWork.Repository<GymSlot>().CountAsync(spec);
-        return new PagingResultDto<CreateNewSlotResponse>(totalItems, result);
+        return new PagingResultDto<SlotResponseDto>(totalItems, result);
     }
 
 }

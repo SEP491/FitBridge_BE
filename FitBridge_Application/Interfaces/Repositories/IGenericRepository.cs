@@ -8,7 +8,7 @@ namespace FitBridge_Application.Interfaces.Repositories
     {
 
         // GET
-        Task<T?> GetByIdAsync(Guid id, bool asNoTracking = true);
+        Task<T?> GetByIdAsync(Guid id, bool asNoTracking = true, List<string>? includes = null);
         Task<IReadOnlyList<T>> GetAllWithSpecificationAsync(ISpecification<T> specification, bool asNoTracking = true);
 
         Task<T?> GetBySpecificationAsync(ISpecification<T> specification, bool asNoTracking = true);

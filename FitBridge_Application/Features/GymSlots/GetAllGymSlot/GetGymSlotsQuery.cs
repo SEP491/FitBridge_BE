@@ -6,7 +6,7 @@ using MediatR;
 
 namespace FitBridge_Application.Features.GymSlots.GetAllGymSlot;
 
-public class GetGymSlotsQuery : IRequest<PagingResultDto<CreateNewSlotResponse>>
+public class GetGymSlotsQuery : IRequest<PagingResultDto<SlotResponseDto>>
 {
     public GetGymSlotParams Params { get; set; }
 }

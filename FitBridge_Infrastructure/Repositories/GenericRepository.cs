@@ -128,12 +128,16 @@ namespace FitBridge_Infrastructure.Repositories
             return await SpecificationQueryBuilder<T>.BuildGroupByQuery(query, specification).ToListAsync();
         }
 
-        public async Task<T?> GetByIdAsync(Guid id, bool asNoTracking = true)
+        public async Task<T?> GetByIdAsync(Guid id, bool asNoTracking = true, List<string>? includes = null)
         {
             IQueryable<T> query = _dbContext.Set<T>();
             if (asNoTracking)
             {
                 query = query.AsNoTracking();
+            }
+            if (includes != null)
+            {
+                query = includes.Aggregate(query, (current, include) => current.Include(include.ToString()));
             }
             return await query.FirstOrDefaultAsync(e => e.Id == id && e.IsEnabled == true);
         }

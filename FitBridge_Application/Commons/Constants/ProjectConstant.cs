@@ -16,6 +16,7 @@ public static class ProjectConstant
 
         public const string Customer = "Customer";
     }
+    public const int CancelBookingBeforeHours = 4;
 
     public const int GymSlotDuration = 1;
 }

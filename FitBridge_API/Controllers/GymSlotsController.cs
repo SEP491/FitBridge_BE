@@ -12,6 +12,8 @@ using FitBridge_Application.Features.GymSlots.GetAllGymSlot;
 using FitBridge_Application.Features.GymSlots.RegisterSlot;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Features.GymSlots.DeactivateSlot;
+using FitBridge_Application.Features.GymSlots.CustomerRegisterSlot;
+using FitBridge_Application.Features.GymSlots.CheckMinimumSlot;
 
 namespace FitBridge_API.Controllers;
 
@@ -38,7 +40,7 @@ public class GymSlotsController(IMediator _mediator) : _BaseApiController
     public async Task<IActionResult> UpdateGymSlot([FromBody] UpdateGymSlotCommand command)
     {
         var result = await _mediator.Send(command);
-        return Ok(new BaseResponse<CreateNewSlotResponse>(StatusCodes.Status200OK.ToString(), "Gym slot updated successfully", result));
+        return Ok(new BaseResponse<SlotResponseDto>(StatusCodes.Status200OK.ToString(), "Gym slot updated successfully", result));
     }
 
     [HttpGet]
@@ -47,7 +49,7 @@ public class GymSlotsController(IMediator _mediator) : _BaseApiController
     {
         var result = await _mediator.Send(new GetGymSlotsQuery { Params = parameters });
         var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
-        return Ok(new BaseResponse<Pagination<CreateNewSlotResponse>>(StatusCodes.Status200OK.ToString(), "Gym slots retrieved successfully", pagination));
+        return Ok(new BaseResponse<Pagination<SlotResponseDto>>(StatusCodes.Status200OK.ToString(), "Gym slots retrieved successfully", pagination));
     }
 
     [HttpPost("register-slot")]
@@ -64,5 +66,20 @@ public class GymSlotsController(IMediator _mediator) : _BaseApiController
     {
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Slot deactivated successfully", result));
+    }
+
+    [HttpPost("customer-register-slot")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Customer)]
+    public async Task<IActionResult> CustomerRegisterSlot([FromBody] CustomerRegisterSlotCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Slot registered successfully", result));
+    }
+
+    [HttpPost("check-minimum-slot")]
+    public async Task<IActionResult> CheckMinimumSlot([FromBody] CheckMinimumSlotCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<CheckMinimumSlotResponseDto>(StatusCodes.Status200OK.ToString(), "Slot check successfully", result));
     }
 }
