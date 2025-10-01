@@ -17,4 +17,7 @@ public class RegisterGymPtCommand : IRequest<CreateNewPTResponse>
         public string Email { get; set; } = null!;
 
         public CreateNewGymPTRequest CreateNewPT { get; set; } = null!;
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public bool? IsTestAccount { get; set; }
 }

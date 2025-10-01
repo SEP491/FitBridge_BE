@@ -14,6 +14,9 @@ using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Features.GymSlots.DeactivateSlot;
 using FitBridge_Application.Features.GymSlots.CustomerRegisterSlot;
 using FitBridge_Application.Features.GymSlots.CheckMinimumSlot;
+using FitBridge_Application.Features.GymSlots.GetAllPtSlot;
+using FitBridge_Application.Dtos;
+using FitBridge_Application.Features.GymSlots.GetGymPtSchedule;
 
 namespace FitBridge_API.Controllers;
 
@@ -81,5 +84,21 @@ public class GymSlotsController(IMediator _mediator) : _BaseApiController
     {
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<CheckMinimumSlotResponseDto>(StatusCodes.Status200OK.ToString(), "Slot check successfully", result));
+    }
+
+    [HttpGet("all-pt-slots")]
+    public async Task<IActionResult> GetAllPtSlots([FromQuery] GetAllPtSlotsParams parameters)
+    {
+        var result = await _mediator.Send(new GetAllPtSlotsQuery { Params = parameters });
+        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GetPTSlot>>(StatusCodes.Status200OK.ToString(), "Slots retrieved successfully", pagination));
+    }
+
+    [HttpGet("gym-pt-schedule")]
+    public async Task<IActionResult> GetGymPtSchedule([FromQuery] GetGymPtScheduleParams parameters)
+    {
+        var result = await _mediator.Send(new GetGymPtScheduleQuery { Params = parameters });
+        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<PTSlotScheduleResponse>>(StatusCodes.Status200OK.ToString(), "Schedule retrieved successfully", pagination));
     }
 }

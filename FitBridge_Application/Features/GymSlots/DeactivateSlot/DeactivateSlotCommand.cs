@@ -5,5 +5,5 @@ namespace FitBridge_Application.Features.GymSlots.DeactivateSlot;
 
 public class DeactivateSlotCommand : IRequest<bool>
 {
-    public Guid SlotId { get; set; }
+    public Guid PtGymSlotId { get; set; }
 }

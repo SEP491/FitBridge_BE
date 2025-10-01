@@ -7,7 +7,7 @@ using FitBridge_Application.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
 using FitBridge_Domain.Enums.Gyms;
 using FitBridge_Application.Interfaces.Utils;
-using FitBridge_Application.Specifications.GymSlotPts.GetGymSlotPtByIdAndPtId;
+using FitBridge_Application.Specifications.GymSlotPts.GGetGymSlotPtBySlotIdAndPtId;
 
 namespace FitBridge_Application.Features.GymSlots.RegisterSlot;
 
@@ -33,17 +33,19 @@ public class RegisterSlotCommandHandler(IUnitOfWork _unitOfWork, IUserUtil _user
             throw new InvalidDataException("Gym PT is not in the same gym as the slot");
         }
         
-        var isSlotRegistered = await _unitOfWork.Repository<PTGymSlot>().GetBySpecificationAsync(new GetGymSlotPtByIdAndPtId(request.SlotId, userId.Value));
+        var isSlotRegistered = await _unitOfWork.Repository<PTGymSlot>().GetBySpecificationAsync(new GetGymSlotPtBySlotIdAndPtIdSpec(request.SlotId, userId.Value, request.RegisterDate));
 
         if (isSlotRegistered != null)
         {
-            throw new DuplicateException("Slot already registered");
+            throw new DuplicateException("Slot already registered for this date");
         }
         
-        var ptGymSlot = new PTGymSlot {
+        var ptGymSlot = new PTGymSlot
+        {
             PTId = userId.Value,
             GymSlotId = request.SlotId,
-            Status = PTGymSlotStatus.Activated
+            Status = PTGymSlotStatus.Activated,
+            RegisterDate = request.RegisterDate
         };
         
         _unitOfWork.Repository<PTGymSlot>().Insert(ptGymSlot);
