@@ -11,5 +11,7 @@ public class GymSlotMappingProfile : Profile
     {
         CreateMap<CreateNewSlotResponse, GymSlot>();
         CreateMap<GymSlot, CreateNewSlotResponse>();
+        CreateMap<GymSlot, SlotResponseDto>();
+        CreateMap<SlotResponseDto, GymSlot>();
     }
 }

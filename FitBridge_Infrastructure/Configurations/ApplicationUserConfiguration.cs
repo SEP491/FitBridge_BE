@@ -27,7 +27,8 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         .HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<AccountStatus>(s))
         .HasDefaultValue(AccountStatus.Active);
         builder.Property(e => e.GymOwnerId).IsRequired(false);
-
+        builder.Property(e => e.PtMaxCourse).HasDefaultValue(3);
+        builder.Property(e => e.MinimumSlot).HasDefaultValue(1);
         builder.HasOne(e => e.GymOwner)
         .WithMany(e => e.GymPTs)
         .HasForeignKey(e => e.GymOwnerId)
