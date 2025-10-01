@@ -15,14 +15,18 @@ public class DeactivateSlotCommandHandler(IUnitOfWork _unitOfWork, IUserUtil _us
     {
         var userId = _userUtil.GetAccountId(_httpContextAccessor.HttpContext);
 
-        var ptGymSlotToDeactivate = await _unitOfWork.Repository<PTGymSlot>().GetBySpecificationAsync(new GetGymSlotPtByIdAndPtId(request.SlotId, userId.Value));
+        var ptGymSlotToDeactivate = await _unitOfWork.Repository<PTGymSlot>().GetBySpecificationAsync(new GetGymSlotPtByIdAndPtId(request.PtGymSlotId, userId.Value));
         if(ptGymSlotToDeactivate == null)
         {
-            throw new NotFoundException("Pt gym slot not found");
+            throw new NotFoundException($"Pt gym slot with user id {userId.Value} and pt gym slot id {request.PtGymSlotId} not found");
         }
-        if(ptGymSlotToDeactivate.Booking != null)
+        if(userId.Value != ptGymSlotToDeactivate.PTId)
         {
-            throw new UpdateFailedException("Slot is booked, cannot deactivate");
+            throw new UpdateFailedException("You are not authorized to deactivate this pt gym slot");
+        }
+        if (ptGymSlotToDeactivate.Booking != null)
+        {
+            throw new UpdateFailedException("Slot is booked, deactivate");
         }
         
         _unitOfWork.Repository<PTGymSlot>().Delete(ptGymSlotToDeactivate);

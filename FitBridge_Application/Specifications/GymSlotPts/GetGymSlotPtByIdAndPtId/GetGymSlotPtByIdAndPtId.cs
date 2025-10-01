@@ -6,7 +6,7 @@ namespace FitBridge_Application.Specifications.GymSlotPts.GetGymSlotPtByIdAndPtI
 
 public class GetGymSlotPtByIdAndPtId : BaseSpecification<PTGymSlot>
 {
-    public GetGymSlotPtByIdAndPtId(Guid gymSlotId, Guid ptId) : base(x => x.GymSlotId == gymSlotId && x.PTId == ptId)
+    public GetGymSlotPtByIdAndPtId(Guid ptGymSlotId, Guid ptId) : base(x => x.Id == ptGymSlotId && x.PTId == ptId)
     {
         AddInclude(x => x.Booking);
     }

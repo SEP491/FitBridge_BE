@@ -12,13 +12,28 @@ public class CancelGymPtBookingCommandHandler(IUnitOfWork _unitOfWork) : IReques
 {
     public async Task<bool> Handle(CancelGymPtBookingCommand request, CancellationToken cancellationToken)
     {
-        var booking = await _unitOfWork.Repository<Booking>().GetByIdAsync(request.BookingId, false);
+        var booking = await _unitOfWork.Repository<Booking>().GetByIdAsync(request.BookingId, false
+        , includes: new List<string> { "PTGymSlot", "PTGymSlot.GymSlot", "CustomerPurchased" }
+        );
         if (booking == null)
         {
             throw new NotFoundException("Booking not found");
         }
-        if(TimeOnly.FromDateTime(DateTime.Now) - booking.PTGymSlot.GymSlot.StartTime <= TimeSpan.FromHours(ProjectConstant.CancelBookingBeforeHours))
+        var sessionDateTime = booking.BookingDate.ToDateTime(booking.PTGymSlot.GymSlot.StartTime);
+        if (sessionDateTime < DateTime.UtcNow)
         {
+            throw new BusinessException("Cannot cancel a session that has already occurred");
+        }
+
+        var hoursUntilSession = sessionDateTime - DateTime.UtcNow;
+
+        // Check cancellation policy and refund session if applicable
+        if (hoursUntilSession.TotalHours > ProjectConstant.CancelBookingBeforeHours)
+        {
+            if (booking.CustomerPurchased == null)
+            {
+                throw new InvalidOperationException("CustomerPurchased not found for booking");
+            }
             booking.CustomerPurchased.AvailableSessions++;
         }
         _unitOfWork.Repository<Booking>().Delete(booking);
