@@ -7,7 +7,7 @@ namespace FitBridge_Application.Specifications.FreelancePtPackages.GetFreelanceP
 
 public class GetFreelancePtPackageByIdSpec : BaseSpecification<FreelancePTPackage>
 {
-    public GetFreelancePtPackageByIdSpec(Guid freelancePTPackageId) : base(x => x.Id == freelancePTPackageId)
+    public GetFreelancePtPackageByIdSpec(Guid freelancePTPackageId) : base(x => x.IsEnabled && x.Id == freelancePTPackageId)
     {
     }
 }
