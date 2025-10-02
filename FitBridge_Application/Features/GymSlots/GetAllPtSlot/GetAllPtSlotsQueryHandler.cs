@@ -18,14 +18,15 @@ public class GetAllPtSlotsQueryHandler(IUnitOfWork _unitOfWork, IApplicationUser
     {
         var ptEntity = await _applicationUserService.GetByIdAsync(request.Params.PtId);
         var ptGymSlots = await _unitOfWork.Repository<GymSlot>().GetAllWithSpecificationAsync(new GetGymSlotForPtRegisterSpec(ptEntity.GymOwnerId.Value, request.Params));
-        
+        var ptGymSlotDtos = new List<GetPTSlot>();
         foreach (var ptGymSlot in ptGymSlots)
         {
             ptGymSlot.PTGymSlots = ptGymSlot.PTGymSlots.Where(x => x.PTId == request.Params.PtId && x.RegisterDate == request.Params.RegisterDate).ToList();
+            ptGymSlotDtos.Add(_mapper.Map<GetPTSlot>(ptGymSlot));
+            ptGymSlotDtos.Last().PTSlots = _mapper.Map<GetPTSlotResponse>(ptGymSlot.PTGymSlots.FirstOrDefault());
         }
-        var ptGymSlotsDto = _mapper.Map<List<GetPTSlot>>(ptGymSlots);
 
         var totalItems = await _unitOfWork.Repository<GymSlot>().CountAsync(new GetGymSlotForPtRegisterSpec(ptEntity.GymOwnerId.Value, request.Params));
-        return new PagingResultDto<GetPTSlot>(totalItems, ptGymSlotsDto);
+        return new PagingResultDto<GetPTSlot>(totalItems, ptGymSlotDtos);
     }
 }
