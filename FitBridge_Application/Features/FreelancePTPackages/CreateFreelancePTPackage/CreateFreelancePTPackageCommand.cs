@@ -1,5 +1,6 @@
 ﻿using FitBridge_Application.Dtos.FreelancePTPackages;
 using MediatR;
+using System.Text.Json.Serialization;
 
 namespace FitBridge_Application.Features.FreelancePTPackages.CreateFreelancePTPackage
 {
@@ -18,7 +19,5 @@ namespace FitBridge_Application.Features.FreelancePTPackages.CreateFreelancePTPa
         public string? Description { get; set; }
 
         public string? ImageUrl { get; set; }
-
-        public Guid PtId { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace FitBridge_Application.Specifications.FreelancePtPackages.GetAllFreelan
     {
         public GetAllFreelancePTPackagesSpec(GetAllFreelancePTPackagesParam parameters) : base(x =>
             x.IsEnabled &&
-            !string.IsNullOrEmpty(parameters.SearchTerm) && parameters.SearchTerm.ToLower().Contains(x.Name))
+            (string.IsNullOrEmpty(parameters.SearchTerm) || parameters.SearchTerm.ToLower().Contains(x.Name)))
         {
             if (parameters.DoApplyPaging)
             {

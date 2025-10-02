@@ -22,27 +22,27 @@ namespace FitBridge_Application.Features.FreelancePTPackages.UpdateFreelancePTPa
                 existingPackage.Name = request.Name;
             }
 
-            if (request.Price > 0)
+            if (request.Price is decimal price && price > 0)
             {
-                existingPackage.Price = request.Price;
+                existingPackage.Price = price;
             }
-            if (request.DurationInDays > 0)
+            if (request.DurationInDays is int duration && duration > 0)
             {
-                existingPackage.DurationInDays = request.DurationInDays;
+                existingPackage.DurationInDays = duration;
             }
-            if (request.SessionDurationInMinutes > 0)
+            if (request.SessionDurationInMinutes is int sessionDuration && sessionDuration > 0)
             {
-                existingPackage.SessionDurationInMinutes = request.SessionDurationInMinutes;
+                existingPackage.SessionDurationInMinutes = sessionDuration;
             }
-            if (request.NumOfSessions > 0)
+            if (request.NumOfSessions is int sessions && sessions > 0)
             {
-                existingPackage.NumOfSessions = request.NumOfSessions;
+                existingPackage.NumOfSessions = sessions;
             }
-            if (request.Description is not null)
+            if (!string.IsNullOrEmpty(request.Description))
             {
                 existingPackage.Description = request.Description;
             }
-            if (request.ImageUrl is not null)
+            if (!string.IsNullOrEmpty(request.ImageUrl))
             {
                 existingPackage.ImageUrl = request.ImageUrl;
             }

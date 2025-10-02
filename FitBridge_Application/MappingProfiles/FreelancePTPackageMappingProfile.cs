@@ -4,12 +4,13 @@ using FitBridge_Domain.Entities.Gyms;
 
 namespace FitBridge_Application.MappingProfiles
 {
-    internal class FreelancePTPackageMappingProfile : Profile
+    public class FreelancePTPackageMappingProfile : Profile
     {
-        protected FreelancePTPackageMappingProfile()
+        public FreelancePTPackageMappingProfile()
         {
             CreateProjection<FreelancePTPackage, GetAllFreelancePTPackagesDto>();
             CreateProjection<FreelancePTPackage, GetFreelancePTPackageByIdDto>();
+            CreateMap<FreelancePTPackage, CreateFreelancePTPackageDto>();
         }
     }
 }
