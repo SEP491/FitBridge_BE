@@ -10,5 +10,5 @@ public class GetPTSlot
     public TimeOnly? StartTime { get; set; }
     public TimeOnly? EndTime { get; set; }
     public bool? IsActivated { get; set; }
-    public List<GetPTSlotResponse>? PTSlots { get; set; }
+    public GetPTSlotResponse PTSlots { get; set; }
 }

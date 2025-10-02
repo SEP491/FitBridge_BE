@@ -19,7 +19,6 @@ public class GymSlotMappingProfile : Profile
         .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
         .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
         .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
-        .ForMember(dest => dest.IsActivated, opt => opt.MapFrom(src => src.PTGymSlots.Any()))
-        .ForMember(dest => dest.PTSlots, opt => opt.MapFrom(src => src.PTGymSlots));
+        .ForMember(dest => dest.IsActivated, opt => opt.MapFrom(src => src.PTGymSlots.Any()));
     }
 }
