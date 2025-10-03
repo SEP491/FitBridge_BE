@@ -16,9 +16,13 @@ public class MeetingSessionConfiguration : IEntityTypeConfiguration<MeetingSessi
         builder.HasOne(e => e.UserOne)
         .WithMany().HasForeignKey(e => e.UserOneId)
         .OnDelete(DeleteBehavior.Restrict);
-        
+
         builder.HasOne(e => e.UserTwo)
         .WithMany().HasForeignKey(e => e.UserTwoId)
+        .OnDelete(DeleteBehavior.Restrict);
+         
+        builder.HasOne(e => e.Booking)
+        .WithOne(b => b.MeetingSession).HasForeignKey<MeetingSession>(e => e.BookingId)
         .OnDelete(DeleteBehavior.Restrict);
     }
 }
