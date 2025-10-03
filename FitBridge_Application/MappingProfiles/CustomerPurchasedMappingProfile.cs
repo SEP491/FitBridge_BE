@@ -11,6 +11,7 @@ public class CustomerPurchasedMappingProfile : Profile
     public CustomerPurchasedMappingProfile()
     {
         CreateProjection<CustomerPurchased, GymCoursesPtResponse>()
+            .ForMember(dest => dest.CustomerPurchasedId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourseId))
             .ForMember(dest => dest.GymOwnerId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourse.GymOwnerId))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourse.Name))

@@ -6,6 +6,7 @@ namespace FitBridge_Application.Dtos.GymCourses;
 
 public class GymCoursesPtResponse
 {
+    public Guid CustomerPurchasedId { get; set; }
     public Guid Id { get; set; }
     public string Name { get; set; }
 
