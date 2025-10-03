@@ -20,9 +20,10 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
         async Task<ApplyCouponDto> IRequestHandler<ApplyCouponQuery, ApplyCouponDto>.Handle(ApplyCouponQuery request, CancellationToken cancellationToken)
         {
             var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext) ?? throw new NotFoundException(nameof(ApplicationUser));
-            var couponSpec = new GetCouponToApplySpecification(request.CouponId);
+            var couponSpec = new GetCouponToApplySpecification(request.CouponCode);
             var coupon = await unitOfWork.Repository<Coupon>().GetBySpecificationAsync(couponSpec)
                 ?? throw new NotFoundException(nameof(Coupon));
+
             var orderSpec = new GetOrderByCouponAndUserIdSpecification(coupon.Id, accountId);
             var order = await unitOfWork.Repository<Order>().GetBySpecificationAsync(orderSpec);
 
@@ -35,7 +36,6 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
             {
                 throw new OutOfStocksException(nameof(Coupon));
             }
-            var beforeDiscount = CalculateBeforeDiscount();
 
             var dto = new ApplyCouponDto
             {
@@ -45,15 +45,10 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
             };
 
             return dto;
-
-            decimal CalculateBeforeDiscount()
-            {
-                return request.OrderItemDtos.Sum(item => item.Price * item.Quantity);
-            }
             decimal CalculateTotalPrice()
             {
-                var discountAmount = Math.Max(beforeDiscount * (decimal)coupon.DiscountPercent / 100, coupon.MaxDiscount);
-                return beforeDiscount - discountAmount;
+                var discountAmount = Math.Max(request.TotalPrice * (decimal)coupon.DiscountPercent / 100, coupon.MaxDiscount);
+                return request.TotalPrice - discountAmount;
             }
         }
     }

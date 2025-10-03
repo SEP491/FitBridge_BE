@@ -51,10 +51,9 @@ namespace FitBridge_API.Controllers
                     Empty));
         }
 
-        [HttpPost("apply/{couponId}")]
-        public async Task<IActionResult> CheckApplyCoupon([FromRoute] Guid couponId, [FromBody] ApplyCouponQuery applyCouponQuery)
+        [HttpPost("apply")]
+        public async Task<IActionResult> CheckApplyCoupon([FromBody] ApplyCouponQuery applyCouponQuery)
         {
-            applyCouponQuery.CouponId = couponId;
             var response = await mediator.Send(applyCouponQuery);
             return Ok(
                 new BaseResponse<ApplyCouponDto>(
