@@ -14,6 +14,7 @@ public class GetCustomerBookingByCustomerIdSpecification : BaseSpecification<Boo
     {
         AddInclude(x => x.PTGymSlot);
         AddInclude(x => x.PTGymSlot.GymSlot);
+        AddInclude(x => x.PTGymSlot.PT);
         if (parameters.DoApplyPaging)
         {
             AddPaging((parameters.Page - 1) * parameters.Size, parameters.Size);
