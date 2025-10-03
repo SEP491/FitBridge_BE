@@ -39,9 +39,10 @@ namespace FitBridge_API.Controllers
                     couponDto));
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateCoupon([FromBody] UpdateCouponCommand updateCouponCommand)
+        [HttpPut("{couponId}")]
+        public async Task<IActionResult> UpdateCoupon([FromRoute] Guid couponId, [FromBody] UpdateCouponCommand updateCouponCommand)
         {
+            updateCouponCommand.CouponId = couponId;
             await mediator.Send(updateCouponCommand);
             return Ok(
                 new BaseResponse<EmptyResult>(

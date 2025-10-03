@@ -39,7 +39,11 @@ public class RegisterGymPtCommandHandler(IApplicationUserService _applicationUse
         _unitOfWork.Repository<UserDetail>().Insert(userDetail);
 
         await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.GymPT);
-        await emailService.SendAccountInformationEmailAsync(user, request.Password, ProjectConstant.UserRoles.GymPT);
+        var isTestAccount = request.IsTestAccount ?? false;
+        if (isTestAccount != true)
+        {
+            await emailService.SendAccountInformationEmailAsync(user, request.Password, ProjectConstant.UserRoles.GymPT);
+        }
 
         await _unitOfWork.CommitAsync();
 
