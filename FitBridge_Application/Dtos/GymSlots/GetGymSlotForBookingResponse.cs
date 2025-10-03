@@ -5,6 +5,7 @@ namespace FitBridge_Application.Dtos.GymSlots;
 public class GetPtGymSlotForBookingResponse
 {
     public Guid PtGymSlotId { get; set; }
+    public string? SlotName { get; set; }   
     public Guid SlotId { get; set; }
     public Guid PTId { get; set; }
     public string? PtName { get; set; }
