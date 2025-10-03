@@ -21,7 +21,7 @@ public class CouponConfiguration : IEntityTypeConfiguration<Coupon>
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.Property(e => e.IsActive).HasDefaultValue(true);
-
+        builder.HasIndex(e => new {e.CouponCode, e.IsEnabled}).IsUnique();
         builder.HasOne(e => e.Creator).WithMany(e => e.Coupons).HasForeignKey(e => e.CreatorId);
     }
 }
