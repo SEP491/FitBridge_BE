@@ -15,6 +15,14 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - ${STACKS_VOLUME_PATH}/fitbridge/chatbot.env:/usr/src/app/.env
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://127.0.0.1:3100/loki/api/v1/push"
+        loki-retries: "2"
+        loki-max-backoff: "900ms"
+        loki-timeout: "1s"
+        keep-file: "true"
     networks:
       - proxy
   api-fitbridge:
@@ -33,6 +41,7 @@ services:
       - "traefik.http.routers.api-fitbridge.tls=true"
       - "traefik.http.routers.api-fitbridge.tls.certresolver=myresolver"
       - "traefik.http.routers.api-fitbridge.priority=50"
+      - "traefik.http.routers.api-fitbridge.middlewares=chain-api@file"
       - "traefik.http.services.api-fitbridge.loadbalancer.server.port=8003"
       - "com.centurylinklabs.watchtower.enable=true"
     volumes:

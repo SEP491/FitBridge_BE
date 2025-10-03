@@ -34,17 +34,26 @@ namespace FitBridge_Application.Features.Coupons.CreateCoupon
 
             var newCoupon = new Coupon
             {
+                CouponCode = request.CouponCode,
                 MaxDiscount = request.MaxDiscount,
                 Type = couponType,
                 DiscountPercent = request.DiscountPercent,
                 Quantity = request.Quantity,
                 CreatorId = creatorId,
+                IsActive = true,
                 Id = Guid.NewGuid()
             };
 
             unitOfWork.Repository<Coupon>().Insert(newCoupon);
 
-            await unitOfWork.CommitAsync();
+            try
+            {
+                await unitOfWork.CommitAsync();
+            }
+            catch (Exception)
+            {
+                throw new DuplicateException("Coupon code already exists");
+            }
 
             return mapper.Map<CreateNewCouponDto>(newCoupon);
         }

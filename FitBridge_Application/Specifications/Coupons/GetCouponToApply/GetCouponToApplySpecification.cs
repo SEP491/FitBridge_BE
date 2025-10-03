@@ -4,7 +4,7 @@ namespace FitBridge_Application.Specifications.Coupons.GetCouponToApply
 {
     public class GetCouponToApplySpecification : BaseSpecification<Coupon>
     {
-        public GetCouponToApplySpecification(Guid CouponId) : base(x => x.IsActive && x.IsEnabled && x.Id == CouponId)
+        public GetCouponToApplySpecification(string couponCode) : base(x => x.IsActive && x.IsEnabled && x.CouponCode.Equals(couponCode))
         {
         }
     }
