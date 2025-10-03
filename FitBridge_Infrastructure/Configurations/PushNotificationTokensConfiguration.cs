@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities.MessageAndReview;
+using FitBridge_Domain.Enums.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,6 +16,10 @@ public class PushNotificationTokensConfiguration : IEntityTypeConfiguration<Push
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
+        builder.Property(e => e.Platform).HasConversion(
+            convertToProviderExpression: s => s.ToString(),
+            convertFromProviderExpression: s => Enum.Parse<PlatformEnum>(s))
+            .IsRequired(true);
 
         builder.HasOne(e => e.User).WithMany(e => e.PushNotificationTokens).HasForeignKey(e => e.UserId);
     }
