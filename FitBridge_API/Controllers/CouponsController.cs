@@ -12,9 +12,32 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FitBridge_API.Controllers
 {
+    /// <summary>
+    /// Controller for managing coupons, including creation, retrieval, update, application, and deletion.
+    /// </summary>
     [Authorize]
     public class CouponsController(IMediator mediator) : _BaseApiController
     {
+        /// <summary>
+        /// Retrieves a paginated list of coupons created by the current user.
+        /// </summary>
+        /// <param name="parameters">Query parameters for filtering and pagination, including:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>Page</term>
+        /// <description>The page number to retrieve.</description>
+        /// </item>
+        /// <item>
+        /// <term>Size</term>
+        /// <description>The number of items per page.</description>
+        /// </item>
+        /// <item>
+        /// <term>SearchTerm</term>
+        /// <description>An optional search term to filter the results.</description>
+        /// </item>
+        /// </list>
+        /// </param>
+        /// <returns>A paginated list of coupons created by the user.</returns>
         [HttpGet]
         public async Task<IActionResult> GetCoupons([FromQuery] GetCouponsByCreatorIdParam parameters)
         {
@@ -27,6 +50,30 @@ namespace FitBridge_API.Controllers
                     pagination));
         }
 
+        /// <summary>
+        /// Creates a new coupon with the specified details.
+        /// </summary>
+        /// <param name="command">The details of the coupon to create, including:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>CouponCode</term>
+        /// <description>The unique code for the coupon.</description>
+        /// </item>
+        /// <item>
+        /// <term>MaxDiscount</term>
+        /// <description>The maximum discount amount the coupon can provide.</description>
+        /// </item>
+        /// <item>
+        /// <term>DiscountPercent</term>
+        /// <description>The discount percentage the coupon applies.</description>
+        /// </item>
+        /// <item>
+        /// <term>Quantity</term>
+        /// <description>The total number of times the coupon can be used.</description>
+        /// </item>
+        /// </list>
+        /// </param>
+        /// <returns>The created coupon details.</returns>
         [HttpPost]
         public async Task<IActionResult> CreateCoupon([FromBody] CreateCouponCommand command)
         {
@@ -39,6 +86,31 @@ namespace FitBridge_API.Controllers
                     couponDto));
         }
 
+        /// <summary>
+        /// Updates an existing coupon with the specified ID.
+        /// </summary>
+        /// <param name="couponId">The unique identifier of the coupon to update.</param>
+        /// <param name="updateCouponCommand">The updated details of the coupon, including:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>MaxDiscount</term>
+        /// <description>The updated maximum discount amount (optional).</description>
+        /// </item>
+        /// <item>
+        /// <term>DiscountPercent</term>
+        /// <description>The updated discount percentage (optional).</description>
+        /// </item>
+        /// <item>
+        /// <term>Quantity</term>
+        /// <description>The updated total number of uses (optional).</description>
+        /// </item>
+        /// <item>
+        /// <term>IsActive</term>
+        /// <description>Whether the coupon is active (optional).</description>
+        /// </item>
+        /// </list>
+        /// </param>
+        /// <returns>A success response if the update is successful.</returns>
         [HttpPut("{couponId}")]
         public async Task<IActionResult> UpdateCoupon([FromRoute] Guid couponId, [FromBody] UpdateCouponCommand updateCouponCommand)
         {
@@ -51,6 +123,22 @@ namespace FitBridge_API.Controllers
                     Empty));
         }
 
+        /// <summary>
+        /// Applies a coupon to a transaction and calculates the discount.
+        /// </summary>
+        /// <param name="applyCouponQuery">The details of the coupon application, including:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>CouponCode</term>
+        /// <description>The code of the coupon to apply.</description>
+        /// </item>
+        /// <item>
+        /// <term>TotalPrice</term>
+        /// <description>The total price of the transaction before applying the coupon.</description>
+        /// </item>
+        /// </list>
+        /// </param>
+        /// <returns>The result of the coupon application, including the discount amount and percentage.</returns>
         [HttpPost("apply")]
         public async Task<IActionResult> CheckApplyCoupon([FromBody] ApplyCouponQuery applyCouponQuery)
         {
@@ -62,6 +150,11 @@ namespace FitBridge_API.Controllers
                     response));
         }
 
+        /// <summary>
+        /// Deletes a coupon with the specified ID.
+        /// </summary>
+        /// <param name="couponId">The unique identifier of the coupon to delete.</param>
+        /// <returns>A success response if the deletion is successful.</returns>
         [HttpDelete("{couponId}")]
         public async Task<IActionResult> DeleteCoupon([FromRoute] string couponId)
         {
