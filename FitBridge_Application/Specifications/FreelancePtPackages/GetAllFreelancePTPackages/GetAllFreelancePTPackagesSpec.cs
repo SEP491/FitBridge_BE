@@ -5,8 +5,8 @@ namespace FitBridge_Application.Specifications.FreelancePtPackages.GetAllFreelan
 {
     public class GetAllFreelancePTPackagesSpec : BaseSpecification<FreelancePTPackage>
     {
-        public GetAllFreelancePTPackagesSpec(GetAllFreelancePTPackagesParam parameters) : base(x =>
-            x.IsEnabled &&
+        public GetAllFreelancePTPackagesSpec(GetAllFreelancePTPackagesParam parameters, Guid ptId) : base(x =>
+            x.IsEnabled && x.PtId == ptId &&
             (string.IsNullOrEmpty(parameters.SearchTerm) || parameters.SearchTerm.ToLower().Contains(x.Name)))
         {
             if (parameters.DoApplyPaging)
