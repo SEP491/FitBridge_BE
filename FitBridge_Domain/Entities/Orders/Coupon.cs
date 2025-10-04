@@ -16,6 +16,7 @@ public class Coupon : BaseEntity
     public Guid CreatorId { get; set; }
     public bool IsActive { get; set; }
     public string CouponCode { get; set; }
+    public int NumberOfUsedCoupon { get; set; }
 
     public ApplicationUser Creator { get; set; }
 
