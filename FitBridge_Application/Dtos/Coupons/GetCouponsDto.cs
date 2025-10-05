@@ -8,6 +8,8 @@
 
         public string CouponCode { get; set; }
 
+        public int NumberOfUsedCoupon { get; set; }
+
         public double DiscountPercent { get; set; }
 
         public int Quantity { get; set; }
