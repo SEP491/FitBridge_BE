@@ -2,6 +2,6 @@
 {
     public class GetMeetingDto
     {
-        public Guid MeetingId { get; set; }
+        public Guid Id { get; set; }
     }
 }
