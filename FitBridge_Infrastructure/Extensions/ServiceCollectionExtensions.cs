@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Quartz;
 using StackExchange.Redis;
 using System.Threading.Channels;
 
@@ -79,6 +80,17 @@ namespace FitBridge_Infrastructure.Extensions
                 SingleReader = false,
                 AllowSynchronousContinuations = false
             });
+
+            services.AddQuartz(q =>
+            {
+                q.UseSimpleTypeLoader();
+                q.UseDefaultThreadPool(tp =>
+                {
+                    tp.MaxConcurrency = 10;
+                });
+            });
+
+            services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
             services.AddSignalR();
             services.AddSingleton<ChannelWriter<NotificationMessage>>(channel.Writer);
