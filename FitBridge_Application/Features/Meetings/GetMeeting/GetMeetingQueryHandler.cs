@@ -17,7 +17,7 @@ namespace FitBridge_Application.Features.Meetings.GetMeeting
                 .GetBySpecificationAsync(spec)
                 ?? throw new NotFoundException("Meeting session not found for the given booking ID.");
 
-            return new GetMeetingDto { MeetingId = meetingSession.Id };
+            return new GetMeetingDto { Id = meetingSession.Id };
         }
     }
 }

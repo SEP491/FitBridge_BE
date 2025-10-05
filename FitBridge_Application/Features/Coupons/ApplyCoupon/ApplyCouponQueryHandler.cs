@@ -39,7 +39,7 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
 
             var dto = new ApplyCouponDto
             {
-                CouponId = coupon.Id,
+                Id = coupon.Id,
                 DiscountAmount = CalculateTotalPrice(),
                 DiscountPercent = coupon.DiscountPercent,
             };

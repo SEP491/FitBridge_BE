@@ -30,7 +30,7 @@ namespace FitBridge_Application.Features.Meetings.CreateMeeting
             unitOfWork.Repository<MeetingSession>().Insert(newMeetingSession);
             await unitOfWork.CommitAsync();
 
-            return new CreateMeetingDto { MeetingId = newMeetingSession.Id };
+            return new CreateMeetingDto { Id = newMeetingSession.Id };
         }
     }
 }
