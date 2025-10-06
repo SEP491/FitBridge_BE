@@ -19,4 +19,6 @@ public static class ProjectConstant
     public const int CancelBookingBeforeHours = 4;
 
     public const int GymSlotDuration = 1;
+
+    public const decimal CommissionRate = 0.1m;
 }

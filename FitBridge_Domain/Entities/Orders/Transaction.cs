@@ -17,6 +17,7 @@ public class Transaction : BaseEntity
     public Guid? WithdrawalRequestId { get; set; }
 
     public Guid? OrderId { get; set; }
+    public decimal? ProfitAmount { get; set; }
 
     public PaymentMethod PaymentMethod { get; set; }
 

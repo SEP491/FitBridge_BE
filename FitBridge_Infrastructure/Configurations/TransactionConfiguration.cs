@@ -19,6 +19,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         builder.Property(e => e.PaymentMethodId).IsRequired(true);
         builder.Property(e => e.WithdrawalRequestId).IsRequired(false);
         builder.Property(e => e.OrderId).IsRequired(false);
+        builder.Property(e => e.ProfitAmount).IsRequired(false);
 
         builder.HasOne(e => e.PaymentMethod).WithMany(e => e.Transactions).HasForeignKey(e => e.PaymentMethodId);
         builder.HasOne(e => e.WithdrawalRequest).WithMany(e => e.Transactions).HasForeignKey(e => e.WithdrawalRequestId);
