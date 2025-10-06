@@ -26,6 +26,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("AllowAllOrigin");
+app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment())
 {

@@ -31,7 +31,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8003
-      - ConnectionStrings__FitbridgeDb=Host=postgres;Port=5432;Database=FitBridge;Username=postgres;Password=pass123;Trust Server Certificate=true
+      - ConnectionStrings__FitbridgeDb=Host=postgres;Port=5432;Database=FitBridge;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Trust Server Certificate=true
     expose:
       - "8003"
     labels:
