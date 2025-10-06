@@ -32,4 +32,8 @@
 	  <ProjectReference Include="..\FitBridge_Application\FitBridge_Application.csproj" />
 	  <ProjectReference Include="..\FitBridge_Domain\FitBridge_Domain.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Services\Templating\Models\" />
+	</ItemGroup>
 </Project>

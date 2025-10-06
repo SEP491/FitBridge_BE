@@ -3,7 +3,7 @@ using FitBridge_Domain.Enums.MessageAndReview;
 
 namespace FitBridge_Application.Dtos.Notifications
 {
-    public class NotificationMessage(EnumContentType notificationType, List<Guid> userIds, dynamic model, Dictionary<string, string>? payload = null)
+    public class NotificationMessage(EnumContentType notificationType, List<Guid> userIds, IBaseTemplateModel model, Dictionary<string, string>? payload = null)
     {
         public EnumContentType NotificationTypes { get; set; } = notificationType;
 
@@ -17,6 +17,6 @@ namespace FitBridge_Application.Dtos.Notifications
 
         public TemplateDto? PushNotificationTemplate { get; set; }
 
-        public dynamic TemplateModel { get; set; } = model;
+        public IBaseTemplateModel TemplateModel { get; set; } = model;
     }
 }

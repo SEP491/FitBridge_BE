@@ -17,21 +17,22 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 
         private static readonly ConcurrentDictionary<string, HandshakeState> handshakeStates = [];
 
-        internal void StartHandshake(string userId, Func<NotificationDto, string, Task> callback, NotificationDto notificationDto)
+        internal void StartHandshake(string userId, HandshakeContext context)
         {
             var state = new HandshakeState { RetryCount = 0 };
             handshakeStates.TryAdd(userId, state);
 
-            _ = RetryHandshakeAsync(userId, state, callback, notificationDto);
+            _ = RetryHandshakeAsync(userId, state, context);
         }
 
-        private async Task RetryHandshakeAsync(string userId, HandshakeState state, Func<NotificationDto, string, Task> callback, NotificationDto notificationDto)
+        private async Task RetryHandshakeAsync(string userId,
+            HandshakeState state, HandshakeContext context)
         {
             while (state.RetryCount < settings.MaxHandshakeRetries)
             {
                 try
                 {
-                    await hubContext.Clients.Client(userId).NewNotification(notificationDto);
+                    await hubContext.Clients.Client(userId).NotificationReceived();
 
                     state.CancellationTokenSource = new CancellationTokenSource(settings.InitialRetryDelayMs);
 
@@ -54,7 +55,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             if (state.RetryCount >= settings.MaxHandshakeRetries)
             {
                 handshakeStates.TryRemove(userId, out _);
-                await callback.Invoke(notificationDto, userId);
+                await context.Callback.Invoke(context.NotificationDto, context.NotificationMessage, userId);
             }
         }
 
