@@ -45,21 +45,35 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
         var paymentResponse = await _payOSService.CreatePaymentLinkAsync(request.Request, user);
         var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl);
-        await CreateTransaction(paymentResponse, request.Request.PaymentMethodId, orderId);
+        await CreateTransaction(paymentResponse, request, orderId);
         await AssignOrderItemProductName(request.Request.OrderItems);
         await _unitOfWork.CommitAsync();
 
         return paymentResponse;
     }
 
-    public async Task CreateTransaction(PaymentResponseDto paymentResponse, Guid paymentMethodId, Guid orderId)
+    public async Task CreateTransaction(PaymentResponseDto paymentResponse, CreatePaymentLinkCommand request, Guid orderId)
     {
+        var transactionType = TransactionType.ProductOrder;
+        if (request.Request.OrderItems.Any(x => x.FreelancePTPackageId != null))
+        {
+            transactionType = TransactionType.FreelancePTPackage;
+        }
+        if (request.Request.OrderItems.Any(x => x.GymCourseId != null))
+        {
+            transactionType = TransactionType.GymCourse;
+        }
+        if (request.Request.OrderItems.Any(x => x.ServiceInformationId != null))
+        {
+            transactionType = TransactionType.ServiceOrder;
+        }
+
         var newTransaction = new Transaction
         {
             OrderCode = paymentResponse.Data.OrderCode,
             Description = "Payment for order " + paymentResponse.Data.OrderCode,
-            PaymentMethodId = paymentMethodId,
-            TransactionType = TransactionType.ProductOrder,
+            PaymentMethodId = request.Request.PaymentMethodId,
+            TransactionType = transactionType,
             Status = TransactionStatus.Pending,
             OrderId = orderId,
             Amount = paymentResponse.Data.Amount
@@ -109,6 +123,15 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                     throw new NotFoundException("Service information not found");
                 }
                 item.ProductName = serviceInformation.ServiceName;
+            }
+            if (item.FreelancePTPackageId != null)
+            {
+                var freelancePTPackage = await _unitOfWork.Repository<FreelancePTPackage>().GetByIdAsync(item.FreelancePTPackageId.Value);
+                if (freelancePTPackage == null)
+                {
+                    throw new NotFoundException("Freelance PTPackage not found");
+                }
+                item.ProductName = freelancePTPackage.Name;
             }
         }
     }

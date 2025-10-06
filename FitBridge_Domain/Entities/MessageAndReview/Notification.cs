@@ -13,4 +13,8 @@ public class Notification : BaseEntity
     public Template Template { get; set; }
 
     public ApplicationUser User { get; set; }
+    
+    public DateTime? ReadAt { get; set; }
+
+    public string? AdditionalPayload { get; set; }
 }

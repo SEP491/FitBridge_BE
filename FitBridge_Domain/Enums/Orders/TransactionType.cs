@@ -7,6 +7,7 @@
         GymCourse,
 
         Withdraw,
+        FreelancePTPackage,
 
         ServiceOrder,
         AssignPt,
