@@ -59,6 +59,7 @@ namespace FitBridge_Domain.Entities.Identity
         public ICollection<CustomerPurchased> CustomerPurchased { get; set; } = new List<CustomerPurchased>();
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public ICollection<MeetingSession> MeetingSessions { get; set; } = new List<MeetingSession>();
+        public Wallet? Wallet { get; set; }
     }
 
 }

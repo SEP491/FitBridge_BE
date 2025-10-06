@@ -18,6 +18,7 @@ using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Application.Specifications.GymCoursePts.GetGymCoursePtById;
 using FitBridge_Application.Specifications.Transactions;
 using FitBridge_Domain.Enums.Payments;
+using FitBridge_Application.Commons.Constants;
 
 namespace FitBridge_Infrastructure.Services;
 
@@ -220,6 +221,11 @@ public class PayOSService : IPayOSService
             }
 
             transaction.Status = TransactionStatus.Success;
+            if (!transaction.TransactionType.Equals(TransactionType.ProductOrder))
+            {
+                //Calculate commission amount
+                transaction.ProfitAmount = transaction.Amount * ProjectConstant.CommissionRate;
+            }
             _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().Update(transaction);
             await _unitOfWork.CommitAsync();
 
