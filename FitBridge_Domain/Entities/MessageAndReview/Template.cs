@@ -12,5 +12,5 @@ public class Template : BaseEntity
     public string TemplateTile { get; set; }
     public string TemplateBody { get; set; } = null!;
 
-    public Notification InAppNotification { get; set; } = new Notification();
+    public ICollection<Notification> Notifications { get; set; } = [];
 }
