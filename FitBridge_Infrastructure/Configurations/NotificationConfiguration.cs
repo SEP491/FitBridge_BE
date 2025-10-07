@@ -26,7 +26,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 
         builder.HasOne(e => e.Template).WithOne(e => e.InAppNotification).HasForeignKey<Notification>(e => e.TemplateId);
         builder.HasOne(e => e.User).WithMany(e => e.InAppNotifications).HasForeignKey(e => e.UserId);
-        
+
         builder.Property(e => e.ReadAt).HasDefaultValue(null);
         builder.Property(n => n.AdditionalPayload)
                     .HasColumnType("jsonb");

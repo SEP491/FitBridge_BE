@@ -19,6 +19,8 @@ using FitBridge_Application.Specifications.GymCoursePts.GetGymCoursePtById;
 using FitBridge_Application.Specifications.Transactions;
 using FitBridge_Domain.Enums.Payments;
 using FitBridge_Application.Commons.Constants;
+using Quartz;
+using FitBridge_Infrastructure.Jobs;
 
 namespace FitBridge_Infrastructure.Services;
 
@@ -34,11 +36,14 @@ public class PayOSService : IPayOSService
 
     private readonly ITransactionService _transactionService;
 
+    private readonly ISchedulerFactory _schedulerFactory;
+
     public PayOSService(
         IOptions<PayOSSettings> settings,
         ILogger<PayOSService> logger,
         IUnitOfWork unitOfWork,
-        ITransactionService transactionService)
+        ITransactionService transactionService,
+        ISchedulerFactory schedulerFactory)
     {
         _settings = settings.Value;
         _logger = logger;
@@ -46,6 +51,7 @@ public class PayOSService : IPayOSService
         _transactionService = transactionService;
         // Initialize PayOS SDK
         _payOS = new PayOS(_settings.ClientId, _settings.ApiKey, _settings.ChecksumKey);
+        _schedulerFactory = schedulerFactory;
     }
 
     public async Task<PaymentResponseDto> CreatePaymentLinkAsync(CreatePaymentRequestDto request, ApplicationUser user)
@@ -204,18 +210,18 @@ public class PayOSService : IPayOSService
                 _logger.LogWarning("Failed to verify webhook data");
                 return false;
             }
-            if(verifiedWebhookData.orderCode == 123)
+            if (verifiedWebhookData.orderCode == 123)
             {
-                 return true; // Test webhook from PayOS
+                return true; // Test webhook from PayOS
             }
-            
+
             var transaction = await _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeSpec(verifiedWebhookData.orderCode));
 
             if (transaction == null)
             {
                 throw new NotFoundException("Transaction not found");
             }
-            if(transaction.Status == TransactionStatus.Success)
+            if (transaction.Status == TransactionStatus.Success)
             {
                 return true; // Already processed, prevent from duplicate processing of webhook
             }
@@ -233,7 +239,7 @@ public class PayOSService : IPayOSService
             {
                 return await _transactionService.ExtendCourse(verifiedWebhookData.orderCode);
             }
-            if(transaction.TransactionType == TransactionType.AssignPt)
+            if (transaction.TransactionType == TransactionType.AssignPt)
             {
                 return await _transactionService.PurchasePt(verifiedWebhookData.orderCode);
             }
@@ -257,10 +263,14 @@ public class PayOSService : IPayOSService
             {
                 if (orderItem.ProductDetailId == null)
                 {
+                    var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
                     var numOfSession = 0;
+                    var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow);
                     if (orderItem.FreelancePTPackageId != null)
                     {
                         numOfSession = orderItem.FreelancePTPackage.NumOfSessions;
+                        expirationDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(orderItem.FreelancePTPackage.DurationInDays * orderItem.Quantity);
+                        profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(orderItem.FreelancePTPackage.DurationInDays * orderItem.Quantity);
                     }
                     if (orderItem.GymCourseId != null && orderItem.GymPtId != null)
                     {
@@ -271,12 +281,23 @@ public class PayOSService : IPayOSService
                         }
                         numOfSession = gymCoursePT.Session.Value;
                     }
+                    profitDistributionDate = profitDistributionDate.AddDays(30);
+
+                    expirationDate = expirationDate.AddDays(orderItem.GymCourse.Duration * orderItem.Quantity);
                     orderItem.CustomerPurchased = new CustomerPurchased
                     {
                         CustomerId = OrderEntity.AccountId,
                         AvailableSessions = orderItem.Quantity * numOfSession,
-                        ExpirationDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30 * orderItem.Quantity),
+                        ExpirationDate = expirationDate,
                     };
+                    var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.FreelancePTPackage.PtId);
+                    if (walletToUpdate == null)
+                    {
+                        throw new NotFoundException("Wallet not found");
+                    }
+                    walletToUpdate.PendingBalance += orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate;
+                    _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
+                    await ScheduleProfitDistributionJob(orderItem.CustomerPurchased.Id, profitDistributionDate);
                 }
             }
             await _unitOfWork.CommitAsync();
@@ -299,30 +320,31 @@ public class PayOSService : IPayOSService
         return Math.Abs(orderCode);
     }
 
-    // public async Task<bool> HandlePaymentAsync(string status, long orderCode)
-    // {
-    //     var transaction = await _unitOfWork.Repository<TransactionRecord>().GetBySpecificationAsync(new TransactionByReferenceCodeSpecification(orderCode));
-    //     if (transaction == null)
-    //     {
-    //         _logger.LogWarning("Transaction not found for order code {OrderCode}", orderCode);
-    //         return false;
-    //     }
-    //     transaction.TransactionStatus = status switch
-    //     {
-    //         "PAID" => TransactionStatus.Completed,
-    //         "FAILED" => TransactionStatus.Failed,
-    //         "CANCELLED" => TransactionStatus.Cancelled,
-    //         _ => transaction.TransactionStatus
-    //     };
+    private async Task ScheduleProfitDistributionJob(Guid customerPurchasedId, DateOnly profitDistributionDate)
+    {
+        var jobKey = new JobKey($"ProfitDistribution_{customerPurchasedId}", "ProfitDistribution");
+        var triggerKey = new TriggerKey($"ProfitDistribution_{customerPurchasedId}_Trigger", "ProfitDistribution");
+        var jobData = new JobDataMap
+        {
+            { "customerPurchasedId", customerPurchasedId.ToString() }
+        };
+        var job = JobBuilder.Create<DistributeProfitJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
 
-    //     _unitOfWork.Repository<TransactionRecord>().Update(transaction);
-    //         await _unitOfWork.CompleteAsync();
-
-    //     if (transaction.TransactionStatus == TransactionStatus.Completed && transaction.MembershipId.HasValue)
-    //     {
-    //         await _membershipsService.ProcessMembershipPaymentSuccessAsync(transaction.ReferenceCode);
-    //     }
-
-    //     return true;
-    // }
+        //Schedule 1 day after expiration date
+        var triggerTime = profitDistributionDate.ToDateTime(TimeOnly.MinValue).AddDays(1);
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        
+        await _schedulerFactory.GetScheduler().Result
+        .ScheduleJob(job, trigger);
+        
+        _logger.LogInformation(
+        "Scheduled profit distribution job for CustomerPurchased {CustomerPurchasedId} at {TriggerTime}",
+        customerPurchasedId, triggerTime);
+    }
 }

@@ -4,6 +4,7 @@
     {
         PayOs,
         VnPay,
-        COD
+        COD,
+        System
     }
 }
