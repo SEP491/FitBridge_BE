@@ -10,7 +10,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
     public void Configure(EntityTypeBuilder<Notification> builder)
     {
         builder.ToTable("Notifications");
-        builder.Property(e => e.Message).IsRequired(true);
+        builder.Property(e => e.Body).IsRequired(true);
         builder.Property(e => e.TemplateId).IsRequired(true);
         builder.Property(e => e.UserId).IsRequired(true);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");

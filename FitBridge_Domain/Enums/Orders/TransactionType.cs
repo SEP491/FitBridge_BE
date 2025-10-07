@@ -11,6 +11,7 @@
 
         ServiceOrder,
         AssignPt,
-        ExtendCourse
+        ExtendCourse,
+        DistributeProfit
     }
 }
