@@ -17,7 +17,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
 
-        builder.HasOne(e => e.Template).WithOne(e => e.InAppNotification).HasForeignKey<Notification>(e => e.TemplateId);
+        builder.HasOne(e => e.Template).WithMany(e => e.Notifications).HasForeignKey(e => e.TemplateId);
         builder.HasOne(e => e.User).WithMany(e => e.InAppNotifications).HasForeignKey(e => e.UserId);
         
         builder.Property(e => e.ReadAt).HasDefaultValue(null);
