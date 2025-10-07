@@ -4,7 +4,8 @@ namespace FitBridge_Domain.Entities.MessageAndReview;
 
 public class Notification : BaseEntity
 {
-    public string Message { get; set; }
+    public string Body { get; set; }
+    public string Title { get; set; }
 
     public Guid TemplateId { get; set; }
 
