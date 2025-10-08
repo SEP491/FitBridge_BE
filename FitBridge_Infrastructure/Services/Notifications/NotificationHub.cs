@@ -4,6 +4,7 @@ using FitBridge_Infrastructure.Services.Notifications.Enums;
 using FitBridge_Infrastructure.Services.Notifications.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace FitBridge_Infrastructure.Services.Notifications
 {
@@ -11,12 +12,14 @@ namespace FitBridge_Infrastructure.Services.Notifications
     public class NotificationHub(
         NotificationConnectionManager notificationConnectionManager,
         NotificationHandshakeManager notificationHandshakeManager,
-        NotificationStorageService notificationStorageService) : Hub<IUserNotifications>
+        ILogger<NotificationHub> logger) : Hub<IUserNotifications>
     {
         public override async Task OnConnectedAsync()
         {
             ArgumentException.ThrowIfNullOrEmpty(Context.UserIdentifier);
             await notificationConnectionManager.AddConnectionAsync(Context.UserIdentifier, Context.ConnectionId);
+            logger.LogInformation("User {User} connected with ConnectionId {ConnectionId}",
+                Context.UserIdentifier, Context.ConnectionId);
             await base.OnConnectedAsync();
         }
 
@@ -24,6 +27,8 @@ namespace FitBridge_Infrastructure.Services.Notifications
         {
             ArgumentException.ThrowIfNullOrEmpty(Context.UserIdentifier);
             await notificationConnectionManager.RemoveConnectionAsync(Context.UserIdentifier);
+            logger.LogInformation("User {User} disconnected with ConnectionId {ConnectionId}",
+                Context.UserIdentifier, Context.ConnectionId);
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -41,12 +46,6 @@ namespace FitBridge_Infrastructure.Services.Notifications
         {
             var userId = Context.UserIdentifier;
             await notificationHandshakeManager.ConfirmHandshake(userId);
-        }
-
-        public async Task<List<NotificationDto>> GetStoredNotifications()
-        {
-            var userId = Context.UserIdentifier;
-            return await notificationStorageService.GetNotificationsAsync(userId);
         }
     }
 }

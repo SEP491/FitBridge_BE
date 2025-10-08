@@ -8,10 +8,12 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         ILogger<PushNotificationService> logger,
         FirebaseService firebaseService)
     {
-        public async Task<bool> SendPushNotificationAsync(List<string> userDeviceTokens, NotificationDto notificationDto)
+        public async Task<List<string>> SendPushNotificationAsync(List<string> userDeviceTokens, NotificationDto notificationDto)
         {
             var firebaseApp = FirebaseMessaging.GetMessaging(firebaseService.GetApp());
-            List<Task> tasks = new List<Task>();
+            var invalidTokens = new List<string>();
+            var tasks = new List<Task>();
+
             foreach (var deviceToken in userDeviceTokens)
             {
                 var message = new Message
@@ -22,7 +24,6 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                         Title = notificationDto.Title,
                         Body = notificationDto.Body
                     },
-                    Data = notificationDto.AdditionalPayload ?? new Dictionary<string, string>() // custom payload
                 };
 
                 tasks.Add(
@@ -32,17 +33,31 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                         {
                             await firebaseApp.SendAsync(message);
                         }
-                        catch (Exception ex)
+                        catch (FirebaseMessagingException ex)
                         {
-                            logger.LogError("[FCM] Failed to send push notification to token: {DeviceToken}, {Exception}", deviceToken, ex);
+                            if (ex.MessagingErrorCode == MessagingErrorCode.InvalidArgument ||
+                                ex.MessagingErrorCode == MessagingErrorCode.Unregistered ||
+                                ex.MessagingErrorCode == MessagingErrorCode.SenderIdMismatch)
+                            {
+                                logger.LogWarning("[FCM] Invalid device token detected: {DeviceToken}, ErrorCode: {ErrorCode}",
+                                    deviceToken, ex.MessagingErrorCode);
+                                lock (invalidTokens)
+                                {
+                                    invalidTokens.Add(deviceToken);
+                                }
+                            }
+                            else
+                            {
+                                logger.LogError("[FCM] Failed to send push notification: {DeviceToken}, {Exception}",
+                                    deviceToken, ex);
+                            }
                         }
                     }
                 ));
             }
 
             await Task.WhenAll(tasks);
-
-            return true;
+            return invalidTokens; // Return list of invalid tokens
         }
     }
 }

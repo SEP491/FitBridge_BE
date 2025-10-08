@@ -81,7 +81,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             return updated;
         }
 
-        private HashSet<string> GetConnections(string keyId)
+        public HashSet<string> GetConnections(string keyId)
         {
             connections.TryGetValue(keyId, out HashSet<string>? hashSet);
 

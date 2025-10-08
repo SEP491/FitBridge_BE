@@ -40,16 +40,25 @@ namespace FitBridge_Infrastructure.Services.Notifications
                             dto.Body = notificationMessage.InAppNotificationTemplate.TemplateBody;
 
                             logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
-                            await hubContext.Clients.User(userId.ToString()).NewNotification(dto);
-                            notificationHandshakeManager.StartHandshake(userId.ToString(), HandleSendPushAsync, dto);
+
+                            var connectionIds = notificationConnectionManager.GetConnections(userId.ToString());
+                            await hubContext.Clients.User(userId.ToString()).NotificationReceived();
+
+                            var handshakeContext = new HandshakeContext
+                            {
+                                Callback = HandleSendPushAsync,
+                                NotificationDto = dto,
+                                NotificationMessage = notificationMessage
+                            };
+
+                            notificationHandshakeManager.StartHandshake(userId.ToString(), handshakeContext);
                         }
                         else
                         {
                             dto.Title = notificationMessage.PushNotificationTemplate!.TemplateTitle;
                             dto.Body = notificationMessage.PushNotificationTemplate.TemplateBody;
                             logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
-
-                            await HandleSendPushAsync(dto, userId.ToString());
+                            await HandleSendPushAsync(dto, notificationMessage, userId.ToString());
                         }
                     }
                 }
@@ -67,9 +76,12 @@ namespace FitBridge_Infrastructure.Services.Notifications
             return tokenList.Select(x => x.DeviceToken).ToList();
         }
 
-        private async Task HandleSendPushAsync(NotificationDto dto, string userId)
+        private async Task HandleSendPushAsync(NotificationDto dto, NotificationMessage notificationMessage, string userId)
         {
-            await notificationsStorageService.SaveNotificationAsync(userId.ToString(), dto);
+            logger.LogInformation("Initiate push");
+            dto.Title = notificationMessage.PushNotificationTemplate!.TemplateTitle;
+            dto.Body = notificationMessage.PushNotificationTemplate.TemplateBody;
+            logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
 
             var tokenList = await GetDeviceTokens(Guid.Parse(userId));
             await pushNotificationService.SendPushNotificationAsync(

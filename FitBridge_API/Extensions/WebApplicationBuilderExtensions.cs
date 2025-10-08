@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -91,7 +92,10 @@ namespace FitBridge_API.Extensions
                         var path = context.HttpContext.Request.Path;
 
                         // If the request is for our hub
-                        if (!string.IsNullOrEmpty(accessToken) && (path.StartsWithSegments("/hub/signaling") || path.StartsWithSegments("/hub/messaging")))
+                        if (!string.IsNullOrEmpty(accessToken)
+                            && (path.StartsWithSegments("/hub/notifications") ||
+                                path.StartsWithSegments("/hub/signaling") ||
+                                path.StartsWithSegments("/hub/messaging")))
                         {
                             context.Token = accessToken;
                             Console.WriteLine($"[JWT] Token extracted for SignalR: {accessToken.ToString().Substring(0, Math.Min(20, accessToken.ToString().Length))}...");
@@ -100,7 +104,8 @@ namespace FitBridge_API.Extensions
                     },
                     OnTokenValidated = context =>
                     {
-                        Console.WriteLine($"[JWT] Token validated successfully for user: {context.Principal?.Identity?.Name}");
+                        Console.WriteLine($"[JWT] Token validated successfully for user: " +
+                            $"{context.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)}");
                         return Task.CompletedTask;
                     },
                     OnAuthenticationFailed = context =>

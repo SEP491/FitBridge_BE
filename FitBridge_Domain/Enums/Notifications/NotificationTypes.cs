@@ -2,16 +2,10 @@
 {
     public enum NotificationTypes
     {
-        NewMessage,
+        Info,
 
-        TrainingSlotCancelled,
+        Warning,
 
-        IncomingTrainingSlot,
-
-        NewGymFeedback,
-
-        PaymentRequest,
-
-        PackageBought
+        Error
     }
 }

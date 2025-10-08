@@ -9,6 +9,7 @@ using FitBridge_Domain.Enums.MessageAndReview;
 using FitBridge_Domain.Enums.Templates;
 using FitBridge_Domain.Exceptions;
 using FitBridge_Infrastructure.Services.Templating;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -37,28 +38,45 @@ namespace FitBridge_Infrastructure.Services.Notifications
             notificationMessage.InAppNotificationTemplate = templates.Item1;
             notificationMessage.PushNotificationTemplate = templates.Item2;
 
+            await StoreNotification(notificationMessage, notificationMessage.InAppNotificationTemplate.Id);
             await channelWriter.WriteAsync(notificationMessage);
         }
 
-        private async Task<TemplateDto> GetInAppNotificationTemplate(EnumContentType contentType, dynamic model)
+        private async Task StoreNotification(NotificationMessage notificationMessage, Guid templateId)
+        {
+            foreach (var userId in notificationMessage.UserIds)
+            {
+                var newNotification = new Notification
+                {
+                    Id = Guid.NewGuid(),
+                    AdditionalPayload = notificationMessage.NotificationPayload,
+                    Body = notificationMessage.InAppNotificationTemplate?.TemplateBody,
+                    Title = notificationMessage.InAppNotificationTemplate?.TemplateTitle ?? "DORAEMON",
+                    TemplateId = templateId,
+                    UserId = userId
+                };
+                unitOfWork.Repository<Notification>().Insert(newNotification);
+            }
+            await unitOfWork.CommitAsync();
+        }
+
+        private async Task<TemplateDto> GetInAppNotificationTemplate(EnumContentType contentType, IBaseTemplateModel model)
         {
             var spec = new GetByTemplateTypeSpecification(contentType, TemplateCategory.InAppNotification);
             var template = await unitOfWork.Repository<Template>().GetBySpecificationProjectedAsync<TemplateDto>(spec, mapper.ConfigurationProvider)
                 ?? throw new NotFoundException(nameof(Template));
 
-            var templateModel = TemplatingService.GetTemplateModel(contentType, model);
-            template.TemplateBody = await templatingService.ParseTemplateAsync(template.TemplateBody, templateModel);
+            template.TemplateBody = await templatingService.ParseTemplateAsync(template.TemplateBody, model);
             return template;
         }
 
-        private async Task<TemplateDto> GetPushNotificationTemplate(EnumContentType contentType, dynamic model)
+        private async Task<TemplateDto> GetPushNotificationTemplate(EnumContentType contentType, IBaseTemplateModel model)
         {
             var spec = new GetByTemplateTypeSpecification(contentType, TemplateCategory.PushNotification);
             var template = await unitOfWork.Repository<Template>().GetBySpecificationProjectedAsync<TemplateDto>(spec, mapper.ConfigurationProvider)
                 ?? throw new NotFoundException(nameof(Template));
 
-            var templateModel = TemplatingService.GetTemplateModel(contentType, model);
-            template.TemplateBody = await templatingService.ParseTemplateAsync(template.TemplateBody, templateModel);
+            template.TemplateBody = await templatingService.ParseTemplateAsync(template.TemplateBody, model);
             return template;
         }
     }
