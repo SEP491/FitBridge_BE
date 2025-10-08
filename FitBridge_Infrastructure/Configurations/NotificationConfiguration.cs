@@ -19,11 +19,6 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.Property(e => e.ReadAt).HasDefaultValue(null);
-        builder.OwnsOne(e => e.AdditionalPayload, ownedNavBuilder =>
-        {
-            ownedNavBuilder.ToJson();
-        });
-
         builder.HasOne(e => e.Template).WithMany(e => e.Notifications).HasForeignKey(e => e.TemplateId);
         builder.HasOne(e => e.User).WithMany(e => e.InAppNotifications).HasForeignKey(e => e.UserId);
 
