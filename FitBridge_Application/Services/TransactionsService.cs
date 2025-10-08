@@ -11,10 +11,13 @@ using FitBridge_Application.Commons.Constants;
 using Microsoft.Build.Utilities;
 using Microsoft.Extensions.Logging;
 using FitBridge_Application.Commons.Utils;
+using FitBridge_Application.Specifications.Orders;
+using Quartz;
+using FitBridge_Application.Dtos.Jobs;
 
 namespace FitBridge_Application.Services;
 
-public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsService> _logger) : ITransactionService
+public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsService> _logger, ISchedulerFactory _schedulerFactory, IScheduleJobServices _scheduleJobServices) : ITransactionService
 {
     public async Task<bool> ExtendCourse(long orderCode)
     {
@@ -74,11 +77,11 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<bool> DistributeProfit(Guid customerPurchasedId)
     {
-        var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>().GetByIdAsync(customerPurchasedId, includes: new List<string> { "OrderItems" });
+        var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>().GetByIdAsync(customerPurchasedId, includes: new List<string> { "OrderItems.Order", "OrderItems.FreelancePTPackage", "OrderItems.GymCourse" });
 
         if (customerPurchased == null)
         {
-            throw new NotFoundException($"{nameof(CustomerPurchased)} not found");
+            throw new NotFoundException($"{nameof(CustomerPurchased)} with Id {customerPurchasedId} not found");
         }
         var orderItem = customerPurchased.OrderItems.OrderByDescending(o => o.Order.CreatedAt).FirstOrDefault();
         var profit = orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate;
@@ -95,8 +98,15 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         };
         _unitOfWork.Repository<Transaction>().Insert(DistributeProfTransaction);
 
-
-        var wallet = await _unitOfWork.Repository<Wallet>().GetByIdAsync(customerPurchased.CustomerId);
+        Wallet wallet = null;
+        if (orderItem.FreelancePTPackageId != null)
+        {
+            wallet = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.FreelancePTPackage.PtId);
+        }
+        if (orderItem.GymCourseId != null)
+        {
+            wallet = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.GymCourse.GymOwnerId);
+        }
         if (wallet == null)
         {
             throw new NotFoundException($"{nameof(Wallet)} not found");
@@ -109,9 +119,124 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         await _unitOfWork.CommitAsync();
         return true;
     }
-    
+
     private long GenerateOrderCode()
     {
         return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    }
+
+    public async Task<bool> PurchaseFreelancePTPackage(long orderCode)
+    {
+        var OrderEntity = await _unitOfWork.Repository<Order>()
+            .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(orderCode), false);
+        if (OrderEntity == null)
+        {
+            throw new NotFoundException("Order not found");
+        }
+        if (OrderEntity.OrderItems.Any(item => item.ProductDetailId != null))
+        {
+            OrderEntity.Status = OrderStatus.Pending;
+        }
+        else
+        {
+            OrderEntity.Status = OrderStatus.Arrived;
+        }
+        foreach (var orderItem in OrderEntity.OrderItems)
+        {
+            var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            var numOfSession = 0;
+            var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (orderItem.FreelancePTPackageId == null)
+            {
+                throw new NotFoundException("Freelance PTPackage Id in order item not found");
+            }
+
+            numOfSession = orderItem.FreelancePTPackage.NumOfSessions;
+            expirationDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(orderItem.FreelancePTPackage.DurationInDays * orderItem.Quantity);
+            profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(orderItem.FreelancePTPackage.DurationInDays * orderItem.Quantity);
+
+            orderItem.CustomerPurchased = new CustomerPurchased
+            {
+                CustomerId = OrderEntity.AccountId,
+                AvailableSessions = orderItem.Quantity * numOfSession,
+                ExpirationDate = expirationDate,
+            };
+            var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.FreelancePTPackage.PtId);
+            if (walletToUpdate == null)
+            {
+                throw new NotFoundException("Wallet not found");
+            }
+            walletToUpdate.PendingBalance += orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate;
+            _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
+            await _unitOfWork.CommitAsync();
+
+            await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
+            {
+                CustomerPurchasedId = orderItem.CustomerPurchased.Id,
+                ProfitDistributionDate = profitDistributionDate
+            });
+            
+        }
+        return true;
+    }
+
+    public async Task<bool> PurchaseGymCourse(long orderCode)
+    {
+        var OrderEntity = await _unitOfWork.Repository<Order>()
+                .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(orderCode), false);
+            if (OrderEntity == null)
+            {
+                throw new NotFoundException("Order not found");
+            }
+            if (OrderEntity.OrderItems.Any(item => item.ProductDetailId != null))
+            {
+                OrderEntity.Status = OrderStatus.Pending;
+            }
+            else
+            {
+                OrderEntity.Status = OrderStatus.Arrived;
+            }
+            foreach (var orderItem in OrderEntity.OrderItems)
+            {
+                if (orderItem.ProductDetailId == null)
+                {
+                    var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                    var numOfSession = 0;
+                    var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                    if (orderItem.GymCourseId != null && orderItem.GymPtId != null)
+                    {
+                        var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItem.GymCourseId.Value, orderItem.GymPtId.Value));
+                        if (gymCoursePT == null)
+                        {
+                            throw new NotFoundException("Gym course PT with gym course id and pt id not found");
+                        }
+                        numOfSession = gymCoursePT.Session.Value;
+                    }
+                    profitDistributionDate = profitDistributionDate.AddDays(30);
+
+                    expirationDate = expirationDate.AddDays(orderItem.GymCourse.Duration * orderItem.Quantity);
+                    orderItem.CustomerPurchased = new CustomerPurchased
+                    {
+                        CustomerId = OrderEntity.AccountId,
+                        AvailableSessions = orderItem.Quantity * numOfSession,
+                        ExpirationDate = expirationDate,
+                    };
+                    var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.GymCourse.GymOwnerId);
+                    if (walletToUpdate == null)
+                    {
+                        throw new NotFoundException("Wallet not found");
+                    }
+                    walletToUpdate.PendingBalance += orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate;
+                    _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
+                    await _unitOfWork.CommitAsync();
+
+                    await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
+                {
+                    CustomerPurchasedId = orderItem.CustomerPurchased.Id,
+                    ProfitDistributionDate = profitDistributionDate
+                });
+                }
+            }
+            return true;
     }
 }

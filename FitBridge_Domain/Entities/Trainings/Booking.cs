@@ -21,6 +21,9 @@ public class Booking : BaseEntity
     public Guid CustomerPurchasedId { get; set; }
 
     public SessionStatus SessionStatus { get; set; }
+    public Guid? PtId { get; set; }
+
+    public string? BookingName { get; set; }
 
     public string? Note { get; set; }
 
@@ -33,5 +36,7 @@ public class Booking : BaseEntity
     public CustomerPurchased CustomerPurchased { get; set; }
 
     public ICollection<SessionActivity> SessionActivities { get; set; } = new List<SessionActivity>();
+    public ApplicationUser? Pt { get; set; }
     public MeetingSession? MeetingSession { get; set; }
+    public ICollection<BookingRequest> BookingRequests { get; set; } = new List<BookingRequest>();
 }

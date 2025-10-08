@@ -1,13 +1,17 @@
 using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Dtos.Emails;
 using FitBridge_Application.Helpers;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Domain.Entities.Identity;
+using FitBridge_Infrastructure.Jobs;
 using FluentEmail.Core;
 using FluentEmail.Smtp;
 using Microsoft.Extensions.Configuration;
+using Quartz;
 using System;
 using System.Net;
 using System.Net.Mail;
+using System.Text.Json;
 
 
 namespace FitBridge_Infrastructure.Services.Implements;
@@ -15,9 +19,11 @@ namespace FitBridge_Infrastructure.Services.Implements;
 public class EmailService : IEmailService
 {
     private readonly IConfiguration _configuration;
-    public EmailService(IConfiguration configuration)
+    private readonly ISchedulerFactory _schedulerFactory;
+    public EmailService(IConfiguration configuration, ISchedulerFactory schedulerFactory)
     {
         _configuration = configuration;
+        _schedulerFactory = schedulerFactory;
     }
     public async Task SendEmailAsync(string email, string subject, string message)
     {
@@ -61,5 +67,22 @@ public class EmailService : IEmailService
         }
 
         await SendEmailAsync(user.Email, subject, message);
+    }
+
+    public async Task ScheduleEmailAsync(AccountInformationEmailData emailData)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+        var jobData = JsonSerializer.Serialize(emailData);
+        var job = JobBuilder.Create<SendAccountInformationEmailJob>()
+            .WithIdentity($"send-email-{emailData.UserId}", "email-jobs")
+            .UsingJobData("emailData", jobData)
+            .UsingJobData("currentRetry", 0)
+            .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity($"send-email-trigger-{emailData.UserId}", "email-jobs")
+        .StartNow() //Excecute immediately
+        .Build();
+
+        await scheduler.ScheduleJob(job, trigger);
     }
 }

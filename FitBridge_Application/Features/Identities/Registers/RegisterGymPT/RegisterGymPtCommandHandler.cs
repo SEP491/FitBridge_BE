@@ -11,7 +11,7 @@ using AutoMapper;
 
 namespace FitBridge_Application.Features.Identities.Registers.RegisterGymPT;
 
-public class RegisterGymPtCommandHandler(IApplicationUserService _applicationUserService, IEmailService emailService, IConfiguration _configuration, IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<RegisterGymPtCommand, CreateNewPTResponse>
+public class RegisterGymPtCommandHandler(IApplicationUserService _applicationUserService, IEmailService _emailService, IConfiguration _configuration, IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<RegisterGymPtCommand, CreateNewPTResponse>
 {
     public async Task<CreateNewPTResponse> Handle(RegisterGymPtCommand request, CancellationToken cancellationToken)
     {
@@ -42,7 +42,7 @@ public class RegisterGymPtCommandHandler(IApplicationUserService _applicationUse
         var isTestAccount = request.IsTestAccount ?? false;
         if (isTestAccount != true)
         {
-            await emailService.SendAccountInformationEmailAsync(user, request.Password, ProjectConstant.UserRoles.GymPT);
+            await _emailService.SendAccountInformationEmailAsync(user, request.Password, ProjectConstant.UserRoles.GymPT);
         }
 
         await _unitOfWork.CommitAsync();

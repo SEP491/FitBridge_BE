@@ -11,6 +11,7 @@ using FitBridge_Infrastructure.Persistence;
 using FitBridge_Infrastructure.Seeder;
 using FitBridge_Infrastructure.Services;
 using FitBridge_Infrastructure.Services.Implements;
+using FitBridge_Infrastructure.Services.Jobs;
 using FitBridge_Infrastructure.Services.Notifications;
 using FitBridge_Infrastructure.Services.Notifications.Helpers;
 using FitBridge_Infrastructure.Services.Templating;
@@ -112,6 +113,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<IPayOSService, PayOSService>();
             services.AddScoped<ITransactionService, TransactionsService>();
             services.AddHostedService<NotificationsBackgroundService>();
+            services.AddScoped<IScheduleJobServices, ScheduleJobServices>();
         }
     }
 }

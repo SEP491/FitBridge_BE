@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using FitBridge_Application.Dtos.Identities;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Domain.Entities.Accounts;
+using FitBridge_Application.Dtos.Emails;
 
 namespace FitBridge_Application.Features.Identities.Registers.RegisterCustomer;
 
@@ -30,7 +31,7 @@ public class RegisterCommandHandler(IApplicationUserService _applicationUserServ
         };
         await _applicationUserService.InsertUserAsync(user, request.Password);
         await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.Customer);
-        
+
         var userDetail = new UserDetail { Id = user.Id };
         _unitOfWork.Repository<UserDetail>().Insert(userDetail);
         await _unitOfWork.CommitAsync();
@@ -40,8 +41,24 @@ public class RegisterCommandHandler(IApplicationUserService _applicationUserServ
 
         if (!request.IsTestAccount)
         {
-            await emailService.SendRegistrationConfirmationEmailAsync(user.Email, confirmationLink, user.FullName);
+            await SendConfirmationEmail(user, confirmationLink);
         }
         return new RegisterResponseDto { UserId = user.Id };
+    }
+
+    private async Task SendConfirmationEmail(ApplicationUser user, string confirmationLink)
+    {
+        var emailData = new AccountInformationEmailData
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            FullName = user.FullName,
+            PhoneNumber = user.PhoneNumber,
+            Dob = user.Dob,
+            IsMale = user.IsMale,
+            ConfirmationLink = confirmationLink,
+            EmailType = ProjectConstant.EmailTypes.RegistrationConfirmationEmail
+        };
+        await emailService.ScheduleEmailAsync(emailData);
     }
 }

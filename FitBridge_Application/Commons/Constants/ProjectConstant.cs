@@ -21,4 +21,10 @@ public static class ProjectConstant
     public const int GymSlotDuration = 1;
 
     public const decimal CommissionRate = 0.1m;
+    public const int MaxRetries = 3;
+    public static class EmailTypes
+    {
+        public const string InformationEmail = "InformationEmail";
+        public const string RegistrationConfirmationEmail = "RegistrationConfirmationEmail";
+    }
 }
