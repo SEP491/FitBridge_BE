@@ -1,6 +1,8 @@
 ﻿using FirebaseAdmin.Messaging;
 using FitBridge_Application.Dtos.Notifications;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 {
@@ -22,7 +24,6 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                         Title = notificationDto.Title,
                         Body = notificationDto.Body
                     },
-                    Data = notificationDto.AdditionalPayload ?? new Dictionary<string, string>() // custom payload
                 };
 
                 tasks.Add(

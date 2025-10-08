@@ -43,10 +43,10 @@ namespace FitBridge_Infrastructure.Services.Notifications
             await notificationHandshakeManager.ConfirmHandshake(userId);
         }
 
-        public async Task<List<NotificationDto>> GetStoredNotifications()
-        {
-            var userId = Context.UserIdentifier;
-            return await notificationStorageService.GetNotificationsAsync(userId);
-        }
+        //public async Task<List<NotificationDto>> GetStoredNotifications()
+        //{
+        //    var userId = Context.UserIdentifier;
+        //    return await notificationStorageService.GetNotificationsAsync(userId);
+        //}
     }
 }

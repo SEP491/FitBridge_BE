@@ -5,10 +5,12 @@ namespace FitBridge_Application.Specifications.Notifications.GetNotificationsByU
     public class GetNotificationsByUserIdSpecification : BaseSpecification<Notification>
     {
         public GetNotificationsByUserIdSpecification(
-            Guid userId, GetNotificationsByUserIdParams parameters) : base(x =>
-            x.IsEnabled && x.UserId == userId)
+            Guid userId,
+            GetNotificationsByUserIdParams? parameters = null,
+            bool onlyUnread = false) : base(x =>
+            x.IsEnabled && x.UserId == userId && ((onlyUnread && x.ReadAt == null) || !onlyUnread))
         {
-            if (parameters.DoApplyPaging)
+            if (parameters != null && parameters.DoApplyPaging)
             {
                 AddPaging(parameters.Size * (parameters.Page - 1), parameters.Size);
             }

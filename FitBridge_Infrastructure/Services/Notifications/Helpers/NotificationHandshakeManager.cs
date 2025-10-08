@@ -17,22 +17,23 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 
         private static readonly ConcurrentDictionary<string, HandshakeState> handshakeStates = [];
 
-        internal void StartHandshake(string userId, HandshakeContext context)
+        internal void StartHandshake(string userId, HandshakeContext handshakeContext)
         {
             var state = new HandshakeState { RetryCount = 0 };
             handshakeStates.TryAdd(userId, state);
 
-            _ = RetryHandshakeAsync(userId, state, context);
+            _ = RetryHandshakeAsync(userId, state, handshakeContext);
         }
 
         private async Task RetryHandshakeAsync(string userId,
-            HandshakeState state, HandshakeContext context)
+            HandshakeState state, HandshakeContext handshakeContext)
         {
             while (state.RetryCount < settings.MaxHandshakeRetries)
             {
                 try
                 {
-                    await hubContext.Clients.Client(userId).NotificationReceived();
+                    logger.LogInformation("Retry handshake: {Count}", state.RetryCount);
+                    await hubContext.Clients.User(userId).NotificationReceived();
 
                     state.CancellationTokenSource = new CancellationTokenSource(settings.InitialRetryDelayMs);
 
@@ -55,7 +56,10 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             if (state.RetryCount >= settings.MaxHandshakeRetries)
             {
                 handshakeStates.TryRemove(userId, out _);
-                await context.Callback.Invoke(context.NotificationDto, context.NotificationMessage, userId);
+                await handshakeContext.Callback.Invoke(
+                    handshakeContext.NotificationDto,
+                    handshakeContext.NotificationMessage,
+                    userId);
             }
         }
 
@@ -63,6 +67,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         {
             if (handshakeStates.TryGetValue(userId, out var state))
             {
+                logger.LogInformation("Client {UserId} confirmed handshake", userId);
                 state.CancellationTokenSource?.Cancel();
                 handshakeStates.TryRemove(userId, out _);
             }

@@ -2,18 +2,20 @@
 
 namespace FitBridge_Application.Dtos.Notifications
 {
-    public class NotificationDto(Dictionary<string, string>? additionalPayload)
+    public class NotificationDto(string additionalPayload)
     {
+        public Guid Id { get; set; }
+
         public string? Title { get; set; }
 
         public string? Body { get; set; }
 
-        public DateTime Timestamp { get; set; }
+        public long Timestamp { get; set; }
 
         public bool IsRead { get; set; }
 
         public NotificationTypes NotificationType { get; set; }
 
-        public Dictionary<string, string>? AdditionalPayload { get; set; } = additionalPayload;
+        public string? AdditionalPayload { get; set; } = additionalPayload;
     }
 }

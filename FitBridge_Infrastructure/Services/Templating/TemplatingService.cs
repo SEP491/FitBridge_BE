@@ -1,10 +1,5 @@
 ﻿using FitBridge_Application.Dtos.Templates;
-using FitBridge_Application.Interfaces.Repositories;
-using FitBridge_Application.Interfaces.Services;
-using FitBridge_Application.Specifications.Templates;
-using FitBridge_Domain.Entities.MessageAndReview;
 using FitBridge_Domain.Enums.MessageAndReview;
-using FitBridge_Domain.Exceptions;
 using Fluid;
 using Fluid.Values;
 using Microsoft.Extensions.Logging;

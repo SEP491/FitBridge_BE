@@ -1,9 +1,11 @@
 ﻿using FitBridge_Application.Dtos.Notifications;
 using FitBridge_Application.Dtos.Templates;
+using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services.Notifications;
 using FitBridge_Domain.Enums.MessageAndReview;
 using FitBridge_Infrastructure.Services.Notifications.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace FitBridge_API.Controllers
 {
@@ -21,7 +23,7 @@ namespace FitBridge_API.Controllers
                 EnumContentType.NewMessage,
                 [uid],
                 new NewMessageModel(message.Body, message.Title),
-                new Dictionary<string, string> { { "userId", uid.ToString() } }));
+                JsonSerializer.Serialize(new { userId = uid.ToString() })));
             return Ok(new { Message = "Notification sent successfully." });
         }
 

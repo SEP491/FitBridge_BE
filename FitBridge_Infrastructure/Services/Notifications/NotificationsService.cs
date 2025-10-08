@@ -38,7 +38,26 @@ namespace FitBridge_Infrastructure.Services.Notifications
             notificationMessage.InAppNotificationTemplate = templates.Item1;
             notificationMessage.PushNotificationTemplate = templates.Item2;
 
+            await StoreNotification(notificationMessage, notificationMessage.InAppNotificationTemplate.Id);
             await channelWriter.WriteAsync(notificationMessage);
+        }
+
+        private async Task StoreNotification(NotificationMessage notificationMessage, Guid templateId)
+        {
+            foreach (var userId in notificationMessage.UserIds)
+            {
+                var newNotification = new Notification
+                {
+                    Id = Guid.NewGuid(),
+                    AdditionalPayload = notificationMessage.NotificationPayload,
+                    Body = notificationMessage.InAppNotificationTemplate?.TemplateBody,
+                    Title = notificationMessage.InAppNotificationTemplate?.TemplateTitle ?? "DORAEMON",
+                    TemplateId = templateId,
+                    UserId = userId
+                };
+                unitOfWork.Repository<Notification>().Insert(newNotification);
+            }
+            await unitOfWork.CommitAsync();
         }
 
         private async Task<TemplateDto> GetInAppNotificationTemplate(EnumContentType contentType, IBaseTemplateModel model)

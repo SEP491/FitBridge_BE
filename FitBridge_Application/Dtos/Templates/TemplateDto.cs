@@ -5,6 +5,8 @@ namespace FitBridge_Application.Dtos.Templates
 {
     public class TemplateDto
     {
+        public Guid Id { get; set; }
+
         public EnumContentType ContentType { get; set; }
 
         public TemplateCategory Category { get; set; }

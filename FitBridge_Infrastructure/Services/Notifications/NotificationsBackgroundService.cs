@@ -40,7 +40,9 @@ namespace FitBridge_Infrastructure.Services.Notifications
                             dto.Body = notificationMessage.InAppNotificationTemplate.TemplateBody;
 
                             logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
-                            await hubContext.Clients.User(userId.ToString()).NotificationReceived();
+
+                            var connectionIds = notificationConnectionManager.GetConnections(userId.ToString());
+                            await hubContext.Clients.Clients(connectionIds.ToList()).NotificationReceived();
 
                             var handshakeContext = new HandshakeContext
                             {
@@ -53,6 +55,9 @@ namespace FitBridge_Infrastructure.Services.Notifications
                         }
                         else
                         {
+                            dto.Title = notificationMessage.PushNotificationTemplate!.TemplateTitle;
+                            dto.Body = notificationMessage.PushNotificationTemplate.TemplateBody;
+                            logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
                             await HandleSendPushAsync(dto, notificationMessage, userId.ToString());
                         }
                     }
@@ -73,6 +78,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
 
         private async Task HandleSendPushAsync(NotificationDto dto, NotificationMessage notificationMessage, string userId)
         {
+            logger.LogInformation("Initiate push");
             dto.Title = notificationMessage.PushNotificationTemplate!.TemplateTitle;
             dto.Body = notificationMessage.PushNotificationTemplate.TemplateBody;
             logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
