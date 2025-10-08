@@ -26,7 +26,7 @@ namespace FitBridge_Application.Features.Coupons.UpdateCoupon
 
             if (request.Quantity.HasValue && request.Quantity != 0)
             {
-                existingCoupon.Quantity += request.Quantity.Value;
+                existingCoupon.Quantity = request.Quantity.Value;
             }
 
             if (request.IsActive.HasValue)
