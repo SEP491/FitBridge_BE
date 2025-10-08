@@ -47,6 +47,7 @@ public class CustomerRegisterSlotCommandHandler(IUnitOfWork _unitOfWork, IUserUt
             CustomerId = userId.Value,
             CustomerPurchasedId = request.CustomerPurchasedId,
             PTGymSlotId = request.PtGymSlotId,
+            PtId = ptGymSlot.PTId,
             BookingDate = ptGymSlot.RegisterDate,
             SessionStatus = SessionStatus.Booked,
         };

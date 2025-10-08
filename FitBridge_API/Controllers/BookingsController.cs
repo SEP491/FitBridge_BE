@@ -11,6 +11,9 @@ using FitBridge_Application.Dtos.Bookings;
 using FitBridge_Application.Specifications.Bookings.GetGymSlotForBooking;
 using FitBridge_Application.Features.Bookings.GetGymSlotForBooking;
 using FitBridge_Application.Dtos.GymSlots;
+using FitBridge_Application.Specifications.Bookings.GetFreelancePtSchedule;
+using FitBridge_Application.Features.Bookings.GetFreelancePtSchedule;
+using FitBridge_Application.Features.Bookings.CreateRequestBooking;
 
 namespace FitBridge_API.Controllers;
 
@@ -57,5 +60,21 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
         var result = await _mediator.Send(new GetGymSlotForBookingQuery { Params = parameters });
         var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GetPtGymSlotForBookingResponse>>(StatusCodes.Status200OK.ToString(), "Slot retrieved successfully", pagination));
+    }
+
+    [HttpPost("request-booking")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Customer + "," + ProjectConstant.UserRoles.FreelancePT)]
+    public async Task<IActionResult> CreateRequestBooking([FromBody] CreateRequestBookingCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<List<CreateRequestBookingResponseDto>>(StatusCodes.Status200OK.ToString(), "Booking created successfully", result));
+    }
+
+    [HttpGet("freelance-pt-schedule")]
+    public async Task<IActionResult> GetFreelancePtSchedule([FromQuery] GetFreelancePtScheduleParams parameters)
+    {
+        var result = await _mediator.Send(new GetFreelancePtScheduleQuery { Params = parameters });
+        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GetFreelancePtScheduleResponse>>(StatusCodes.Status200OK.ToString(), "Schedule retrieved successfully", pagination));
     }
 }

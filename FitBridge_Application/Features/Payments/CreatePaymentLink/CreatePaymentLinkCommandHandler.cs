@@ -166,7 +166,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByGymIdSpec(gymCoursePT.GymOwnerId, userId));
                 if (userPackage != null)
                 {
-                    throw new PackageExistException("Package of this gym course still not expired");
+                    throw new PackageExistException("Package of this gym still not expired");
                 }
             }
 

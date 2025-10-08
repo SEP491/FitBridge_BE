@@ -19,6 +19,7 @@ public class Coupon : BaseEntity
     public int NumberOfUsedCoupon { get; set; }
 
     public ApplicationUser Creator { get; set; }
+    public ICollection<ApplicationUser> CouponUsers { get; set; } = new List<ApplicationUser>();
 
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

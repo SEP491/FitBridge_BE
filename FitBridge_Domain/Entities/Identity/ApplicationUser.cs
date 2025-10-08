@@ -60,6 +60,10 @@ namespace FitBridge_Domain.Entities.Identity
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public ICollection<MeetingSession> MeetingSessions { get; set; } = new List<MeetingSession>();
         public Wallet? Wallet { get; set; }
+        public ICollection<Booking> PtBookings { get; set; } = new List<Booking>();
+        public ICollection<BookingRequest> PtBookingRequests { get; set; } = new List<BookingRequest>();
+        public ICollection<BookingRequest> CustomerBookingRequests { get; set; } = new List<BookingRequest>();
+        public ICollection<Coupon> UsedCoupons { get; set; } = new List<Coupon>();
     }
 
 }

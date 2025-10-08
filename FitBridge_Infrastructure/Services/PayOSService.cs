@@ -230,7 +230,7 @@ public class PayOSService : IPayOSService
             if (!transaction.TransactionType.Equals(TransactionType.ProductOrder))
             {
                 //Calculate commission amount
-                transaction.ProfitAmount = transaction.Amount * ProjectConstant.CommissionRate;
+                transaction.ProfitAmount = transaction.Order.SubTotalPrice * ProjectConstant.CommissionRate;
             }
             _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().Update(transaction);
             await _unitOfWork.CommitAsync();
@@ -243,65 +243,16 @@ public class PayOSService : IPayOSService
             {
                 return await _transactionService.PurchasePt(verifiedWebhookData.orderCode);
             }
+            if(transaction.TransactionType == TransactionType.FreelancePTPackage)
+            {
+                return await _transactionService.PurchaseFreelancePTPackage(verifiedWebhookData.orderCode);
+            }
+            if(transaction.TransactionType == TransactionType.GymCourse)
+            {
+                return await _transactionService.PurchaseGymCourse(verifiedWebhookData.orderCode);
+            }
 
-            // Find transaction by order code
-            var OrderEntity = await _unitOfWork.Repository<Order>()
-                .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(verifiedWebhookData.orderCode), false);
-            if (OrderEntity == null)
-            {
-                throw new NotFoundException("Order not found");
-            }
-            if (OrderEntity.OrderItems.Any(item => item.ProductDetailId != null))
-            {
-                OrderEntity.Status = OrderStatus.Pending;
-            }
-            else
-            {
-                OrderEntity.Status = OrderStatus.Arrived;
-            }
-            foreach (var orderItem in OrderEntity.OrderItems)
-            {
-                if (orderItem.ProductDetailId == null)
-                {
-                    var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
-                    var numOfSession = 0;
-                    var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow);
-                    if (orderItem.FreelancePTPackageId != null)
-                    {
-                        numOfSession = orderItem.FreelancePTPackage.NumOfSessions;
-                        expirationDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(orderItem.FreelancePTPackage.DurationInDays * orderItem.Quantity);
-                        profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(orderItem.FreelancePTPackage.DurationInDays * orderItem.Quantity);
-                    }
-                    if (orderItem.GymCourseId != null && orderItem.GymPtId != null)
-                    {
-                        var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItem.GymCourseId.Value, orderItem.GymPtId.Value));
-                        if (gymCoursePT == null)
-                        {
-                            throw new NotFoundException("Gym course PT with gym course id and pt id not found");
-                        }
-                        numOfSession = gymCoursePT.Session.Value;
-                    }
-                    profitDistributionDate = profitDistributionDate.AddDays(30);
-
-                    expirationDate = expirationDate.AddDays(orderItem.GymCourse.Duration * orderItem.Quantity);
-                    orderItem.CustomerPurchased = new CustomerPurchased
-                    {
-                        CustomerId = OrderEntity.AccountId,
-                        AvailableSessions = orderItem.Quantity * numOfSession,
-                        ExpirationDate = expirationDate,
-                    };
-                    var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.FreelancePTPackage.PtId);
-                    if (walletToUpdate == null)
-                    {
-                        throw new NotFoundException("Wallet not found");
-                    }
-                    walletToUpdate.PendingBalance += orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate;
-                    _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
-                    await ScheduleProfitDistributionJob(orderItem.CustomerPurchased.Id, profitDistributionDate);
-                }
-            }
-            await _unitOfWork.CommitAsync();
-            return true;
+            return false;
         }
         catch (Exception ex)
         {
@@ -318,33 +269,5 @@ public class PayOSService : IPayOSService
         // Ensure the result is positive and fits within long range
         var orderCode = (timestamp % 100000) * 10000 + random;
         return Math.Abs(orderCode);
-    }
-
-    private async Task ScheduleProfitDistributionJob(Guid customerPurchasedId, DateOnly profitDistributionDate)
-    {
-        var jobKey = new JobKey($"ProfitDistribution_{customerPurchasedId}", "ProfitDistribution");
-        var triggerKey = new TriggerKey($"ProfitDistribution_{customerPurchasedId}_Trigger", "ProfitDistribution");
-        var jobData = new JobDataMap
-        {
-            { "customerPurchasedId", customerPurchasedId.ToString() }
-        };
-        var job = JobBuilder.Create<DistributeProfitJob>()
-        .WithIdentity(jobKey)
-        .SetJobData(jobData)
-        .Build();
-
-        //Schedule 1 day after expiration date
-        var triggerTime = profitDistributionDate.ToDateTime(TimeOnly.MinValue).AddDays(1);
-        var trigger = TriggerBuilder.Create()
-        .WithIdentity(triggerKey)
-        .StartAt(triggerTime)
-        .Build();
-        
-        await _schedulerFactory.GetScheduler().Result
-        .ScheduleJob(job, trigger);
-        
-        _logger.LogInformation(
-        "Scheduled profit distribution job for CustomerPurchased {CustomerPurchasedId} at {TriggerTime}",
-        customerPurchasedId, triggerTime);
     }
 }

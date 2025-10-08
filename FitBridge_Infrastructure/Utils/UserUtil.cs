@@ -26,4 +26,23 @@ public class UserUtil : IUserUtil
         }
         return accountId;
     }
+
+    public string? GetUserRole(HttpContext httpContext)
+    {
+        if (httpContext.User == null)
+        {
+            return null;
+        }
+
+        // The role is stored as ClaimTypes.Role in the access token
+        var roleClaim = httpContext.User.FindFirst(ClaimTypes.Role);
+        if (roleClaim == null)
+        {
+            return null;
+        }
+
+        // If multiple roles, get the first one
+        var roles = roleClaim.Value.Split(',');
+        return roles.FirstOrDefault();
+    }
 }
