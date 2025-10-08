@@ -1,11 +1,8 @@
 ﻿using FitBridge_Application.Interfaces.Repositories;
-using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Specifications.Coupons.GetCouponById;
-using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Exceptions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 
 namespace FitBridge_Application.Features.Coupons.UpdateCoupon
 {

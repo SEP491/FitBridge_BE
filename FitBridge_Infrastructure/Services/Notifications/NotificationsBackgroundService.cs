@@ -42,7 +42,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
                             logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
 
                             var connectionIds = notificationConnectionManager.GetConnections(userId.ToString());
-                            await hubContext.Clients.Clients(connectionIds.ToList()).NotificationReceived();
+                            await hubContext.Clients.User(userId.ToString()).NotificationReceived();
 
                             var handshakeContext = new HandshakeContext
                             {
@@ -82,7 +82,6 @@ namespace FitBridge_Infrastructure.Services.Notifications
             dto.Title = notificationMessage.PushNotificationTemplate!.TemplateTitle;
             dto.Body = notificationMessage.PushNotificationTemplate.TemplateBody;
             logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
-            await notificationsStorageService.SaveNotificationAsync(userId.ToString(), dto);
 
             var tokenList = await GetDeviceTokens(Guid.Parse(userId));
             await pushNotificationService.SendPushNotificationAsync(

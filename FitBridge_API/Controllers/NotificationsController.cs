@@ -143,6 +143,7 @@ namespace FitBridge_API.Controllers
         /// </param>
         /// <returns>A success response if the registration is successful.</returns>
         [HttpPost("device-token")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<EmptyResult>))]
         public async Task<IActionResult> AddUserDeviceToken([FromBody] AddUserDeviceTokenCommand command)
         {
