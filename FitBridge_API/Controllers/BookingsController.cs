@@ -13,7 +13,8 @@ using FitBridge_Application.Features.Bookings.GetGymSlotForBooking;
 using FitBridge_Application.Dtos.GymSlots;
 using FitBridge_Application.Specifications.Bookings.GetFreelancePtSchedule;
 using FitBridge_Application.Features.Bookings.GetFreelancePtSchedule;
-using FitBridge_Application.Features.Bookings.CreateBooking;
+using FitBridge_Application.Features.Bookings.CreateRequestBooking;
+using FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
 
 namespace FitBridge_API.Controllers;
 
@@ -81,5 +82,12 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
         var result = await _mediator.Send(new GetFreelancePtScheduleQuery { Params = parameters });
         var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GetFreelancePtScheduleResponse>>(StatusCodes.Status200OK.ToString(), "Schedule retrieved successfully", pagination));
+    }
+
+    [HttpPost("accept-booking-request")]
+    public async Task<IActionResult> AcceptBookingRequest([FromBody] AcceptBookingRequestCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<Guid>(StatusCodes.Status200OK.ToString(), "Booking request accepted successfully", result));
     }
 }
