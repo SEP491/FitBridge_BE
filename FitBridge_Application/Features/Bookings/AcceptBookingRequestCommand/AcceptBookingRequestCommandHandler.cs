@@ -6,6 +6,7 @@ using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Application.Specifications.Bookings;
 using FitBridge_Domain.Exceptions;
 using AutoMapper;
+using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidate;
 
 namespace FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
 

@@ -13,7 +13,6 @@ using FitBridge_Application.Features.Bookings.GetGymSlotForBooking;
 using FitBridge_Application.Dtos.GymSlots;
 using FitBridge_Application.Specifications.Bookings.GetFreelancePtSchedule;
 using FitBridge_Application.Features.Bookings.GetFreelancePtSchedule;
-using FitBridge_Application.Features.Bookings.CreateRequestBooking;
 using FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
 
 namespace FitBridge_API.Controllers;
@@ -48,7 +47,7 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     /// <returns>The gym slot for booking</returns>
     /// <remarks>
     /// Sample request:
-    /// 
+    ///
     ///     GET /api/v1/bookings/get-gym-slot-for-booking
     ///     {
     ///         "ptId": "01999fdb-fa69-7d1a-ba09-6e186ef7d00b",
