@@ -1,6 +1,7 @@
 using System;
 using AutoMapper;
 using FitBridge_Application.Dtos.Bookings;
+using FitBridge_Application.Features.Bookings.RequestEditBooking;
 using FitBridge_Domain.Entities.Trainings;
 
 namespace FitBridge_Application.MappingProfiles;
@@ -58,5 +59,61 @@ public class BookingMappingProfile : Profile
         .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
         .ForMember(dest => dest.PtId, opt => opt.MapFrom(src => src.PtId))
         .ForMember(dest => dest.CustomerPurchasedId, opt => opt.MapFrom(src => src.CustomerPurchasedId));
+
+        CreateMap<BookingRequest, EditBookingResponseDto>()
+        .ForMember(dest => dest.BookingRequestId, opt => opt.MapFrom(src => src.Id))
+        .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.BookingDate))
+        .ForMember(dest => dest.BookingName, opt => opt.MapFrom(src => src.BookingName))
+        .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
+        .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
+        .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note))
+        .ForMember(dest => dest.TargetBookingId, opt => opt.MapFrom(src => src.TargetBookingId))
+        .ForMember(dest => dest.RequestType, opt => opt.MapFrom(src => src.RequestType))
+        .ForMember(dest => dest.RequestStatus, opt => opt.MapFrom(src => src.RequestStatus));
+
+
+        CreateMap<BookingRequest, UpdateBookingResponseDto>()
+        .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+        .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
+        .ForMember(dest => dest.PtId, opt => opt.MapFrom(src => src.PtId))
+        .ForMember(dest => dest.TargetBookingId, opt => opt.MapFrom(src => src.TargetBookingId))
+        .ForMember(dest => dest.CustomerPurchasedId, opt => opt.MapFrom(src => src.CustomerPurchasedId))
+        .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.BookingDate))
+        .ForMember(dest => dest.BookingName, opt => opt.MapFrom(src => src.BookingName))
+        .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
+        .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
+        .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note));
+
+        CreateProjection<BookingRequest, GetBookingRequestResponse>()
+        .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
+        .ForMember(dest => dest.PtId, opt => opt.MapFrom(src => src.PtId))
+        .ForMember(dest => dest.TargetBookingId, opt => opt.MapFrom(src => src.TargetBookingId))
+        .ForMember(dest => dest.CustomerPurchasedId, opt => opt.MapFrom(src => src.CustomerPurchasedId))
+        .ForMember(dest => dest.BookingName, opt => opt.MapFrom(src => src.BookingName))
+        .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
+        .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
+        .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note))
+        .ForMember(dest => dest.RequestType, opt => opt.MapFrom(src => src.RequestType))
+        .ForMember(dest => dest.RequestStatus, opt => opt.MapFrom(src => src.RequestStatus))
+        .ForMember(dest => dest.OriginalBooking, opt => opt.MapFrom(src => src.TargetBooking != null ? src.TargetBooking : null));
+
+        CreateProjection<Booking, BookingResponseDto>()
+        .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.BookingDate))
+        .ForMember(dest => dest.PtFreelanceStartTime, opt => opt.MapFrom(src => src.PtFreelanceStartTime))
+        .ForMember(dest => dest.PtFreelanceEndTime, opt => opt.MapFrom(src => src.PtFreelanceEndTime))
+        .ForMember(dest => dest.BookingName, opt => opt.MapFrom(src => src.BookingName))
+        .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note));
+
+        CreateMap<Booking, UpdateBookingResponseDto>()
+        .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+        .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
+        .ForMember(dest => dest.PtId, opt => opt.MapFrom(src => src.PtId))
+        .ForMember(dest => dest.TargetBookingId, opt => opt.MapFrom(src => src.Id))
+        .ForMember(dest => dest.CustomerPurchasedId, opt => opt.MapFrom(src => src.CustomerPurchasedId))
+        .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.BookingDate))
+        .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.PtFreelanceStartTime))
+        .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.PtFreelanceEndTime))
+        .ForMember(dest => dest.BookingName, opt => opt.MapFrom(src => src.BookingName))
+        .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note));
     }
 }
