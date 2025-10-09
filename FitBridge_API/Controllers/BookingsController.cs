@@ -14,6 +14,7 @@ using FitBridge_Application.Dtos.GymSlots;
 using FitBridge_Application.Specifications.Bookings.GetFreelancePtSchedule;
 using FitBridge_Application.Features.Bookings.GetFreelancePtSchedule;
 using FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
+using FitBridge_Application.Features.Bookings.CreateBooking;
 
 namespace FitBridge_API.Controllers;
 
