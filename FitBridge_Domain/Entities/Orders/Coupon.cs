@@ -17,6 +17,7 @@ public class Coupon : BaseEntity
     public bool IsActive { get; set; }
     public string CouponCode { get; set; }
     public int NumberOfUsedCoupon { get; set; }
+    public DateOnly ExpirationDate { get; set; }
 
     public ApplicationUser Creator { get; set; }
     public ICollection<ApplicationUser> CouponUsers { get; set; } = new List<ApplicationUser>();

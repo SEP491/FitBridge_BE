@@ -3,6 +3,7 @@ using FitBridge_API.Helpers;
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.CustomerPurchaseds;
 using FitBridge_Application.Dtos.GymCourses;
+using FitBridge_Application.Features.CustomerPurchaseds.CheckCustomerPurchased;
 using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased;
 using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedFreelancePt;
 using FitBridge_Application.Features.GymCourses.GetPurchasedGymCoursePtForSchedule;
@@ -36,5 +37,18 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
         var response = await _mediator.Send(new GetCustomerPurchasedFreelancePtQuery { Params = parameters });
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<CustomerPurchasedFreelancePtResponseDto>>(StatusCodes.Status200OK.ToString(), "Get customer purchased freelance pt success", pagination));
+    }
+
+    /// <summary>
+    /// Check if the customer and this pt already have a customer purchased package, this api use for validate booking request in chat box
+    /// </summary>
+    /// <param name="PtId"></param>
+    /// <returns>On success, return the CustomerPurchasedId</returns>
+    [HttpGet("check")]
+    public async Task<IActionResult> CheckCustomerPurchased([FromQuery] Guid PtId)
+    {
+        var command = new CheckCustomerPurchasedCommand { PtId = PtId };
+        var response = await _mediator.Send(command);
+        return Ok(new BaseResponse<Guid>(StatusCodes.Status200OK.ToString(), "Check customer purchased success", response));
     }
 }

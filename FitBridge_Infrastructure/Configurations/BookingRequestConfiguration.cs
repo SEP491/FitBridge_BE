@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities.Trainings;
+using FitBridge_Domain.Enums.Trainings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,7 +19,10 @@ public class BookingRequestConfiguration : IEntityTypeConfiguration<BookingReque
         builder.Property(e => e.StartTime).IsRequired(true);
         builder.Property(e => e.EndTime).IsRequired(true);
         builder.Property(e => e.BookingDate).IsRequired(true);
-        builder.Property(e => e.RequestType).IsRequired(true);
+        builder.Property(e => e.RequestStatus).IsRequired(true)
+        .HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<BookingRequestStatus>(s));
+        builder.Property(e => e.RequestType).IsRequired(true)
+        .HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<RequestType>(s));
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);

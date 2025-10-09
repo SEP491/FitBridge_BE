@@ -62,6 +62,11 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
         return Ok(new BaseResponse<Pagination<GetPtGymSlotForBookingResponse>>(StatusCodes.Status200OK.ToString(), "Slot retrieved successfully", pagination));
     }
 
+    /// <summary>
+    /// Create a booking request for a freelance pt or customer can be used by Freelance Pt or Customer
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns>On success, return the booking request</returns>
     [HttpPost("request-booking")]
     [Authorize(Roles = ProjectConstant.UserRoles.Customer + "," + ProjectConstant.UserRoles.FreelancePT)]
     public async Task<IActionResult> CreateRequestBooking([FromBody] CreateRequestBookingCommand command)
