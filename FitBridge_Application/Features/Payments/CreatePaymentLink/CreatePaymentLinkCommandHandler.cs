@@ -166,7 +166,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByGymIdSpec(gymCoursePT.GymOwnerId, userId));
                 if (userPackage != null)
                 {
-                    throw new PackageExistException("Package of this gym still not expired");
+                    throw new PackageExistException($"Package of this gym still not expired, customer purchased id: {userPackage.Id}, package expiration date: {userPackage.ExpirationDate}");
                 }
             }
 
@@ -181,7 +181,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByFreelancePtIdSpec(freelancePTPackage.PtId, userId));
                 if (userPackage != null)
                 {
-                    throw new PackageExistException("Package of this freelance PT still not expired");
+                    throw new PackageExistException($"Package of this freelance PT still not expired, customer purchased id: {userPackage.Id}, package expiration date: {userPackage.ExpirationDate}");
                 }
             }
         }
