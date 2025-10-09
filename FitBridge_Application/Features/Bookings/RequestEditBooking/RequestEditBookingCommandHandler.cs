@@ -6,12 +6,12 @@ using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Exceptions;
 using FitBridge_Application.Features.Bookings.RequestEditBooking;
 using FitBridge_Application.Specifications.Bookings;
-using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidation;
 using AutoMapper;
 using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Application.Interfaces.Utils;
 using Microsoft.AspNetCore.Http;
 using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidate;
 
 namespace FitBridge_Application.Features.Bookings.RequestEditBooking;
 

@@ -7,7 +7,7 @@ using AutoMapper;
 using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Application.Specifications.Bookings;
-using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidation;
+using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidate;
 
 namespace FitBridge_Application.Features.Bookings.AcceptEditBookingRequest;
 
