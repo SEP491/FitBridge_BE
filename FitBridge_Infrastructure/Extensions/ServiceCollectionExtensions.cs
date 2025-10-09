@@ -7,6 +7,7 @@ using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Interfaces.Utils.Seeding;
 using FitBridge_Application.Services;
 using FitBridge_Domain.Entities.Identity;
+using FitBridge_Infrastructure.Jobs.Coupons;
 using FitBridge_Infrastructure.Persistence;
 using FitBridge_Infrastructure.Seeder;
 using FitBridge_Infrastructure.Services;
@@ -89,6 +90,22 @@ namespace FitBridge_Infrastructure.Extensions
                 {
                     tp.MaxConcurrency = 10;
                 });
+
+                var disableExpiredCouponsJobKey = new JobKey("DisableExpiredCouponsJob");
+                q.AddJob<DisableExpiredCouponsJob>(opts => opts.WithIdentity(disableExpiredCouponsJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(disableExpiredCouponsJobKey)
+                    .WithIdentity("DisableExpiredCouponsTrigger")
+                    .WithCronSchedule("0 0 0 * * ?") // Run daily at 00:00:00
+                    .WithDescription("Disables expired coupons daily at midnight"));
+
+                var enableStartingCouponsJobKey = new JobKey("EnableStartingCouponsJob");
+                q.AddJob<EnableStartingCouponsJob>(opts => opts.WithIdentity(enableStartingCouponsJobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(enableStartingCouponsJobKey)
+                    .WithIdentity("EnableStartingCouponsTrigger")
+                    .WithCronSchedule("0 0 0 * * ?") // Run daily at 00:00:00
+                    .WithDescription("Enables starting coupons daily at midnight"));
             });
 
             services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);

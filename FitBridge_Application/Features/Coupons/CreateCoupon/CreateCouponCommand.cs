@@ -12,5 +12,9 @@ namespace FitBridge_Application.Features.Coupons.CreateCoupon
         public double DiscountPercent { get; set; }
 
         public int Quantity { get; set; }
+
+        public DateOnly StartDate { get; set; }
+
+        public DateOnly ExpirationDate { get; set; }
     }
 }

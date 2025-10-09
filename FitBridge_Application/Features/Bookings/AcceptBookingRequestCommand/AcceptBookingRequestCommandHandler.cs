@@ -4,9 +4,9 @@ using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Application.Specifications.Bookings;
-using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidation;
 using FitBridge_Domain.Exceptions;
 using AutoMapper;
+using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidate;
 
 namespace FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
 
@@ -33,7 +33,6 @@ public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper
 
     public async Task<bool> ValidateBookingRequest(BookingRequest bookingRequest)
     {
-
         var bookingSpec = new GetBookingForValidationSpec(bookingRequest.CustomerId, bookingRequest.BookingDate, bookingRequest.StartTime, bookingRequest.EndTime);
         var booking = await _unitOfWork.Repository<Booking>().GetBySpecificationAsync(bookingSpec, false);
         if (booking != null)

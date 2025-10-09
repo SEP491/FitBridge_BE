@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Quartz;
 
-namespace FitBridge_Infrastructure.Jobs
+namespace FitBridge_Infrastructure.Jobs.Meetings
 {
     internal class MeetingRoomExpirationAlertJob(
         IHubContext<SignalingHub, ISignalingClients> hubContext,
