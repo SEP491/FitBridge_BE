@@ -24,8 +24,5 @@ public class CouponConfiguration : IEntityTypeConfiguration<Coupon>
         builder.Property(e => e.NumberOfUsedCoupon).HasDefaultValue(0);
         builder.HasIndex(e => new { e.CouponCode, e.IsEnabled }).IsUnique();
         builder.HasOne(e => e.Creator).WithMany(e => e.Coupons).HasForeignKey(e => e.CreatorId);
-        
-        builder.HasMany(e => e.CouponUsers).WithMany(e => e.UsedCoupons)
-        .UsingEntity(j => j.ToTable("CouponUsers"));
     }
 }

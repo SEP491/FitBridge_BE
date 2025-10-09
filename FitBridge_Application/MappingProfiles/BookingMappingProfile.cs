@@ -48,5 +48,15 @@ public class BookingMappingProfile : Profile
         .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
         .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
         .ForMember(dest => dest.RequestType, opt => opt.MapFrom(src => src.RequestType));
+
+        CreateMap<BookingRequest, Booking>()
+        .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+        .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.BookingDate))
+        .ForMember(dest => dest.BookingName, opt => opt.MapFrom(src => src.BookingName))
+        .ForMember(dest => dest.PtFreelanceStartTime, opt => opt.MapFrom(src => src.StartTime))
+        .ForMember(dest => dest.PtFreelanceEndTime, opt => opt.MapFrom(src => src.EndTime))
+        .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
+        .ForMember(dest => dest.PtId, opt => opt.MapFrom(src => src.PtId))
+        .ForMember(dest => dest.CustomerPurchasedId, opt => opt.MapFrom(src => src.CustomerPurchasedId));
     }
 }
