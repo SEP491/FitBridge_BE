@@ -1,9 +1,9 @@
 using System;
 using FitBridge_Application.Dtos.Jobs;
 using FitBridge_Application.Interfaces.Services;
-using FitBridge_Infrastructure.Jobs;
 using Quartz;
 using Microsoft.Extensions.Logging;
+using FitBridge_Infrastructure.Jobs;
 
 namespace FitBridge_Infrastructure.Services.Jobs;
 

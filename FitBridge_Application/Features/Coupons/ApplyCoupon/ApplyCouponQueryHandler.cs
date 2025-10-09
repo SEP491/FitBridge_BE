@@ -27,14 +27,19 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
             var orderSpec = new GetOrderByCouponAndUserIdSpecification(coupon.Id, accountId);
             var order = await unitOfWork.Repository<Order>().GetBySpecificationAsync(orderSpec);
 
-            if (coupon.Type.Equals(CouponType.FreelancePT) && order != null)
+            if (order != null)
             {
-                throw new InvalidDataException("PT coupon can only be used once");
+                throw new InvalidDataException("Coupon already applied");
             }
 
             if (coupon.Quantity - 1 <= 0)
             {
                 throw new OutOfStocksException(nameof(Coupon));
+            }
+
+            if (coupon.ExpirationDate < DateOnly.FromDateTime(DateTime.UtcNow) || !coupon.IsActive)
+            {
+                throw new ExpiredException(coupon.CouponCode);
             }
 
             var dto = new ApplyCouponDto

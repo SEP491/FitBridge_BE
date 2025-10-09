@@ -4,6 +4,8 @@ using FitBridge_Application.Dtos.Coupons;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Utils;
+using FitBridge_Application.Services;
+using FitBridge_Application.Specifications.Coupons.GetOverlapCoupons;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Enums.Orders;
@@ -40,9 +42,14 @@ namespace FitBridge_Application.Features.Coupons.CreateCoupon
                 DiscountPercent = request.DiscountPercent,
                 Quantity = request.Quantity,
                 CreatorId = creatorId,
-                IsActive = true,
+                IsActive = false,
+                StartDate = request.StartDate,
+                ExpirationDate = request.ExpirationDate,
                 Id = Guid.NewGuid()
             };
+
+            var overlappedCoupons = await GetOverlappedCoupons(newCoupon.StartDate);
+            if (overlappedCoupons.Count > 0) throw new CouponOverlapException(overlappedCoupons[0].CouponCode);
 
             unitOfWork.Repository<Coupon>().Insert(newCoupon);
 
@@ -56,6 +63,14 @@ namespace FitBridge_Application.Features.Coupons.CreateCoupon
             }
 
             return mapper.Map<CreateNewCouponDto>(newCoupon);
+        }
+
+        private async Task<IReadOnlyList<Coupon>> GetOverlappedCoupons(DateOnly expirationDate)
+        {
+            var spec = new GetOverlapCouponsSpec(expirationDate);
+            var overlapCoupons = await unitOfWork.Repository<Coupon>().GetAllWithSpecificationAsync(spec);
+
+            return overlapCoupons;
         }
     }
 }

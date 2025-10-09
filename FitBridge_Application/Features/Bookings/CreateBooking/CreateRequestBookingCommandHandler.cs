@@ -11,12 +11,11 @@ using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByCustomerId;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByCustomerIdAndPtId;
-using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidation;
 using FitBridge_Application.Dtos.Bookings;
 using AutoMapper;
 using FitBridge_Application.Commons.Constants;
 
-namespace FitBridge_Application.Features.Bookings.CreateRequestBooking;
+namespace FitBridge_Application.Features.Bookings.CreateBooking;
 
 public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<CreateRequestBookingCommand, List<CreateRequestBookingResponseDto>>
 {
@@ -82,7 +81,6 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
             };
             _unitOfWork.Repository<BookingRequest>().Insert(insertRequestBooking);
             response.Add(_mapper.Map<CreateRequestBookingResponseDto>(insertRequestBooking));
-
         }
 
         await _unitOfWork.CommitAsync();

@@ -2,7 +2,7 @@
 using FitBridge_Application.Interfaces.Services.Meetings;
 using FitBridge_Domain.Entities.Meetings;
 using FitBridge_Domain.Entities.Trainings;
-using FitBridge_Infrastructure.Jobs;
+using FitBridge_Infrastructure.Jobs.Meetings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;

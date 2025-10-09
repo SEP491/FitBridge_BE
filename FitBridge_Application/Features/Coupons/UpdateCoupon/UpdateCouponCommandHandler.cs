@@ -1,5 +1,7 @@
 ﻿using FitBridge_Application.Interfaces.Repositories;
+using FitBridge_Application.Services;
 using FitBridge_Application.Specifications.Coupons.GetCouponById;
+using FitBridge_Application.Specifications.Coupons.GetOverlapCoupons;
 using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Exceptions;
 using MediatR;

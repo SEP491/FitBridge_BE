@@ -1,8 +1,7 @@
 using System;
-using FitBridge_Application.Specifications;
 using FitBridge_Domain.Entities.Trainings;
 
-namespace FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidation;
+namespace FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidate;
 
 public class GetFreelancePtBookingForValidationSpec : BaseSpecification<Booking>
 {
