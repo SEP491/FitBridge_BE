@@ -59,7 +59,8 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
         {
             throw new NotEnoughSessionException($"Available sessions is not enough, current available sessions is: {customerPurchased.AvailableSessions}");
         }
-        await ValidateBookingRequest(request.RequestBookings);
+        var maximumPracticeTime = customerPurchased.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.SessionDurationInMinutes;
+        await ValidateBookingRequest(request.RequestBookings, maximumPracticeTime);
         var requestType = RequestType.CustomerCreate;
         if (role.Equals(ProjectConstant.UserRoles.FreelancePT))
         {
@@ -89,7 +90,7 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
         return response;
     }
 
-    public async Task<bool> ValidateBookingRequest(List<CreateRequestBookingDto> requestBookings)
+    public async Task<bool> ValidateBookingRequest(List<CreateRequestBookingDto> requestBookings, int maximumPracticeTime)
     {
         // Validate date and basic rules
         foreach (var requestBooking in requestBookings)
@@ -102,6 +103,10 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
             if (requestBooking.PtFreelanceStartTime >= requestBooking.PtFreelanceEndTime)
             {
                 throw new BusinessException($"End time must be after start time");
+            }
+            if (requestBooking.PtFreelanceEndTime - requestBooking.PtFreelanceStartTime > TimeSpan.FromMinutes(maximumPracticeTime))
+            {
+                throw new BusinessException($"Practice time must be less than {maximumPracticeTime} minutes");
             }
         }
 
