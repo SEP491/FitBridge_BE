@@ -30,8 +30,7 @@ namespace FitBridge_Application.Features.Notifications.AddUserDeviceToken
             };
 
             unitOfWork.Repository<PushNotificationTokens>().Insert(newToken);
-
-            await unitOfWork.CommitAsync();
+                await unitOfWork.CommitAsync();
         }
     }
 }

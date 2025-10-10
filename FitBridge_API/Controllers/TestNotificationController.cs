@@ -13,12 +13,13 @@ namespace FitBridge_API.Controllers
         INotificationService notificationService,
         NotificationConnectionManager notificationConnectionManager) : _BaseApiController
     {
+        public record TestNotiDto(string Body, string Title, Guid userId);
+
         [HttpPost]
-        public async Task<IActionResult> TestNotification([FromBody] Message message)
+        public async Task<IActionResult> TestNotification([FromBody] TestNotiDto message)
         {
-            await notificationConnectionManager.AddConnectionAsync("0199512e-2c80-7cd9-a843-71f95f30fa71", "connectionId1");
-            //add to connection manager to check exisst or mayb not
-            var uid = Guid.Parse("0199512e-2c80-7cd9-a843-71f95f30fa71");
+            await notificationConnectionManager.AddConnectionAsync(message.userId.ToString(), "connectionId1");
+            var uid = message.userId;
             await notificationService.NotifyUsers(new NotificationMessage(
                 EnumContentType.NewMessage,
                 [uid],
