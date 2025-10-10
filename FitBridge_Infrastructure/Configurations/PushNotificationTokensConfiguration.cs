@@ -20,6 +20,7 @@ public class PushNotificationTokensConfiguration : IEntityTypeConfiguration<Push
             convertToProviderExpression: s => s.ToString(),
             convertFromProviderExpression: s => Enum.Parse<PlatformEnum>(s))
             .IsRequired(true);
+        builder.HasIndex(e => e.DeviceToken).IsUnique();
 
         builder.HasOne(e => e.User).WithMany(e => e.PushNotificationTokens).HasForeignKey(e => e.UserId);
     }

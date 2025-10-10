@@ -15,9 +15,9 @@ public class MessageStatusConfiguration : IEntityTypeConfiguration<MessageStatus
         builder.HasKey(e => new { e.MessageId, e.UserId });
         builder.Property(e => e.MessageId).IsRequired(true);
         builder.Property(e => e.UserId).IsRequired(true);
-        builder.Property(e => e.SentAt).IsRequired(true);
-        builder.Property(e => e.DeliveredAt).IsRequired(true);
-        builder.Property(e => e.ReadAt).IsRequired(true);
+        builder.Property(e => e.SentAt).IsRequired(false);
+        builder.Property(e => e.DeliveredAt).IsRequired(false);
+        builder.Property(e => e.ReadAt).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
