@@ -19,6 +19,7 @@ using FitBridge_Application.Features.Bookings.AcceptEditBookingRequest;
 using FitBridge_Application.Specifications.Bookings.GetBookingRequests;
 using FitBridge_Application.Features.Bookings.GetBookingRequest;
 using FitBridge_Application.Features.Bookings.CreateBooking;
+using FitBridge_Application.Features.Bookings.RejectBookingRequest;
 
 namespace FitBridge_API.Controllers;
 
@@ -219,5 +220,30 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
         var result = await _mediator.Send(new GetBookingRequestQuery { Params = parameters });
         var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GetBookingRequestResponse>>(StatusCodes.Status200OK.ToString(), "Booking request retrieved successfully", pagination));
+    }
+
+    /// <summary>
+    /// Reject a booking request for customer and freelance pt
+    /// </summary>
+    /// <param name="command">The command containing the booking request ID to reject</param>
+    /// <returns>The ID of the rejected booking request</returns>
+    /// <remarks>
+    /// Sample request:
+    /// 
+    ///     POST /api/v1/bookings/reject-booking-request
+    ///     {
+    ///         "bookingRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    ///     }
+    ///     
+    /// Validation checks:
+    /// - Request must be in "Pending" status
+    /// - Target booking must exist
+    /// </remarks>
+    [Authorize(Roles = ProjectConstant.UserRoles.Customer + "," + ProjectConstant.UserRoles.FreelancePT)]
+    [HttpPost("reject-booking-request")]
+    public async Task<IActionResult> RejectBookingRequest([FromBody] RejectBookingRequestCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Booking request rejected successfully", result));
     }
 }
