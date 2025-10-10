@@ -1,4 +1,6 @@
-﻿using FitBridge_Application.Configurations;
+﻿using dotAPNS;
+using dotAPNS.AspNetCore;
+using FitBridge_Application.Configurations;
 using FitBridge_Application.Dtos.Notifications;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
@@ -109,8 +111,9 @@ namespace FitBridge_Infrastructure.Extensions
             });
 
             services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
-
             services.AddSignalR();
+            services.AddApns();
+
             services.AddSingleton<ChannelWriter<NotificationMessage>>(channel.Writer);
             services.AddSingleton<ChannelReader<NotificationMessage>>(channel.Reader);
             services.AddSingleton<FirebaseService>();

@@ -65,7 +65,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
             }
         }
 
-        private async Task<List<string>> GetDeviceTokens(Guid userId)
+        private async Task<List<PushNotificationTokens>> GetDeviceTokens(Guid userId)
         {
             using var scope = serviceScopeFactory.CreateScope();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
@@ -73,7 +73,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
             var spec = new GetDeviceTokenByUserSpecification(userId);
             var tokenList = await unitOfWork.Repository<PushNotificationTokens>().GetAllWithSpecificationAsync(spec);
 
-            return tokenList.Select(x => x.DeviceToken).ToList();
+            return tokenList.ToList();
         }
 
         private async Task HandleSendPushAsync(NotificationDto dto, NotificationMessage notificationMessage, string userId)
@@ -84,9 +84,24 @@ namespace FitBridge_Infrastructure.Services.Notifications
             logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
 
             var tokenList = await GetDeviceTokens(Guid.Parse(userId));
-            await pushNotificationService.SendPushNotificationAsync(
-                tokenList,
+            var invalidTokens = await pushNotificationService.SendPushNotificationAsync(
+                tokenList.AsReadOnly(),
                 dto);
+
+            await RemoveInvalidTokens(invalidTokens);
+        }
+
+        private async Task RemoveInvalidTokens(IReadOnlyList<Guid> invalidTokens)
+        {
+            using var scope = serviceScopeFactory.CreateScope();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+            foreach (var tokenId in invalidTokens)
+            {
+                unitOfWork.Repository<PushNotificationTokens>().Delete(tokenId);
+            }
+
+            await unitOfWork.CommitAsync();
         }
     }
 }
