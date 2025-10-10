@@ -2,6 +2,7 @@
 using FitBridge_Application.Dtos.Coupons;
 using FitBridge_Application.Features.Coupons.ApplyCoupon;
 using FitBridge_Application.Features.Coupons.CreateCoupon;
+using FitBridge_Application.Features.Coupons.GetCouponById;
 using FitBridge_Application.Features.Coupons.GetUserCreatedCoupons;
 using FitBridge_Application.Features.Coupons.RemoveCoupon;
 using FitBridge_Application.Features.Coupons.UpdateCoupon;
@@ -48,6 +49,31 @@ namespace FitBridge_API.Controllers
                     StatusCodes.Status200OK.ToString(),
                     "Coupons retrieved successfully",
                     pagination));
+        }
+
+        /// <summary>
+        /// Retrieves a specific coupon by its unique identifier.
+        /// </summary>
+        /// <param name="couponId">The unique identifier (GUID) of the coupon to retrieve:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>Id</term>
+        /// <description>The unique identifier of the coupon. Only active coupons are returned.</description>
+        /// </item>
+        /// </list>
+        /// </param>
+        /// <returns>The coupon details including code, discount information, quantity, and usage statistics.</returns>
+        [HttpGet("{couponId}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<GetCouponsDto>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCouponById([FromRoute] Guid couponId)
+        {
+            var result = await mediator.Send(new GetCouponByIdQuery { Id = couponId });
+            return Ok(
+                new BaseResponse<GetCouponsDto>(
+                    StatusCodes.Status200OK.ToString(),
+                    "Coupon retrieved successfully",
+                    result));
         }
 
         /// <summary>

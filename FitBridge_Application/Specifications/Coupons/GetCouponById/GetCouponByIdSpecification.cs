@@ -4,8 +4,8 @@ namespace FitBridge_Application.Specifications.Coupons.GetCouponById;
 
 public class GetCouponByIdSpecification : BaseSpecification<Coupon>
 {
-    public GetCouponByIdSpecification(Guid CouponId) : base(x =>
-       x.IsEnabled && x.Id == CouponId)
+    public GetCouponByIdSpecification(Guid CouponId, bool getActiveOnly = false) : base(x =>
+       x.IsEnabled && x.Id == CouponId && (!getActiveOnly || (getActiveOnly && x.IsActive)))
     {
     }
 }
