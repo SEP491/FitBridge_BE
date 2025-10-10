@@ -9,11 +9,11 @@ public class MessageStatus : BaseEntity
 
     public Guid UserId { get; set; }
 
-    public DateTime SentAt { get; set; }
+    public DateTime? SentAt { get; set; }
 
-    public DateTime DeliveredAt { get; set; }
+    public DateTime? DeliveredAt { get; set; }
 
-    public DateTime ReadAt { get; set; }
+    public DateTime? ReadAt { get; set; }
 
     public Message Message { get; set; }
 
