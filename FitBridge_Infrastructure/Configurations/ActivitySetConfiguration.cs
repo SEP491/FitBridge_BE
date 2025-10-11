@@ -18,7 +18,7 @@ public class ActivitySetConfiguration : IEntityTypeConfiguration<ActivitySet>
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.Property(e => e.SessionActivityId).IsRequired(true);
-
+        builder.Property(e => e.IsCompleted).IsRequired(true).HasDefaultValue(false);
         builder.HasOne(e => e.SessionActivity).WithMany(e => e.ActivitySets).HasForeignKey(e => e.SessionActivityId);
     }
 }
