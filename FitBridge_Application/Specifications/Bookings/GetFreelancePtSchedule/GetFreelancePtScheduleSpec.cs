@@ -5,7 +5,7 @@ namespace FitBridge_Application.Specifications.Bookings.GetFreelancePtSchedule;
 
 public class GetFreelancePtScheduleSpec : BaseSpecification<Booking>
 {
-    public GetFreelancePtScheduleSpec(GetFreelancePtScheduleParams parameters, Guid PtId) : base(x => x.PtId == PtId)
+    public GetFreelancePtScheduleSpec(GetFreelancePtScheduleParams parameters, Guid PtId) : base(x => x.PtId == PtId && x.BookingDate == parameters.Date)
     {
         AddInclude(x => x.Customer);
 

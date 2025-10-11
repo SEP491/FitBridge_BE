@@ -10,4 +10,5 @@ public class ActivitySet : BaseEntity
     public int? PracticeTime { get; set; }
     public Guid SessionActivityId { get; set; }
     public SessionActivity SessionActivity { get; set; }
+    public bool IsCompleted { get; set; }
 }

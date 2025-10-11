@@ -1,4 +1,5 @@
 using FitBridge_Domain.Enums.Trainings;
+using FitBridge_Domain.Enums.SessionActivities;
 
 namespace FitBridge_Domain.Entities.Trainings;
 
@@ -7,8 +8,7 @@ public class SessionActivity : BaseEntity
     public ActivityType ActivityType { get; set; }
 
     public string ActivityName { get; set; }
-
-    public List<string> MuscleGroups { get; set; } = new List<string>();
+    public MuscleGroupEnum[] MuscleGroups { get; set; } = Array.Empty<MuscleGroupEnum>();
 
     public Guid BookingId { get; set; }
 

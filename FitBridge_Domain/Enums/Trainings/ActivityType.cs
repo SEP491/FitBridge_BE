@@ -6,6 +6,7 @@
 
         Workout,
 
-        WithEquiment
+        WithEquiment,
+        
     }
 }
