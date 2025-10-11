@@ -1,6 +1,7 @@
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Notifications;
 using FitBridge_Application.Features.Notifications.AddUserDeviceToken;
+using FitBridge_Application.Features.Notifications.DeleteAllNotifications;
 using FitBridge_Application.Features.Notifications.DeleteNotification;
 using FitBridge_Application.Features.Notifications.GetUnreadCount;
 using FitBridge_Application.Features.Notifications.GetUserNotifications;
@@ -125,6 +126,23 @@ namespace FitBridge_API.Controllers
                 new BaseResponse<EmptyResult>(
                     StatusCodes.Status200OK.ToString(),
                     "Notification deleted successfully",
+                    Empty));
+        }
+
+        /// <summary>
+        /// Deletes all notifications for the authenticated user.
+        /// </summary>
+        /// <returns>A success response if the deletion is successful.</returns>
+        [HttpDelete("delete-all")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<EmptyResult>))]
+        public async Task<IActionResult> DeleteAllNotifications()
+        {
+            await mediator.Send(new DeleteAllNotificationsCommand());
+
+            return Ok(
+                new BaseResponse<EmptyResult>(
+                    StatusCodes.Status200OK.ToString(),
+                    "All notifications deleted successfully",
                     Empty));
         }
 
