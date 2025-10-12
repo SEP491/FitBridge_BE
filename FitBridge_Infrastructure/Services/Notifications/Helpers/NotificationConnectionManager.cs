@@ -13,9 +13,10 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         private readonly IDatabase database = connectionMultiplexer.GetDatabase(
             redisSettings.Value.NotificationStorage);
 
-        private const string KeyPrefix = "notification:connections:";
+        private readonly string KeyPrefix = redisSettings.Value.NotificationKeyPrefix;
+        private readonly TimeSpan KeyExpiration = TimeSpan.FromSeconds(redisSettings.Value.ConnectionKeyExpirationSeconds);
 
-        private static string GetRedisKey(string keyId) => $"{KeyPrefix}{keyId}";
+        private string GetRedisKey(string keyId) => $"{KeyPrefix}{keyId}";
 
         public async Task AddConnectionAsync(string keyId, params string[] valueIds)
         {
@@ -29,7 +30,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             {
                 var redisKey = GetRedisKey(keyId);
                 var validIds = valueIds.Where(id => !string.IsNullOrEmpty(id)).ToArray();
-                
+
                 if (validIds.Length == 0)
                 {
                     logger.LogWarning("No valid connection IDs to add for key {KeyId}", keyId);
@@ -39,7 +40,11 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                 var redisValues = validIds.Select(id => (RedisValue)id).ToArray();
                 await database.SetAddAsync(redisKey, redisValues);
                 
-                logger.LogInformation("Added {Count} connection(s) for user {UserId}", validIds.Length, keyId);
+                // Set expiration time for the key
+                await database.KeyExpireAsync(redisKey, KeyExpiration);
+
+                logger.LogInformation("Added {Count} connection(s) for user {UserId} with expiration of {Expiration}", 
+                    validIds.Length, keyId, KeyExpiration);
             }
             catch (Exception ex)
             {
@@ -51,7 +56,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         public async Task<bool> IsConnectionExistsAsync(string keyId)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(keyId);
-            
+
             try
             {
                 var redisKey = GetRedisKey(keyId);
@@ -68,17 +73,17 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         public async Task<bool> RemoveConnectionAsync(string keyId)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(keyId);
-            
+
             try
             {
                 var redisKey = GetRedisKey(keyId);
                 var deleted = await database.KeyDeleteAsync(redisKey);
-                
+
                 if (deleted)
                 {
                     logger.LogInformation("Removed all connections for user {UserId}", keyId);
                 }
-                
+
                 return deleted;
             }
             catch (Exception ex)
@@ -100,7 +105,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             {
                 var redisKey = GetRedisKey(keyId);
                 var validIds = valueIds.Where(id => !string.IsNullOrEmpty(id)).ToArray();
-                
+
                 if (validIds.Length == 0)
                 {
                     logger.LogWarning("No valid connection IDs to remove for key {KeyId}", keyId);
@@ -109,9 +114,19 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 
                 var redisValues = validIds.Select(id => (RedisValue)id).ToArray();
                 var removedCount = await database.SetRemoveAsync(redisKey, redisValues);
-                
+
+                // Refresh expiration if there are still connections remaining
+                if (removedCount > 0)
+                {
+                    var remainingCount = await database.SetLengthAsync(redisKey);
+                    if (remainingCount > 0)
+                    {
+                        await database.KeyExpireAsync(redisKey, KeyExpiration);
+                    }
+                }
+
                 logger.LogInformation("Removed {Count} connection(s) for user {UserId}", removedCount, keyId);
-                
+
                 return removedCount > 0;
             }
             catch (Exception ex)
@@ -124,12 +139,12 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         public async Task<HashSet<string>> GetConnectionsAsync(string keyId)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(keyId);
-            
+
             try
             {
                 var redisKey = GetRedisKey(keyId);
                 var members = await database.SetMembersAsync(redisKey);
-                
+
                 return members.Select(m => m.ToString()).ToHashSet();
             }
             catch (Exception ex)
