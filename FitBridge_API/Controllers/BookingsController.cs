@@ -19,6 +19,7 @@ using FitBridge_Application.Features.Bookings.AcceptEditBookingRequest;
 using FitBridge_Application.Specifications.Bookings.GetBookingRequests;
 using FitBridge_Application.Features.Bookings.GetBookingRequest;
 using FitBridge_Application.Features.Bookings.RejectBookingRequest;
+using FitBridge_Application.Features.Bookings.CreateBooking;
 
 namespace FitBridge_API.Controllers;
 
@@ -87,6 +88,7 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
         var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GetFreelancePtScheduleResponse>>(StatusCodes.Status200OK.ToString(), "Schedule retrieved successfully", pagination));
     }
+
     /// <summary>
     /// Accept a pending booking request
     /// </summary>
@@ -94,18 +96,18 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     /// <returns>The ID of the accepted booking request</returns>
     /// <remarks>
     /// Sample request:
-    /// 
+    ///
     ///     POST /api/v1/bookings/accept-booking-request
     ///     {
     ///         "bookingRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
     ///     }
-    ///     
+    ///
     /// Used by Freelance PT or Customer to accept a booking request created by the other party.
     /// When accepted:
     /// - A new confirmed Booking is created
     /// - The BookingRequest status changes to "Approved"
     /// - Available sessions are decremented from CustomerPurchased
-    /// 
+    ///
     /// Validation checks:
     /// - Request must be in "Pending" status
     /// - Request type must be "CustomerCreate" or "PtCreate"
@@ -129,14 +131,14 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     /// <returns>Details of the created edit request</returns>
     /// <remarks>
     /// Sample request:
-    /// 
+    ///
     ///     POST /api/v1/bookings/request-edit-booking
     ///     {
     ///         "targetBookingId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     ///         "bookingName": "Updated Morning Session",
     ///         "note": "Rescheduling due to personal conflict"
     ///     }
-    ///     
+    ///
     /// Used by Freelance PT or Customer to propose changes to an existing booking.
     /// The other party must accept the edit request for changes to take effect.
     /// Creates a BookingRequest with type "CustomerUpdate" or "PtUpdate".
@@ -155,17 +157,17 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     /// <returns>The updated booking details</returns>
     /// <remarks>
     /// Sample request:
-    /// 
+    ///
     ///     POST /api/v1/bookings/accept-edit-booking
     ///     {
     ///         "bookingRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
     ///     }
-    ///     
+    ///
     /// Used by Freelance PT or Customer to accept an edit request created by the other party.
     /// When accepted:
     /// - The original booking is updated with new details
     /// - The BookingRequest status changes to "Approved"
-    /// 
+    ///
     /// Validation checks:
     /// - Request must be in "Pending" status
     /// - Request type must be "CustomerUpdate" or "PtUpdate"
@@ -183,6 +185,7 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<UpdateBookingResponseDto>(StatusCodes.Status200OK.ToString(), "Booking request accepted successfully", result));
     }
+
     /// <summary>
     /// Get all booking requests for a specific customer purchased package
     /// </summary>
@@ -190,9 +193,9 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     /// <returns>A paginated list of booking requests</returns>
     /// <remarks>
     /// Sample request:
-    /// 
+    ///
     ///     GET /api/v1/bookings/booking-request?customerPurchasedId=3fa85f64-5717-4562-b3fc-2c963f66afa6&amp;page=1&amp;size=10
-    ///     
+    ///
     /// Returns booking requests with details including:
     /// - Request ID and type (CustomerCreate, PtCreate, CustomerUpdate, PtUpdate)
     /// - Request status (Pending, Approved, Rejected)
@@ -200,7 +203,7 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     /// - Booking name and notes
     /// - Target booking (if editing an existing booking)
     /// - Original booking details (for update requests)
-    /// 
+    ///
     /// Request types:
     /// - CustomerCreate: Customer initiated new booking request
     /// - PtCreate: PT initiated new booking request
@@ -228,12 +231,12 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     /// <returns>The ID of the rejected booking request</returns>
     /// <remarks>
     /// Sample request:
-    /// 
+    ///
     ///     POST /api/v1/bookings/reject-booking-request
     ///     {
     ///         "bookingRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
     ///     }
-    ///     
+    ///
     /// Validation checks:
     /// - Request must be in "Pending" status
     /// - Target booking must exist
