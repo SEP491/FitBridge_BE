@@ -32,44 +32,65 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             {
                 try
                 {
-                    logger.LogInformation("Retry handshake: {Count}", state.RetryCount);
+                    logger.LogInformation("Retry handshake attempt {Count} for user {UserId}", state.RetryCount, userId);
+                    
                     await hubContext.Clients.User(userId).NotificationReceived();
 
-                    state.CancellationTokenSource = new CancellationTokenSource(settings.InitialRetryDelayMs);
+                    // Dispose previous CancellationTokenSource if exists
+                    state.CancellationTokenSource?.Dispose();
+                    state.CancellationTokenSource = new CancellationTokenSource();
 
                     await Task.Delay(settings.InitialRetryDelayMs, state.CancellationTokenSource.Token);
 
                     state.RetryCount++;
                 }
-                catch (TaskCanceledException ex)
+                catch (TaskCanceledException)
                 {
-                    logger.LogInformation(ex, "Handshake completes");
+                    logger.LogInformation("Handshake completed successfully for user {UserId}", userId);
+                    break;
+                }
+                catch (OperationCanceledException)
+                {
+                    logger.LogInformation("Handshake completed successfully for user {UserId}", userId);
                     break;
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex, "Handshake fails, reasons {Exception}, retrying", ex);
-                    break;
+                    logger.LogWarning(ex, "Handshake failed for user {UserId}, reason: {Message}", userId, ex.Message);
+                    // Continue retrying on other exceptions
                 }
             }
 
             if (state.RetryCount >= settings.MaxHandshakeRetries)
             {
-                handshakeStates.TryRemove(userId, out _);
+                logger.LogWarning("Handshake max retries reached for user {UserId}, triggering fallback", userId);
+                
+                if (handshakeStates.TryRemove(userId, out _))
+                {
+                    state.Dispose();
+                }
+                
                 await handshakeContext.Callback.Invoke(
                     handshakeContext.NotificationDto,
                     handshakeContext.NotificationMessage,
                     userId);
             }
+            else
+            {
+                // Cleanup if handshake was confirmed
+                state.Dispose();
+            }
         }
 
         internal Task ConfirmHandshake(string userId)
         {
-            if (handshakeStates.TryGetValue(userId, out var state))
+            if (handshakeStates.TryRemove(userId, out var state))
             {
                 logger.LogInformation("Client {UserId} confirmed handshake", userId);
+                
+                // Cancel and dispose the state
                 state.CancellationTokenSource?.Cancel();
-                handshakeStates.TryRemove(userId, out _);
+                state.Dispose();
             }
             return Task.CompletedTask;
         }

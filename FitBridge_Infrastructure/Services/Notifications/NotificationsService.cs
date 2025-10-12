@@ -9,10 +9,8 @@ using FitBridge_Domain.Enums.MessageAndReview;
 using FitBridge_Domain.Enums.Templates;
 using FitBridge_Domain.Exceptions;
 using FitBridge_Infrastructure.Services.Templating;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 
 namespace FitBridge_Infrastructure.Services.Notifications
 {

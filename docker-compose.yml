@@ -47,6 +47,7 @@ services:
     volumes:
       - ${STACKS_VOLUME_PATH}/fitbridge/appsettings.json:/app/appsettings.json
       - ${STACKS_VOLUME_PATH}/fitbridge/fitbridge-firebase-admin-sdk.json:/app/fitbridge-firebase-admin-sdk.json
+      - ${STACKS_VOLUME_PATH}/fitbridge/push_noti_cert.p8:/app/push_noti_cert.p8
     deploy:
       mode: replicated
       replicas: 3
