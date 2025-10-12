@@ -44,6 +44,8 @@ namespace FitBridge_Infrastructure.Services.Notifications
 
         public async Task ConfirmHandshake()
         {
+            logger.LogInformation("Handshake {User} from {ConnectionId} invoked",
+                Context.UserIdentifier, Context.ConnectionId);
             var userId = Context.UserIdentifier;
             await notificationHandshakeManager.ConfirmHandshake(userId);
         }

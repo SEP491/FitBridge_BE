@@ -1,16 +1,24 @@
-﻿using FitBridge_Application.Interfaces.Services.Notifications;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
+﻿using FitBridge_Application.Configurations;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
-using System.Linq;
+using Microsoft.Extensions.Options;
+using StackExchange.Redis;
 
 namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 {
-    public class NotificationConnectionManager(ILogger<NotificationConnectionManager> logger)
+    public class NotificationConnectionManager(
+        IConnectionMultiplexer connectionMultiplexer,
+        IOptions<RedisSettings> redisSettings,
+        ILogger<NotificationConnectionManager> logger)
     {
-        private readonly ConcurrentDictionary<string, HashSet<string>> connections = new();
+        private readonly IDatabase database = connectionMultiplexer.GetDatabase(
+            redisSettings.Value.NotificationStorage);
 
-        public Task AddConnectionAsync(string keyId, params string[] valueIds)
+        private readonly string KeyPrefix = redisSettings.Value.NotificationKeyPrefix;
+        private readonly TimeSpan KeyExpiration = TimeSpan.FromSeconds(redisSettings.Value.ConnectionKeyExpirationSeconds);
+
+        private string GetRedisKey(string keyId) => $"{KeyPrefix}{keyId}";
+
+        public async Task AddConnectionAsync(string keyId, params string[] valueIds)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(keyId);
             if (valueIds.Length == 0 || valueIds is null)
@@ -18,33 +26,71 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                 throw new ArgumentException("ValueIds cannot be null or empty.");
             }
 
-            connections.AddOrUpdate(keyId,
-                key => valueIds.ToHashSet(),
-                (key, existingList) =>
+            try
+            {
+                var redisKey = GetRedisKey(keyId);
+                var validIds = valueIds.Where(id => !string.IsNullOrEmpty(id)).ToArray();
+
+                if (validIds.Length == 0)
                 {
-                    lock (existingList)
-                    {
-                        foreach (var id in valueIds.Where(id => !string.IsNullOrEmpty(id)))
-                        {
-                            existingList.Add(id);
-                        }
-                    }
-                    return existingList;
-                });
+                    logger.LogWarning("No valid connection IDs to add for key {KeyId}", keyId);
+                    return;
+                }
 
-            return Task.CompletedTask;
+                var redisValues = validIds.Select(id => (RedisValue)id).ToArray();
+                await database.SetAddAsync(redisKey, redisValues);
+                
+                // Set expiration time for the key
+                await database.KeyExpireAsync(redisKey, KeyExpiration);
+
+                logger.LogInformation("Added {Count} connection(s) for user {UserId} with expiration of {Expiration}", 
+                    validIds.Length, keyId, KeyExpiration);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error adding connections for key {KeyId}", keyId);
+                throw;
+            }
         }
 
-        public Task<bool> IsConnectionExistsAsync(string keyId)
-        {
-            connections.TryGetValue(keyId, out var valueIds);
-            return valueIds!.Count > 0 ? Task.FromResult(true) : Task.FromResult(false);
-        }
-
-        public Task<bool> RemoveConnectionAsync(string keyId)
+        public async Task<bool> IsConnectionExistsAsync(string keyId)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(keyId);
-            return Task.FromResult(connections.TryRemove(keyId, out _));
+
+            try
+            {
+                var redisKey = GetRedisKey(keyId);
+                var count = await database.SetLengthAsync(redisKey);
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error checking if connection exists for key {KeyId}", keyId);
+                return false;
+            }
+        }
+
+        public async Task<bool> RemoveConnectionAsync(string keyId)
+        {
+            ArgumentNullException.ThrowIfNullOrEmpty(keyId);
+
+            try
+            {
+                var redisKey = GetRedisKey(keyId);
+                var deleted = await database.KeyDeleteAsync(redisKey);
+
+                if (deleted)
+                {
+                    logger.LogInformation("Removed all connections for user {UserId}", keyId);
+                }
+
+                return deleted;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error removing all connections for key {KeyId}", keyId);
+                return false;
+            }
         }
 
         public async Task<bool> RemoveConnectionAsync(string keyId, params string[] valueIds)
@@ -55,38 +101,57 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                 throw new ArgumentException("ValueIds cannot be null or empty.");
             }
 
-            var hashSet = GetConnections(keyId);
-            var updated = false;
-            if (hashSet.Count > 0)
+            try
             {
-                try
+                var redisKey = GetRedisKey(keyId);
+                var validIds = valueIds.Where(id => !string.IsNullOrEmpty(id)).ToArray();
+
+                if (validIds.Length == 0)
                 {
-                    connections.AddOrUpdate(keyId,
-                        key => new HashSet<string>(),
-                        (key, existingList) =>
-                        {
-                            lock (existingList)
-                            {
-                                existingList.RemoveWhere(x => valueIds.Contains(x));
-                            }
-                            updated = true;
-                            return existingList;
-                        });
+                    logger.LogWarning("No valid connection IDs to remove for key {KeyId}", keyId);
+                    return false;
                 }
-                catch (Exception ex)
+
+                var redisValues = validIds.Select(id => (RedisValue)id).ToArray();
+                var removedCount = await database.SetRemoveAsync(redisKey, redisValues);
+
+                // Refresh expiration if there are still connections remaining
+                if (removedCount > 0)
                 {
-                    logger.LogError(ex.Message);
+                    var remainingCount = await database.SetLengthAsync(redisKey);
+                    if (remainingCount > 0)
+                    {
+                        await database.KeyExpireAsync(redisKey, KeyExpiration);
+                    }
                 }
+
+                logger.LogInformation("Removed {Count} connection(s) for user {UserId}", removedCount, keyId);
+
+                return removedCount > 0;
             }
-            return updated;
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error removing specific connections for key {KeyId}", keyId);
+                return false;
+            }
         }
 
-        public HashSet<string> GetConnections(string keyId)
+        public async Task<HashSet<string>> GetConnectionsAsync(string keyId)
         {
-            connections.TryGetValue(keyId, out HashSet<string>? hashSet);
+            ArgumentNullException.ThrowIfNullOrEmpty(keyId);
 
-            ArgumentNullException.ThrowIfNull(hashSet);
-            return hashSet;
+            try
+            {
+                var redisKey = GetRedisKey(keyId);
+                var members = await database.SetMembersAsync(redisKey);
+
+                return members.Select(m => m.ToString()).ToHashSet();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting connections for key {KeyId}", keyId);
+                return [];
+            }
         }
     }
 }
