@@ -9,6 +9,7 @@ using FitBridge_Domain.Enums.MessageAndReview;
 using FitBridge_Domain.Enums.Templates;
 using FitBridge_Domain.Exceptions;
 using FitBridge_Infrastructure.Services.Templating;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 
@@ -17,10 +18,11 @@ namespace FitBridge_Infrastructure.Services.Notifications
     internal class NotificationsService(
         ChannelWriter<NotificationMessage> channelWriter,
         IUnitOfWork unitOfWork,
+        ILogger logger,
         IMapper mapper,
         TemplatingService templatingService) : INotificationService
     {
-        private readonly ConcurrentDictionary<EnumContentType, (TemplateDto, TemplateDto)> templateDtos = [];
+        private readonly ConcurrentDictionary<EnumContentType, (TemplateDto?, TemplateDto?)> templateDtos = [];
 
         public async Task NotifyUsers(NotificationMessage notificationMessage)
         {
@@ -48,8 +50,8 @@ namespace FitBridge_Infrastructure.Services.Notifications
                 {
                     Id = Guid.NewGuid(),
                     AdditionalPayload = notificationMessage.NotificationPayload,
-                    Body = notificationMessage.InAppNotificationTemplate?.TemplateBody,
-                    Title = notificationMessage.InAppNotificationTemplate?.TemplateTitle ?? "DORAEMON",
+                    Body = notificationMessage.InAppNotificationTemplate?.TemplateBody ?? "Empty body",
+                    Title = notificationMessage.InAppNotificationTemplate?.TemplateTitle ?? "Empty title",
                     TemplateId = templateId,
                     UserId = userId
                 };
@@ -58,21 +60,31 @@ namespace FitBridge_Infrastructure.Services.Notifications
             await unitOfWork.CommitAsync();
         }
 
-        private async Task<TemplateDto> GetInAppNotificationTemplate(EnumContentType contentType, IBaseTemplateModel model)
+        private async Task<TemplateDto?> GetInAppNotificationTemplate(EnumContentType contentType, IBaseTemplateModel model)
         {
             var spec = new GetByTemplateTypeSpecification(contentType, TemplateCategory.InAppNotification);
-            var template = await unitOfWork.Repository<Template>().GetBySpecificationProjectedAsync<TemplateDto>(spec, mapper.ConfigurationProvider)
-                ?? throw new NotFoundException(nameof(Template));
+            var template = await unitOfWork.Repository<Template>().GetBySpecificationProjectedAsync<TemplateDto>(spec, mapper.ConfigurationProvider);
+            if (template == null)
+            {
+                logger.LogWarning("In-app template is not available for {ContentType}", contentType.ToString());
+                return null;
+            }
 
             template.TemplateBody = await templatingService.ParseTemplateAsync(template.TemplateBody, model);
             return template;
         }
 
-        private async Task<TemplateDto> GetPushNotificationTemplate(EnumContentType contentType, IBaseTemplateModel model)
+        private async Task<TemplateDto?> GetPushNotificationTemplate(EnumContentType contentType, IBaseTemplateModel model)
         {
             var spec = new GetByTemplateTypeSpecification(contentType, TemplateCategory.PushNotification);
             var template = await unitOfWork.Repository<Template>().GetBySpecificationProjectedAsync<TemplateDto>(spec, mapper.ConfigurationProvider)
                 ?? throw new NotFoundException(nameof(Template));
+
+            if (template == null)
+            {
+                logger.LogWarning("Push notification template is not available for {ContentType}", contentType.ToString());
+                return null;
+            }
 
             template.TemplateBody = await templatingService.ParseTemplateAsync(template.TemplateBody, model);
             return template;
