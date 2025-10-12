@@ -92,16 +92,14 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             catch (TaskCanceledException ex)
             {
                 logger.LogWarning(ex, "Failed to send a push: HTTP request timed out.");
-                throw;
             }
             catch (HttpRequestException ex)
             {
-                logger.LogWarning(ex, "Failed to send a push. HTTP request failed: " + ex);
-                throw;
+                logger.LogWarning(ex, "Failed to send a push. HTTP request failed: {Ex}", ex);
             }
-            catch (ApnsCertificateExpiredException)
+            catch (ApnsCertificateExpiredException ex)
             {
-                logger.LogWarning("APNs certificate has expired. No more push notifications can be sent using it until it is replaced with a new one.");
+                logger.LogWarning(ex, "APNs certificate has expired. No more push notifications can be sent using it until it is replaced with a new one.");
                 throw;
             }
         }
