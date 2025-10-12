@@ -111,7 +111,28 @@ namespace FitBridge_Infrastructure.Extensions
             });
 
             services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
-            services.AddSignalR();
+            services.AddSignalR()
+                    .AddStackExchangeRedis(options =>
+                    {
+                        options.ConnectionFactory = async writer =>
+                        {
+                            var connection = await ConnectionMultiplexer
+                                .ConnectAsync(configuration["Redis:ConnectionString"]!, writer);
+
+                            connection.ConnectionFailed += (_, e) =>
+                            {
+                                Console.WriteLine("Connection to Redis failed.");
+                            };
+
+                            if (!connection.IsConnected)
+                            {
+                                Console.WriteLine("Did not connect to Redis.");
+                            }
+                            return connection;
+                        };
+                        options.Configuration.ChannelPrefix = configuration["Redis:SignalRChannel"]!; // not needed if using one signlar app
+                        options.Configuration.DefaultDatabase = configuration.GetValue<int>("Redis:SignalrRedisDatabase");
+                    });
             services.AddApns();
 
             services.AddSingleton<ChannelWriter<NotificationMessage>>(channel.Writer);
