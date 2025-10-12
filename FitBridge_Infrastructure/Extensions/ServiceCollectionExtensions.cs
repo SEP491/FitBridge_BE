@@ -120,7 +120,6 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddSingleton<PushNotificationService>();
             services.AddSingleton<NotificationConnectionManager>();
             services.AddSingleton<NotificationHandshakeManager>();
-            services.AddSingleton<NotificationStorageService>();
 
             services.AddScoped<INotificationService, NotificationsService>();
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
