@@ -8,6 +8,7 @@ using FitBridge_Application.Interfaces.Utils.Seeding;
 using FitBridge_Application.Services;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Infrastructure.Persistence;
+using FitBridge_Infrastructure.Services.Uploads;
 using FitBridge_Infrastructure.Seeder;
 using FitBridge_Infrastructure.Services;
 using FitBridge_Infrastructure.Services.Implements;
@@ -25,6 +26,8 @@ using Microsoft.Extensions.Options;
 using Quartz;
 using StackExchange.Redis;
 using System.Threading.Channels;
+using Appwrite;
+using Appwrite.Services;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -70,11 +73,27 @@ namespace FitBridge_Infrastructure.Extensions
                 var connectionString = configuration.GetSection("Redis:ConnectionString").Value!;
                 return ConnectionMultiplexer.Connect(connectionString);
             });
+            services.AddSingleton(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<AppWriteSettings>>().Value;
+                var client = new Client()
+                    .SetEndpoint(settings.EndPoint)
+                    .SetProject(settings.ProjectId)
+                    .SetKey(settings.APIKey);
+                return client;
+            });
+
+            // Register Appwrite Storage Service
+            services.AddSingleton(sp =>
+            {
+                var client = sp.GetRequiredService<Client>();
+                return new Storage(client);
+            });
 
             services.Configure<FirebaseSettings>(configuration.GetSection(FirebaseSettings.SectionName));
             services.Configure<PayOSSettings>(configuration.GetSection(PayOSSettings.SectionName));
             services.Configure<NotificationSettings>(configuration.GetSection(NotificationSettings.SectionName));
-
+            services.Configure<AppWriteSettings>(configuration.GetSection(AppWriteSettings.SectionName));
             var channel = Channel.CreateUnbounded<NotificationMessage>(new UnboundedChannelOptions
             {
                 SingleWriter = false,
@@ -114,6 +133,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<ITransactionService, TransactionsService>();
             services.AddHostedService<NotificationsBackgroundService>();
             services.AddScoped<IScheduleJobServices, ScheduleJobServices>();
+            services.AddScoped<IUploadService, UploadService>();
         }
     }
 }
