@@ -8,7 +8,7 @@ using MediatR;
 
 namespace FitBridge_Application.Features.SessionActivities;
 
-public class CreateSessionActivityCommand : IRequest<SessionActivitiyResponseDto>
+public class CreateSessionActivityCommand : IRequest<SessionActivityResponseDto>
 {
     public Guid BookingId { get; set; }
     public ActivityType ActivityType { get; set; }

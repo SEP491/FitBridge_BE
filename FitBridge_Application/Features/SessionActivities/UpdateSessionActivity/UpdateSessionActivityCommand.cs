@@ -7,10 +7,9 @@ using MediatR;
 
 namespace FitBridge_Application.Features.SessionActivities.UpdateSessionActivity;
 
-public class UpdateSessionActivityCommand : IRequest<SessionActivitiyResponseDto>
+public class UpdateSessionActivityCommand : IRequest<SessionActivityResponseDto>
 {
     public Guid SessionActivityId { get; set; }
-    public Guid BookingId { get; set; }
     public ActivityType ActivityType { get; set; }
     public string ActivityName { get; set; }
     public MuscleGroupEnum[] MuscleGroups { get; set; } = Array.Empty<MuscleGroupEnum>();

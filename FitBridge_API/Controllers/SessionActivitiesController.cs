@@ -3,6 +3,7 @@ using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos.SessionActivities;
 using FitBridge_Application.Features.SessionActivities;
+using FitBridge_Application.Features.SessionActivities.GetSessionActivityById;
 using FitBridge_Application.Features.SessionActivities.UpdateSessionActivity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,7 @@ public class SessionActivitiesController(IMediator _mediator) : _BaseApiControll
     /// - ActivityName: The name/description of the activity
     /// - MuscleGroups: List of target muscle groups (Biceps, ForeArm, Thigh, Calf, Chest, Waist, Hip, Shoulder, Legs)
     /// - ActivitySets: Collection of sets with number of reps and weight lifted</param>
-    /// <returns>Returns a SessionActivitiyResponseDto containing the created activity details including:
+    /// <returns>Returns a SessionActivityResponseDto containing the created activity details including:
     /// - Id: The unique identifier of the created session activity
     /// - ActivityType: The type of activity performed
     /// - ActivityName: The name of the activity
@@ -33,7 +34,7 @@ public class SessionActivitiesController(IMediator _mediator) : _BaseApiControll
     public async Task<IActionResult> CreateSessionActivity([FromBody] CreateSessionActivityCommand command)
     {
         var result = await _mediator.Send(command);
-        return Ok(new BaseResponse<SessionActivitiyResponseDto>(StatusCodes.Status200OK.ToString(), "Session activity created successfully", result));
+        return Ok(new BaseResponse<SessionActivityResponseDto>(StatusCodes.Status200OK.ToString(), "Session activity created successfully", result));
     }
 
     [HttpPut]
@@ -41,7 +42,13 @@ public class SessionActivitiesController(IMediator _mediator) : _BaseApiControll
     public async Task<IActionResult> UpdateSessionActivity([FromBody] UpdateSessionActivityCommand command)
     {
         var result = await _mediator.Send(command);
-        return Ok(new BaseResponse<SessionActivitiyResponseDto>(StatusCodes.Status200OK.ToString(), "Session activity updated successfully", result));
+        return Ok(new BaseResponse<SessionActivityResponseDto>(StatusCodes.Status200OK.ToString(), "Session activity updated successfully", result));
+    }
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetSessionActivityById([FromRoute] Guid id)
+    {
+        var result = await _mediator.Send(new GetSessionActivityByIdQuery { Id = id });
+        return Ok(new BaseResponse<SessionActivityResponseDto>(StatusCodes.Status200OK.ToString(), "Session activity retrieved successfully", result));
     }
 
 }

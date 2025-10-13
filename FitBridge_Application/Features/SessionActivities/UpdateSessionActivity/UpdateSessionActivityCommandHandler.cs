@@ -8,10 +8,10 @@ using MediatR;
 
 namespace FitBridge_Application.Features.SessionActivities.UpdateSessionActivity;
 
-public class UpdateSessionActivityCommandHandler(IUnitOfWork unitOfWork, IMapper _mapper) : IRequestHandler<UpdateSessionActivityCommand, SessionActivitiyResponseDto>
+public class UpdateSessionActivityCommandHandler(IUnitOfWork unitOfWork, IMapper _mapper) : IRequestHandler<UpdateSessionActivityCommand, SessionActivityResponseDto>
 {
 
-    public async Task<SessionActivitiyResponseDto> Handle(UpdateSessionActivityCommand request, CancellationToken cancellationToken)
+    public async Task<SessionActivityResponseDto> Handle(UpdateSessionActivityCommand request, CancellationToken cancellationToken)
     {
         var sessionActivity = await unitOfWork.Repository<SessionActivity>().GetByIdAsync(request.SessionActivityId);
         if (sessionActivity == null)
@@ -24,6 +24,6 @@ public class UpdateSessionActivityCommandHandler(IUnitOfWork unitOfWork, IMapper
 
         unitOfWork.Repository<SessionActivity>().Update(sessionActivity);
         await unitOfWork.CommitAsync();
-        return _mapper.Map<SessionActivitiyResponseDto>(sessionActivity);
+        return _mapper.Map<SessionActivityResponseDto>(sessionActivity);
     }
 }
