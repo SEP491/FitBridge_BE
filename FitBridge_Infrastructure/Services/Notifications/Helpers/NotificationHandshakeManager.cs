@@ -13,7 +13,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         IHubContext<NotificationHub, IUserNotifications> hubContext,
         ILogger<NotificationHandshakeManager> logger)
     {
-        private NotificationSettings settings = notificationSettings.Value;
+        private readonly NotificationSettings settings = notificationSettings.Value;
 
         private static readonly ConcurrentDictionary<string, HandshakeState> handshakeStates = [];
 
@@ -33,10 +33,9 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                 try
                 {
                     logger.LogInformation("Retry handshake attempt {Count} for user {UserId}", state.RetryCount, userId);
-                    
+
                     await hubContext.Clients.User(userId).NotificationReceived();
 
-                    // Dispose previous CancellationTokenSource if exists
                     state.CancellationTokenSource?.Dispose();
                     state.CancellationTokenSource = new CancellationTokenSource();
 
@@ -57,20 +56,19 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                 catch (Exception ex)
                 {
                     logger.LogWarning(ex, "Handshake failed for user {UserId}, reason: {Message}", userId, ex.Message);
-                    // Continue retrying on other exceptions
                 }
             }
 
             if (state.RetryCount >= settings.MaxHandshakeRetries)
             {
                 logger.LogWarning("Handshake max retries reached for user {UserId}, triggering fallback", userId);
-                
+
                 if (handshakeStates.TryRemove(userId, out _))
                 {
                     state.Dispose();
                 }
-                
-                await handshakeContext.Callback.Invoke(
+
+                await handshakeContext.Callback.Invoke( // Trigger push
                     handshakeContext.NotificationDto,
                     handshakeContext.NotificationMessage,
                     userId);
@@ -87,7 +85,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             if (handshakeStates.TryRemove(userId, out var state))
             {
                 logger.LogInformation("Client {UserId} confirmed handshake", userId);
-                
+
                 // Cancel and dispose the state
                 state.CancellationTokenSource?.Cancel();
                 state.Dispose();
