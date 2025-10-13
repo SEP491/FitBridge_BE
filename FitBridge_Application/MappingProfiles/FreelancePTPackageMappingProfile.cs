@@ -8,8 +8,8 @@ namespace FitBridge_Application.MappingProfiles
     {
         public FreelancePTPackageMappingProfile()
         {
-            CreateProjection<FreelancePTPackage, GetAllFreelancePTPackagesDto>();
-            CreateProjection<FreelancePTPackage, GetFreelancePTPackageByIdDto>();
+            CreateMap<FreelancePTPackage, GetAllFreelancePTPackagesDto>();
+            CreateMap<FreelancePTPackage, GetFreelancePTPackageByIdDto>();
             CreateMap<FreelancePTPackage, CreateFreelancePTPackageDto>();
         }
     }
