@@ -18,7 +18,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
     internal class NotificationsService(
         ChannelWriter<NotificationMessage> channelWriter,
         IUnitOfWork unitOfWork,
-        ILogger logger,
+        ILogger<NotificationsService> logger,
         IMapper mapper,
         TemplatingService templatingService) : INotificationService
     {
