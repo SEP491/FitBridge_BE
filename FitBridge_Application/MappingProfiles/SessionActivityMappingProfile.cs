@@ -11,6 +11,6 @@ public class SessionActivityMappingProfile : Profile
     public SessionActivityMappingProfile()
     {
         CreateMap<CreateSessionActivityCommand, SessionActivity>();
-        CreateMap<SessionActivity, SessionActivitiyResponseDto>();
+        CreateMap<SessionActivity, SessionActivityResponseDto>();
     }
 }

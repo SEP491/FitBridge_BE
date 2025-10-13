@@ -4,7 +4,7 @@ using MediatR;
 
 namespace FitBridge_Application.Features.ActivitySets.UpdateActivityProgress;
 
-public class UpdateActivityProgressCommand : IRequest<List<ActivitySetResponseDto>>
+public class UpdateActivityProgressCommand : IRequest<ActivitySetResponseDto>
 {
-    public List<ActivitySetUpdateRequestDto> ActivitySets { get; set; }
+    public ActivitySetUpdateRequestDto ActivitySet { get; set; }
 }

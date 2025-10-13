@@ -9,9 +9,9 @@ using FitBridge_Domain.Entities.Trainings;
 
 namespace FitBridge_Application.Features.SessionActivities;
 
-public class CreateSessionActivityCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<CreateSessionActivityCommand, SessionActivitiyResponseDto>
+public class CreateSessionActivityCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<CreateSessionActivityCommand, SessionActivityResponseDto>
 {
-    public async Task<SessionActivitiyResponseDto> Handle(CreateSessionActivityCommand request, CancellationToken cancellationToken)
+    public async Task<SessionActivityResponseDto> Handle(CreateSessionActivityCommand request, CancellationToken cancellationToken)
     {
         var booking = await _unitOfWork.Repository<Booking>().GetByIdAsync(request.BookingId);
         if (booking == null)
@@ -22,6 +22,6 @@ public class CreateSessionActivityCommandHandler(IUnitOfWork _unitOfWork, IMappe
         mappedEntity.BookingId = request.BookingId;
         _unitOfWork.Repository<SessionActivity>().Insert(mappedEntity);
         await _unitOfWork.CommitAsync();
-        return _mapper.Map<SessionActivity, SessionActivitiyResponseDto>(mappedEntity);
+        return _mapper.Map<SessionActivity, SessionActivityResponseDto>(mappedEntity);
     }
 }

@@ -4,12 +4,23 @@ using FitBridge_Application.Interfaces.Repositories;
 using MediatR;
 using FitBridge_Domain.Entities.Trainings;
 using AutoMapper;
+using FitBridge_Domain.Exceptions;
 namespace FitBridge_Application.Features.ActivitySets.UpdateActivityProgress;
 
-public class UpdateActivityProgressCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<UpdateActivityProgressCommand, List<ActivitySetResponseDto>>
+public class UpdateActivityProgressCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<UpdateActivityProgressCommand, ActivitySetResponseDto>
 {
-    public async Task<List<ActivitySetResponseDto>> Handle(UpdateActivityProgressCommand request, CancellationToken cancellationToken)
+    public async Task<ActivitySetResponseDto> Handle(UpdateActivityProgressCommand request, CancellationToken cancellationToken)
     {
-        return new List<ActivitySetResponseDto>();
+        var activitySet = await _unitOfWork.Repository<ActivitySet>().GetByIdAsync(request.ActivitySet.ActivitySetId);
+        if (activitySet == null)
+        {
+            throw new NotFoundException(nameof(ActivitySet));
+        }
+        activitySet.IsCompleted = request.ActivitySet.IsCompleted;
+        activitySet.WeightLifted = request.ActivitySet.WeightLifted;
+        activitySet.NumOfReps = request.ActivitySet.NumOfReps;
+        activitySet.PracticeTime = request.ActivitySet.PracticeTime;
+        activitySet.RestTime = request.ActivitySet.RestTime;
+        return _mapper.Map<ActivitySetResponseDto>(activitySet);
     }
 }
