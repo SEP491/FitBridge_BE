@@ -8,9 +8,12 @@ using FitBridge_Application.Features.Accounts.GetAllFreelancePts;
 using FitBridge_Application.Features.Accounts.GetFreelancePtById;
 using FitBridge_Application.Features.Accounts.GetFreelancePtCustomers;
 using FitBridge_Application.Features.Accounts.GetUserProfile;
+using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedByCustomerId;
+using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedFreelancePt;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Specifications.Accounts.GetAllFreelancePts;
+using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByCustomerId;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetFreelancePtCustomerPurchased;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -95,9 +98,9 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetCustomersDto>>))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetFreelancePtCustomers([FromQuery] GetCustomerPurchasedByCustomerIdQuery parameters)
+    public async Task<IActionResult> GetFreelancePtCustomers([FromQuery] GetFreelancePtCustomerPurchasedParams parameters)
     {
-        var response = await _mediator.Send(new Get(parameters));
+        var response = await _mediator.Send(new GetFreelancePtCustomerQuery(parameters));
 
         var pagedResult = new Pagination<GetCustomersDto>(
             response.Items,
