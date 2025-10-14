@@ -15,7 +15,7 @@ public class GetAllFreelancePtsSpec : BaseSpecification<ApplicationUser>
         AddInclude(x => x.PTFreelancePackages);
         if (queryParams.DoApplyPaging)
         {
-            AddPaging(queryParams.Size * (queryParams.Size - 1), queryParams.Size);
+            AddPaging(queryParams.Size * (queryParams.Page - 1), queryParams.Size);
         }
         else
         {
