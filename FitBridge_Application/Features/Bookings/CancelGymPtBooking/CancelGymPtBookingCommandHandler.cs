@@ -19,7 +19,14 @@ public class CancelGymPtBookingCommandHandler(IUnitOfWork _unitOfWork) : IReques
         {
             throw new NotFoundException("Booking not found");
         }
-        var sessionDateTime = booking.BookingDate.ToDateTime(booking.PTGymSlot.GymSlot.StartTime);
+        var sessionDateTime = DateTime.UtcNow;
+        if (booking.PTGymSlot != null)
+        {
+            sessionDateTime = booking.BookingDate.ToDateTime(booking.PTGymSlot.GymSlot.StartTime);
+        } else
+        {
+            sessionDateTime = booking.BookingDate.ToDateTime(booking.PtFreelanceStartTime.Value);
+        }
         if (sessionDateTime < DateTime.UtcNow)
         {
             throw new BusinessException("Cannot cancel a session that has already occurred");
