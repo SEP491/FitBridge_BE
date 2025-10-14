@@ -11,7 +11,7 @@ public class GetBookingForValidationSpec : BaseSpecification<Booking>
         : base(x => x.CustomerId == customerId
             && x.BookingDate == bookingDate
             && x.IsEnabled
-            && x.SessionStatus == SessionStatus.Booked
+            && x.SessionStatus != SessionStatus.Cancelled
             && (
                 // Freelance PT time overlap
                 (x.PtFreelanceStartTime.HasValue && x.PtFreelanceEndTime.HasValue
