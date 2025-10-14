@@ -44,6 +44,7 @@ public class AcceptEditBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMa
         booking.PtFreelanceEndTime = bookingRequest.EndTime;
         booking.BookingName = bookingRequest.BookingName;
         booking.Note = bookingRequest.Note;
+        booking.SessionStatus = SessionStatus.Booked;
         bookingRequest.RequestStatus = BookingRequestStatus.Approved;
         _unitOfWork.Repository<Booking>().Update(booking);
         _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);

@@ -10,7 +10,7 @@ public class GetFreelancePtBookingForValidationSpec : BaseSpecification<Booking>
     x.PtId == ptId
     && x.BookingDate == bookingDate
     && x.IsEnabled
-    && x.SessionStatus == SessionStatus.Booked
+    && x.SessionStatus != SessionStatus.Cancelled
     && !(x.PtFreelanceStartTime >= ptFreelanceEndTime || x.PtFreelanceEndTime <= ptFreelanceStartTime))
     {
     }

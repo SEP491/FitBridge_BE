@@ -19,6 +19,7 @@ using FitBridge_Application.Features.Bookings.AcceptEditBookingRequest;
 using FitBridge_Application.Specifications.Bookings.GetBookingRequests;
 using FitBridge_Application.Features.Bookings.GetBookingRequest;
 using FitBridge_Application.Features.Bookings.RejectBookingRequest;
+using FitBridge_Application.Features.Bookings.GetTrainingResult;
 using FitBridge_Application.Features.Bookings.CreateBooking;
 
 namespace FitBridge_API.Controllers;
@@ -247,5 +248,17 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     {
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Booking request rejected successfully", result));
+    }
+
+    /// <summary>
+    /// API for get training result of a booking
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpGet("result/{id}")]
+    public async Task<IActionResult> GetTrainingResult([FromRoute] Guid id)
+    {
+        var result = await _mediator.Send(new GetTrainingResultQuery { BookingId = id });
+        return Ok(new BaseResponse<TrainingResultResponseDto>(StatusCodes.Status200OK.ToString(), "Booking result retrieved successfully", result));
     }
 }

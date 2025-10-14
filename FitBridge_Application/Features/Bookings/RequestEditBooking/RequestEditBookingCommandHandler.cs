@@ -56,6 +56,8 @@ public class RequestEditBookingCommandHandler(IUnitOfWork _unitOfWork, IMapper _
             RequestStatus = BookingRequestStatus.Pending,
         };
         _unitOfWork.Repository<BookingRequest>().Insert(editBookingRequest);
+        booking.SessionStatus = SessionStatus.WaitingForEdit;
+        _unitOfWork.Repository<Booking>().Update(booking);
         var bookingRequestResponse = _mapper.Map<EditBookingResponseDto>(editBookingRequest);
         bookingRequestResponse.OriginalStartTime = booking.PtFreelanceStartTime.Value;
         bookingRequestResponse.OriginalEndTime = booking.PtFreelanceEndTime.Value;
@@ -70,7 +72,7 @@ public class RequestEditBookingCommandHandler(IUnitOfWork _unitOfWork, IMapper _
             throw new BusinessException($"Practice time must be less than {maximumPracticeTime} minutes");
         }
         var bookingSpec = new GetBookingForValidationSpec(customerId, request.BookingDate, request.StartTime, request.EndTime);
-        var booking = await _unitOfWork.Repository<Booking>().GetAllWithSpecificationAsync(bookingSpec, false);
+        var booking = await _unitOfWork.Repository<Booking>().GetAllWithSpecificationAsync(bookingSpec);
         if (booking.Count > 0 )
         {
             if(booking.Count == 1 && booking.First().Id == request.TargetBookingId)
@@ -80,7 +82,7 @@ public class RequestEditBookingCommandHandler(IUnitOfWork _unitOfWork, IMapper _
             }
         }
         var freelancePtBookingSpec = new GetFreelancePtBookingForValidationSpec(ptId, request.BookingDate, request.StartTime, request.EndTime);
-        var freelancePtBooking = await _unitOfWork.Repository<Booking>().GetAllWithSpecificationAsync(freelancePtBookingSpec, false);
+        var freelancePtBooking = await _unitOfWork.Repository<Booking>().GetAllWithSpecificationAsync(freelancePtBookingSpec);
         if (freelancePtBooking.Count > 0 )
         {
             if(freelancePtBooking.Count == 1 && freelancePtBooking.First().Id == request.TargetBookingId)

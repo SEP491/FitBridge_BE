@@ -44,11 +44,11 @@ public class SessionActivitiesController(IMediator _mediator) : _BaseApiControll
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<SessionActivityResponseDto>(StatusCodes.Status200OK.ToString(), "Session activity updated successfully", result));
     }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSessionActivityById([FromRoute] Guid id)
     {
         var result = await _mediator.Send(new GetSessionActivityByIdQuery { Id = id });
         return Ok(new BaseResponse<SessionActivityResponseDto>(StatusCodes.Status200OK.ToString(), "Session activity retrieved successfully", result));
     }
-
 }

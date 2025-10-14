@@ -44,6 +44,7 @@ public class CustomerRegisterSlotCommandHandler(IUnitOfWork _unitOfWork, IUserUt
         customerPurchased.AvailableSessions--;
         var insertBooking = new Booking
         {
+            BookingName = ptGymSlot.GymSlot.Name,
             CustomerId = userId.Value,
             CustomerPurchasedId = request.CustomerPurchasedId,
             PTGymSlotId = request.PtGymSlotId,

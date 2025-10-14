@@ -6,6 +6,7 @@
 
         Booked,
 
-        Finished
+        Finished,
+        WaitingForEdit,
     }
 }
