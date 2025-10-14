@@ -6,14 +6,10 @@ namespace FitBridge_Application.Dtos.Bookings;
 public class GetCustomerBookingsResponse
 {
     public Guid BookingId { get; set; }
-    public string? SlotName { get; set; }
+    public string? BookingName { get; set; }
     public DateOnly BookingDate { get; set; }
-
-    public TimeOnly? PtFreelanceStartTime { get; set; }
-
-    public TimeOnly? PtFreelanceEndTime { get; set; }
-    public TimeOnly? GymSlotStartTime { get; set; }
-    public TimeOnly? GymSlotEndTime { get; set; }
+    public TimeOnly? StartTime { get; set; }
+    public TimeOnly? EndTime { get; set; }
     public Guid? PTGymSlotId { get; set; }
 
     public Guid CustomerId { get; set; }
