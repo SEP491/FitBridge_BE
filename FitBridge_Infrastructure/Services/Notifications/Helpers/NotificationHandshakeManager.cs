@@ -34,14 +34,13 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                 {
                     logger.LogInformation("Retry handshake attempt {Count} for user {UserId}", state.RetryCount, userId);
 
-                    await hubContext.Clients.User(userId).NotificationReceived();
-
                     state.CancellationTokenSource?.Dispose();
                     state.CancellationTokenSource = new CancellationTokenSource();
 
                     await Task.Delay(settings.InitialRetryDelayMs, state.CancellationTokenSource.Token);
 
                     state.RetryCount++;
+                    await hubContext.Clients.User(userId).NotificationReceived();
                 }
                 catch (TaskCanceledException)
                 {
