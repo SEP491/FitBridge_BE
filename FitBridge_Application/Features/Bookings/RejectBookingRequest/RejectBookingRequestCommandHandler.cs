@@ -11,7 +11,7 @@ public class RejectBookingRequestCommandHandler(IUnitOfWork _unitOfWork) : IRequ
 {
     public async Task<bool> Handle(RejectBookingRequestCommand request, CancellationToken cancellationToken)
     {
-        var bookingRequest = await _unitOfWork.Repository<BookingRequest>().GetByIdAsync(request.BookingRequestId);
+        var bookingRequest = await _unitOfWork.Repository<BookingRequest>().GetByIdAsync(request.BookingRequestId, false, new List<string> { "TargetBooking" });
         if (bookingRequest == null)
         {
             throw new NotFoundException("Booking request not found");
@@ -20,9 +20,12 @@ public class RejectBookingRequestCommandHandler(IUnitOfWork _unitOfWork) : IRequ
         {
             throw new BusinessException("Booking request is not pending, current status: " + bookingRequest.RequestStatus);
         }
+        if(bookingRequest.TargetBooking != null)
+        {
+            bookingRequest.TargetBooking.SessionStatus = SessionStatus.Booked;
+        }
         bookingRequest.RequestStatus = BookingRequestStatus.Rejected;
         bookingRequest.UpdatedAt = DateTime.UtcNow;
-        _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
         await _unitOfWork.CommitAsync();
         return true;
     }
