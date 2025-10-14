@@ -5,7 +5,7 @@ namespace FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPur
 public class GetCustomerPurchasedByGymIdSpec : BaseSpecification<CustomerPurchased>
 {
     public GetCustomerPurchasedByGymIdSpec(Guid GymId, Guid AccountId) : base(x => x.CustomerId == AccountId
-    && x.OrderItems.Any(x => x.GymCourse.GymOwnerId == GymId)
+    && x.OrderItems.Any(x => x.GymCourse != null && x.GymCourse.GymOwnerId == GymId)
     && x.IsEnabled
     && x.ExpirationDate >= DateOnly.FromDateTime(DateTime.UtcNow))
     {

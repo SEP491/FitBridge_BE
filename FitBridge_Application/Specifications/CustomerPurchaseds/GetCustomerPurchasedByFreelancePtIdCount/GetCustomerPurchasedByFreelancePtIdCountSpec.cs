@@ -7,9 +7,10 @@ namespace FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPur
 
 public class GetCustomerPurchasedByFreelancePtIdCountSpec : BaseSpecification<CustomerPurchased>
 {
-    public GetCustomerPurchasedByFreelancePtIdCountSpec(Guid freelancePtId) : base(x => x.OrderItems.Any(x => x.FreelancePTPackage!= null && x.FreelancePTPackage.PtId == freelancePtId)
+    public GetCustomerPurchasedByFreelancePtIdCountSpec(Guid freelancePtId) : base(x => x.OrderItems.Any(x => x.FreelancePTPackage != null && x.FreelancePTPackage.PtId == freelancePtId)
     && x.IsEnabled)
     {
+        AddInclude(x => x.OrderItems);
     }
 
 }

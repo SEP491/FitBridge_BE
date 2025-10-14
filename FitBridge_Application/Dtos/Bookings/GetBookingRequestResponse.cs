@@ -18,7 +18,7 @@ public class GetBookingRequestResponse
     public string? Note { get; set; }
     public TimeOnly StartTime { get; set; }
     public TimeOnly EndTime { get; set; }
-    public DateOnly? BookingDate { get; set; }
+    public DateOnly BookingDate { get; set; }
     public string? BookingName { get; set; }
     public RequestType RequestType { get; set; }
     public BookingRequestStatus RequestStatus { get; set; }

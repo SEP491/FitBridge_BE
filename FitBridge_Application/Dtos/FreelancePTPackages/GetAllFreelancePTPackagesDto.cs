@@ -13,10 +13,12 @@
         public int SessionDurationInMinutes { get; set; }
 
         public int NumOfSessions { get; set; }
+        public int TotalPurchased { get; set; }
 
         public string? Description { get; set; }
 
         public string? ImageUrl { get; set; }
+        public bool? IsPurchased { get; set; }
 
         public Guid PtId { get; set; }
     }
