@@ -7,7 +7,11 @@ namespace FitBridge_Application.Dtos.Bookings;
 public class GetBookingRequestResponse
 {
     public Guid Id { get; set; }
+    public string PtName { get; set; }
+    public string PtAvatarUrl { get; set; }
     public Guid CustomerId { get; set; }
+    public string CustomerName { get; set; }
+    public string CustomerAvatarUrl { get; set; }
     public Guid PtId { get; set; }
     public Guid? TargetBookingId { get; set; }
     public Guid CustomerPurchasedId { get; set; }
