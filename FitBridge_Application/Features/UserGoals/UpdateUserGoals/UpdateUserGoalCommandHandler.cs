@@ -1,0 +1,47 @@
+using System;
+using FitBridge_Application.Dtos.UserGoals;
+using FitBridge_Application.Interfaces.Repositories;
+using MediatR;
+using AutoMapper;
+using FitBridge_Domain.Entities.Trainings;
+using FitBridge_Domain.Exceptions;
+
+namespace FitBridge_Application.Features.UserGoals.UpdateUserGoals;
+
+public class UpdateUserGoalCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<UpdateUserGoalCommand, UserGoalsDto>
+{
+    public async Task<UserGoalsDto> Handle(UpdateUserGoalCommand request, CancellationToken cancellationToken)
+    {
+        var userGoal = await _unitOfWork.Repository<UserGoal>().GetByIdAsync(request.Id);
+        if (userGoal == null)
+        {
+            throw new NotFoundException("User goal not found");
+        }
+        userGoal.TargetBiceps = request.TargetBiceps ?? userGoal.TargetBiceps;
+        userGoal.TargetForeArm = request.TargetForeArm ?? userGoal.TargetForeArm;
+        userGoal.TargetThigh = request.TargetThigh ?? userGoal.TargetThigh;
+        userGoal.TargetCalf = request.TargetCalf ?? userGoal.TargetCalf;
+        userGoal.TargetChest = request.TargetChest ?? userGoal.TargetChest;
+        userGoal.TargetWaist = request.TargetWaist ?? userGoal.TargetWaist;
+        userGoal.TargetHip = request.TargetHip ?? userGoal.TargetHip;
+        userGoal.TargetShoulder = request.TargetShoulder ?? userGoal.TargetShoulder;
+        userGoal.TargetHeight = request.TargetHeight ?? userGoal.TargetHeight;
+        userGoal.TargetWeight = request.TargetWeight ?? userGoal.TargetWeight;
+        userGoal.StartBiceps = request.StartBiceps ?? userGoal.StartBiceps;
+        userGoal.StartForeArm = request.StartForeArm ?? userGoal.StartForeArm;
+        userGoal.StartThigh = request.StartThigh ?? userGoal.StartThigh;
+        userGoal.StartCalf = request.StartCalf ?? userGoal.StartCalf;
+        userGoal.StartChest = request.StartChest ?? userGoal.StartChest;
+        userGoal.StartWaist = request.StartWaist ?? userGoal.StartWaist;
+        userGoal.StartHip = request.StartHip ?? userGoal.StartHip;
+        userGoal.StartShoulder = request.StartShoulder ?? userGoal.StartShoulder;
+        userGoal.StartHeight = request.StartHeight ?? userGoal.StartHeight;
+        userGoal.StartWeight = request.StartWeight ?? userGoal.StartWeight;
+        userGoal.ImageUrl = request.ImageUrl ?? userGoal.ImageUrl;
+        userGoal.FinalImageUrl = request.FinalImageUrl ?? userGoal.FinalImageUrl;
+        _unitOfWork.Repository<UserGoal>().Update(userGoal);
+        await _unitOfWork.CommitAsync();
+        return _mapper.Map<UserGoal, UserGoalsDto>(userGoal);
+    }
+
+}
