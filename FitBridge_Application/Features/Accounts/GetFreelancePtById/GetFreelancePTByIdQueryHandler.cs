@@ -14,7 +14,8 @@ public class GetFreelancePTByIdQueryHandler(IApplicationUserService _application
         var freelancePt = await _applicationUserService.GetByIdAsync(request.Id, includes: new List<string>
         {
             "UserDetail",
-            "PTFreelancePackages"
+            "PTFreelancePackages",
+            "GoalTrainings"
         });
         if (freelancePt == null)
         {
