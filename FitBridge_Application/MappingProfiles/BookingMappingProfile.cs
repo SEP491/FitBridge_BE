@@ -97,7 +97,8 @@ public class BookingMappingProfile : Profile
         .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note))
         .ForMember(dest => dest.RequestType, opt => opt.MapFrom(src => src.RequestType))
         .ForMember(dest => dest.RequestStatus, opt => opt.MapFrom(src => src.RequestStatus))
-        .ForMember(dest => dest.OriginalBooking, opt => opt.MapFrom(src => src.TargetBooking != null ? src.TargetBooking : null));
+        .ForMember(dest => dest.OriginalBooking, opt => opt.MapFrom(src => src.TargetBooking != null ? src.TargetBooking : null))
+        .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.BookingDate));
 
         CreateProjection<Booking, BookingResponseDto>()
         .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.BookingDate))
