@@ -20,7 +20,7 @@ using FitBridge_Application.Specifications.Bookings.GetBookingRequests;
 using FitBridge_Application.Features.Bookings.GetBookingRequest;
 using FitBridge_Application.Features.Bookings.RejectBookingRequest;
 using FitBridge_Application.Features.Bookings.GetTrainingResult;
-using FitBridge_Application.Features.Bookings.CreateRequestBooking;
+using FitBridge_Application.Features.Bookings.CreateBooking;
 
 namespace FitBridge_API.Controllers;
 
