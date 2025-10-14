@@ -1,12 +1,9 @@
-using System;
-using FitBridge_Domain.Entities;
-using FitBridge_Domain.Entities.Gyms;
-using FitBridge_Domain.Entities.Orders;
+namespace FitBridge_Application.Dtos.UserGoals;
 
-namespace FitBridge_Domain.Entities.Trainings;
-
-public class UserGoal : BaseEntity
+public class UserGoalsDto
 {
+    public Guid Id { get; set; }
+    public Guid CustomerPurchasedId { get; set; }
     public double? TargetBiceps { get; set; }
     public double? TargetForeArm { get; set; }
     public double? TargetThigh { get; set; }
@@ -29,20 +26,6 @@ public class UserGoal : BaseEntity
     public double? StartHeight { get; set; }
     public double? StartWeight { get; set; }
 
-    public double? FinalBiceps { get; set; }
-    public double? FinalForeArm { get; set; }
-    public double? FinalThigh { get; set; }
-    public double? FinalCalf { get; set; }
-    public double? FinalChest { get; set; }
-    public double? FinalWaist { get; set; }
-    public double? FinalHip { get; set; }
-    public double? FinalShoulder { get; set; }
-
     public string? ImageUrl { get; set; }
     public string? FinalImageUrl { get; set; }
-    public Guid OrderId { get; set; }
-    public Order Order { get; set; }
-    public Guid CustomerPurchasedId { get; set; }
-    public CustomerPurchased CustomerPurchased { get; set; }
-
 }

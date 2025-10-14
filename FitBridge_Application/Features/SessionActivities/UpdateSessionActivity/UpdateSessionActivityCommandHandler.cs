@@ -13,7 +13,7 @@ public class UpdateSessionActivityCommandHandler(IUnitOfWork unitOfWork, IMapper
 
     public async Task<SessionActivityResponseDto> Handle(UpdateSessionActivityCommand request, CancellationToken cancellationToken)
     {
-        var sessionActivity = await unitOfWork.Repository<SessionActivity>().GetByIdAsync(request.SessionActivityId);
+        var sessionActivity = await unitOfWork.Repository<SessionActivity>().GetByIdAsync(request.SessionActivityId, false, new List<string> { "Booking" });
         if (sessionActivity == null)
         {
             throw new NotFoundException(nameof(SessionActivity));
@@ -21,8 +21,8 @@ public class UpdateSessionActivityCommandHandler(IUnitOfWork unitOfWork, IMapper
         sessionActivity.ActivityType = request.ActivityType;
         sessionActivity.ActivityName = request.ActivityName;
         sessionActivity.MuscleGroups = request.MuscleGroups;
-
-        unitOfWork.Repository<SessionActivity>().Update(sessionActivity);
+        sessionActivity.Booking.Note = request.Note ?? sessionActivity.Booking.Note;
+        sessionActivity.Booking.NutritionTip = request.NutritionTip ?? sessionActivity.Booking.NutritionTip;
         await unitOfWork.CommitAsync();
         return _mapper.Map<SessionActivityResponseDto>(sessionActivity);
     }
