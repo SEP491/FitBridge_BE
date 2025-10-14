@@ -13,6 +13,7 @@ using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedFree
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Specifications.Accounts.GetAllFreelancePts;
+using FitBridge_Application.Specifications.Accounts.GetFreelancePtCustomers;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByCustomerId;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetFreelancePtCustomerPurchased;
 using MediatR;
@@ -98,7 +99,7 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetCustomersDto>>))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetFreelancePtCustomers([FromQuery] GetFreelancePtCustomerPurchasedParams parameters)
+    public async Task<IActionResult> GetFreelancePtCustomers([FromQuery] GetFreelancePtCustomerParams parameters)
     {
         var response = await _mediator.Send(new GetFreelancePtCustomerQuery(parameters));
 

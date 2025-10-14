@@ -15,7 +15,7 @@ namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased
     {
         public async Task<PagingResultDto<CustomerPurchasedFreelancePtResponseDto>> Handle(GetCustomerPurchasedByCustomerIdQuery request, CancellationToken cancellationToken)
         {
-            var spec = new GetCustomerPurchasedByCustomerIdSpec(request.Params.CustomerId, request.Params);
+            var spec = new GetCustomerPurchasedByCustomerIdSpec(request.CustomerId, request.Params);
 
             var customerPurchased = await unitOfWork.Repository<CustomerPurchased>()
                 .GetAllWithSpecificationProjectedAsync<CustomerPurchasedFreelancePtResponseDto>(spec, mapper.ConfigurationProvider);

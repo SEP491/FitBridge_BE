@@ -6,13 +6,13 @@ namespace FitBridge_Application.Specifications.CustomerPurchaseds.GetFreelancePt
     {
         public GetFreelancePtCustomerPurchasedSpec(Guid ptId, GetFreelancePtCustomerPurchasedParams parameters) : base(x =>
             x.IsEnabled &&
-            x.OrderItems.Any(oi => oi.FreelancePTPackageId != null && oi.FreelancePTPackageId == ptId) &&
+            x.OrderItems.Any(oi => oi.FreelancePTPackageId != null && oi.FreelancePTPackage!.PtId == ptId) &&
             (string.IsNullOrEmpty(parameters.SearchTerm) ||
             x.Customer.FullName.ToLower().Contains(parameters.SearchTerm.ToLower()) ||
             x.Customer.Email.ToLower().Contains(parameters.SearchTerm.ToLower())))
         {
+            AddOrderBy(x => x.CustomerId);
             AddInclude(x => x.Customer);
-
             AddInclude(x => x.OrderItems);
             AddInclude("OrderItems.FreelancePTPackage");
             AddOrderByDesc(x => x.ExpirationDate);

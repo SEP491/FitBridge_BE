@@ -5,9 +5,25 @@ namespace FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPur
 
 public class GetCustomerPurchasedByIdSpec : BaseSpecification<CustomerPurchased>
 {
-    public GetCustomerPurchasedByIdSpec(Guid id) : base(x => x.Id == id
+    public GetCustomerPurchasedByIdSpec(Guid id,
+        bool isIncludeBooking = false,
+        bool isIncludeSessionActivities = false,
+        bool isIncludeActivitySets = false) : base(x => x.Id == id
     && x.IsEnabled)
     {
         AddInclude(x => x.OrderItems);
+
+        if (isIncludeBooking)
+        {
+            AddInclude("Bookings");
+        }
+        if (isIncludeSessionActivities)
+        {
+            AddInclude("Bookings.SessionActivities");
+        }
+        if (isIncludeActivitySets)
+        {
+            AddInclude("Bookings.SessionActivities.ActivitySets");
+        }
     }
 }

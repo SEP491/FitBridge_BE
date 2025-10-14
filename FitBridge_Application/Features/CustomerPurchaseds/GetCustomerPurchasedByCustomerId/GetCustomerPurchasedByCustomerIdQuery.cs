@@ -7,6 +7,8 @@ namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased
 {
     public class GetCustomerPurchasedByCustomerIdQuery(GetCustomerPurchasedParams parameters) : IRequest<PagingResultDto<CustomerPurchasedFreelancePtResponseDto>>
     {
+        public Guid CustomerId { get; set; }
+
         public GetCustomerPurchasedParams Params { get; set; } = parameters;
     }
 }

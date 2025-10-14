@@ -2,7 +2,9 @@
 using System.Linq;
 using FitBridge_Application.Dtos.TrainingResults;
 using FitBridge_Application.Interfaces.Repositories;
+using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedById;
 using FitBridge_Domain.Entities.Gyms;
+using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Domain.Exceptions;
@@ -10,23 +12,21 @@ using MediatR;
 
 namespace FitBridge_Application.Features.TrainingResults.GetPackageTrainingResults;
 
-public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork) 
+public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetPackageTrainingResultsQuery, CustomerPurchasedAnalyticsDto>
 {
     public async Task<CustomerPurchasedAnalyticsDto> Handle(
-        GetPackageTrainingResultsQuery request, 
+        GetPackageTrainingResultsQuery request,
         CancellationToken cancellationToken)
     {
+        var spec = new GetCustomerPurchasedByIdSpec(
+            request.CustomerPurchasedId,
+            isIncludeBooking: true,
+            isIncludeActivitySets: true,
+            isIncludeSessionActivities: true);
         var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>()
-            .GetByIdAsync(request.CustomerPurchasedId, includes: new List<string>
-            {
-                nameof(CustomerPurchased.Bookings) + "." + nameof(Booking.SessionActivities) + "." + nameof(SessionActivity.ActivitySets)
-            });
-
-        if (customerPurchased == null)
-        {
-            throw new NotFoundException($"CustomerPurchased with Id {request.CustomerPurchasedId} not found");
-        }
+            .GetBySpecificationAsync(spec)
+            ?? throw new NotFoundException(nameof(ApplicationUser));
 
         var bookings = customerPurchased.Bookings.ToList();
         var completedBookings = bookings.Where(b => b.SessionStatus == SessionStatus.Finished).ToList();
@@ -54,13 +54,13 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork)
             TotalRepsCompleted = allActivitySets
                 .Where(s => s.IsCompleted && s.NumOfReps.HasValue)
                 .Sum(s => s.NumOfReps.Value),
-            TotalPracticeTimeMinutes = allActivitySets
+            TotalPracticeTimeSeconds = allActivitySets
                 .Where(s => s.IsCompleted && s.PracticeTime.HasValue)
                 .Sum(s => s.PracticeTime.Value),
             AverageRestTimeSeconds = allActivitySets
                 .Where(s => s.RestTime.HasValue)
-                .Any() 
-                ? (int)allActivitySets.Where(s => s.RestTime.HasValue).Average(s => s.RestTime!.Value) 
+                .Any()
+                ? (int)allActivitySets.Where(s => s.RestTime.HasValue).Average(s => s.RestTime!.Value)
                 : 0,
             ActivityTypeBreakdown = allActivities
                 .GroupBy(a => a.ActivityType.ToString())
@@ -68,8 +68,8 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork)
         };
 
         // Calculate average metrics
-        var averageSessionTimeMinutes = completedSessions > 0
-            ? workoutStats.TotalPracticeTimeMinutes / completedSessions
+        var averageSessionTimeSeconds = completedSessions > 0
+            ? workoutStats.TotalPracticeTimeSeconds / completedSessions
             : 0;
 
         var averageWeightLifted = completedSessions > 0
@@ -159,16 +159,16 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork)
             UpcomingSessions = upcomingSessions,
             AvailableSessions = customerPurchased.AvailableSessions,
             ExpirationDate = customerPurchased.ExpirationDate,
-            CompletionRate = bookings.Count > 0 
-                ? Math.Round((double)completedSessions / bookings.Count * 100, 2) 
+            CompletionRate = bookings.Count > 0
+                ? Math.Round((double)completedSessions / bookings.Count * 100, 2)
                 : 0,
             TotalActivities = allActivities.Count,
             TotalActivitySets = allActivitySets.Count,
             CompletedActivitySets = completedSets,
-            ActivityCompletionRate = allActivitySets.Count > 0 
-                ? Math.Round((double)completedSets / allActivitySets.Count * 100, 2) 
+            ActivityCompletionRate = allActivitySets.Count > 0
+                ? Math.Round((double)completedSets / allActivitySets.Count * 100, 2)
                 : 0,
-            AverageSessionTimeMinutes = averageSessionTimeMinutes,
+            AverageSessionTimeSeconds = averageSessionTimeSeconds,
             AverageWeightLifted = averageWeightLifted,
             AverageSetsPerSession = averageSetsPerSession,
             HighestPerformance = highestPerformance,
