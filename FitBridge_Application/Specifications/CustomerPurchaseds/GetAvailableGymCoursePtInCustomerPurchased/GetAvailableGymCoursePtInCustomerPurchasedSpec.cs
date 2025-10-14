@@ -9,8 +9,7 @@ public class GetAvailableGymCoursePtInCustomerPurchasedSpec : BaseSpecification<
 {
     public GetAvailableGymCoursePtInCustomerPurchasedSpec(GetPurchasedGymCoursePtForScheduleParams parameters, Guid customerId) : base(x => x.IsEnabled
     && x.ExpirationDate >= DateOnly.FromDateTime(DateTime.UtcNow)
-    && x.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourseId != null
-    && x.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymPtId != null
+    && ((x.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourseId != null && x.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymPtId != null) || (x.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId != null))
     && x.CustomerId == customerId
     && x.IsEnabled == true)
     {
