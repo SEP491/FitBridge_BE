@@ -13,7 +13,7 @@ public class CreateUserGoalCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapp
 {
     public async Task<UserGoalsDto> Handle(CreateUserGoalCommand request, CancellationToken cancellationToken)
     {
-        var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>().GetByIdAsync(request.CustomerPurchasedId);
+        var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>().GetByIdAsync(request.CustomerPurchasedId, false, new List<string> { "UserGoal" });
         if (customerPurchased == null)
         {
             throw new NotFoundException("Customer purchased not found");

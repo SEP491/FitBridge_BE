@@ -40,8 +40,6 @@ public class UserGoal : BaseEntity
 
     public string? ImageUrl { get; set; }
     public string? FinalImageUrl { get; set; }
-    public Guid OrderId { get; set; }
-    public Order Order { get; set; }
     public Guid CustomerPurchasedId { get; set; }
     public CustomerPurchased CustomerPurchased { get; set; }
 

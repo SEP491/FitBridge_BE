@@ -38,6 +38,13 @@ public class UserGoalsController(IMediator _mediator) : _BaseApiController
     public async Task<IActionResult> CheckUserGoal([FromRoute] Guid customerPurchasedId)
     {
         var result = await _mediator.Send(new CheckUserGoalQuery { CustomerPurchasedId = customerPurchasedId });
-        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "User goal checked successfully", result));
+        if(result)
+        {
+            return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "User goal found", result));
+        }
+        else
+        {
+            return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "User goal not found", result));
+        }
     }
 }
