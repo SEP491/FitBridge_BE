@@ -132,9 +132,9 @@ public class BookingMappingProfile : Profile
         .ForMember(dest => dest.Notes, opt => opt.MapFrom(src => src.Note))
         .ForMember(dest => dest.PtName, opt => opt.MapFrom(src => src.PtId != null ? src.Pt.FullName : null))
         .ForMember(dest => dest.PtAvatarUrl, opt => opt.MapFrom(src => src.PtId != null ? src.Pt.AvatarUrl : null))
-        .ForMember(dest => dest.RepsProgress.RepsCompleted, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.IsCompleted ? a.NumOfReps ?? 0 : 0))))   
-        .ForMember(dest => dest.WeightLiftedProgress.WeightLiftedCompleted, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.IsCompleted ? a.WeightLifted ?? 0 : 0))))
-        .ForMember(dest => dest.RepsProgress.RepsPlan, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.NumOfReps ?? 0))))
-        .ForMember(dest => dest.WeightLiftedProgress.WeightLiftedPlan, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.WeightLifted ?? 0))));
+        .ForPath(dest => dest.RepsProgress.RepsCompleted, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.IsCompleted ? a.NumOfReps ?? 0 : 0))))   
+        .ForPath(dest => dest.WeightLiftedProgress.WeightLiftedCompleted, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.IsCompleted ? a.WeightLifted ?? 0 : 0))))
+        .ForPath(dest => dest.RepsProgress.RepsPlan, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.NumOfReps ?? 0))))
+        .ForPath(dest => dest.WeightLiftedProgress.WeightLiftedPlan, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.WeightLifted ?? 0))));
     }
 }

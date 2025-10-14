@@ -2,6 +2,7 @@ using System;
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.UserGoals;
 using FitBridge_Application.Features.UserGoals;
+using FitBridge_Application.Features.UserGoals.CheckUserGoals;
 using FitBridge_Application.Features.UserGoals.GetUserGoalById;
 using FitBridge_Application.Features.UserGoals.UpdateUserGoals;
 using FitBridge_Application.Specifications.UserGoals;
@@ -31,5 +32,12 @@ public class UserGoalsController(IMediator _mediator) : _BaseApiController
     {
         var result = await _mediator.Send(new GetUserGoalByIdQuery { Id = id });
         return Ok(new BaseResponse<UserGoalsDto>(StatusCodes.Status200OK.ToString(), "User goal retrieved successfully", result));
+    }
+
+    [HttpGet("check/{customerPurchasedId}")]
+    public async Task<IActionResult> CheckUserGoal([FromRoute] Guid customerPurchasedId)
+    {
+        var result = await _mediator.Send(new CheckUserGoalQuery { CustomerPurchasedId = customerPurchasedId });
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "User goal checked successfully", result));
     }
 }
