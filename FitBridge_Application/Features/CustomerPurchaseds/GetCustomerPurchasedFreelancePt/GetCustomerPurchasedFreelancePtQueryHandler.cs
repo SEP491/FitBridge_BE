@@ -25,9 +25,9 @@ public class GetCustomerPurchasedFreelancePtQueryHandler(IUnitOfWork _unitOfWork
         }
         var customerPurchaseds = await _unitOfWork.Repository<CustomerPurchased>().GetAllWithSpecificationProjectedAsync<CustomerPurchasedFreelancePtResponseDto>(new GetCustomerPurchasedByCustomerIdSpec(userId.Value, request.Params, false), _mapper.ConfigurationProvider);
 
-        var totalItems = await _unitOfWork.Repository<CustomerPurchased>().CountAsync(new GetCustomerPurchasedByCustomerIdSpec(userId.Value, request.Params, false));
-        
+        var totalItems = await _unitOfWork.Repository<CustomerPurchased>().CountAsync(
+            new GetCustomerPurchasedByCustomerIdSpec(userId.Value, request.Params, false));
+
         return new PagingResultDto<CustomerPurchasedFreelancePtResponseDto>(totalItems, customerPurchaseds);
     }
-
 }

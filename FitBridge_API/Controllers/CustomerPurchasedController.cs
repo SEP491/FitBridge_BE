@@ -5,6 +5,7 @@ using FitBridge_Application.Dtos.CustomerPurchaseds;
 using FitBridge_Application.Dtos.GymCourses;
 using FitBridge_Application.Features.CustomerPurchaseds.CheckCustomerPurchased;
 using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased;
+using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedByCustomerId;
 using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedFreelancePt;
 using FitBridge_Application.Features.GymCourses.GetPurchasedGymCoursePtForSchedule;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByCustomerId;
@@ -23,6 +24,7 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GymCoursesPtResponse>>(StatusCodes.Status200OK.ToString(), "Get purchased gym course pt for schedule success", pagination));
     }
+
     [HttpGet("customer-package/gym-course")]
     public async Task<IActionResult> GetCustomerPurchasedGymCourse([FromQuery] GetCustomerPurchasedParams parameters)
     {
@@ -37,6 +39,47 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
         var response = await _mediator.Send(new GetCustomerPurchasedFreelancePtQuery { Params = parameters });
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<CustomerPurchasedFreelancePtResponseDto>>(StatusCodes.Status200OK.ToString(), "Get customer purchased freelance pt success", pagination));
+    }
+
+    /// <summary>
+    /// Get customer purchased packages by customer ID
+    /// </summary>
+    /// <param name="customerId">The customer ID</param>
+    /// <param name="parameters">Query parameters for pagination and filtering</param>
+    /// <returns>Returns a paginated list of customer purchased freelance PT packages</returns>
+    /// <remarks>
+    /// Sample request:
+    ///
+    ///     GET /api/v1/customer-purchased/customer/{customerId}?page=1&amp;size=10&amp;isOngoingOnly=true
+    ///
+    /// This endpoint retrieves all purchased packages for a specific customer, including:
+    /// - Package name and image
+    /// - Available sessions remaining
+    /// - Expiration date
+    /// - Freelance PT package ID (if applicable)
+    ///
+    /// Use the `isOngoingOnly` parameter to filter for only active/ongoing packages.
+    /// </remarks>
+    /// <response code="200">Customer purchased packages retrieved successfully</response>
+    /// <response code="404">Customer not found</response>
+    [HttpGet("customer/{customerId}")]
+    [ProducesResponseType(typeof(BaseResponse<Pagination<CustomerPurchasedFreelancePtResponseDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCustomerPurchasedByCustomerId(
+        [FromRoute] Guid customerId, 
+        [FromQuery] GetCustomerPurchasedParams parameters)
+    {
+        var query = new GetCustomerPurchasedByCustomerIdQuery(parameters)
+        {
+            CustomerId = customerId
+        };
+        
+        var response = await _mediator.Send(query);
+        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<CustomerPurchasedFreelancePtResponseDto>>(
+            StatusCodes.Status200OK.ToString(), 
+            "Customer purchased packages retrieved successfully", 
+            pagination));
     }
 
     /// <summary>
