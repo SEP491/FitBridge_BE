@@ -4,10 +4,12 @@ using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Exceptions;
 using FitBridge_Domain.Enums.Trainings;
 using MediatR;
+using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Dtos.Jobs;
 
 namespace FitBridge_Application.Features.Bookings.StartBookingSession;
 
-public class StartBookingSessionCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<StartBookingSessionCommand, DateTime>
+public class StartBookingSessionCommandHandler(IUnitOfWork _unitOfWork, IScheduleJobServices _scheduleJobServices) : IRequestHandler<StartBookingSessionCommand, DateTime>
 {
     public async Task<DateTime> Handle(StartBookingSessionCommand request, CancellationToken cancellationToken)
     {
@@ -16,14 +18,24 @@ public class StartBookingSessionCommandHandler(IUnitOfWork _unitOfWork) : IReque
         {
             throw new NotFoundException("Booking not found");
         }
-        if(booking.SessionStartTime != null)
+        if (booking.SessionStartTime != null)
         {
             throw new BusinessException("Booking session already started");
         }
         booking.SessionStartTime = DateTime.UtcNow;
         booking.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Repository<Booking>().Update(booking);
+        await ScheduleFinishedBookingSession(booking);
         await _unitOfWork.CommitAsync();
         return booking.SessionStartTime.Value;
+    }
+
+    public async Task ScheduleFinishedBookingSession(Booking booking)
+    {
+        await _scheduleJobServices.ScheduleFinishedBookingSession(new FinishedBookingSessionJobScheduleDto
+        {
+            BookingId = booking.Id,
+            TriggerTime = booking.BookingDate.ToDateTime(booking.PtFreelanceEndTime.Value)
+        });
     }
 }

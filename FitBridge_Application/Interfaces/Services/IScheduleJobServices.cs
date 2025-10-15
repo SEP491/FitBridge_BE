@@ -6,4 +6,6 @@ namespace FitBridge_Application.Interfaces.Services;
 public interface IScheduleJobServices
 {
     Task<bool> ScheduleProfitDistributionJob(ProfitJobScheduleDto profitJobScheduleDto);
+
+    Task<bool> ScheduleFinishedBookingSession(FinishedBookingSessionJobScheduleDto finishedBookingSessionJobScheduleDto);
 }
