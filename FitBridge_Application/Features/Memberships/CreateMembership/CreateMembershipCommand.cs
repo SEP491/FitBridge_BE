@@ -1,8 +1,9 @@
-﻿using MediatR;
+﻿using FitBridge_Application.Dtos.Membership;
+using MediatR;
 
-namespace FitBridge_Application.Features.Memberships.CreateNewMembership
+namespace FitBridge_Application.Features.Memberships.CreateMembership
 {
-    public class CreateNewMembershipCommand : IRequest
+    public class CreateMembershipCommand : IRequest<CreateMembershipDto>
     {
         public string ServiceName { get; set; }
 

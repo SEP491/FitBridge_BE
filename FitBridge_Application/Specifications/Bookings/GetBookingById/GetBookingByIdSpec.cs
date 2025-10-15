@@ -1,6 +1,6 @@
 ﻿using FitBridge_Domain.Entities.Trainings;
 
-namespace FitBridge_Application.Specifications.Bookings
+namespace FitBridge_Application.Specifications.Bookings.GetBookingById
 {
     public class GetBookingByIdSpec : BaseSpecification<Booking>
     {
