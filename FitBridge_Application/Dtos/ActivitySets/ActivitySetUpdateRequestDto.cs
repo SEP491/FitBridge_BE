@@ -8,6 +8,6 @@ public class ActivitySetUpdateRequestDto
     public double? WeightLifted { get; set; }
     public int? NumOfReps { get; set; }
     public bool IsCompleted { get; set; }
-    public int? PracticeTime { get; set; }
-    public int? RestTime { get; set; }
+    public double? PracticeTime { get; set; }
+    public double? RestTime { get; set; }
 }
