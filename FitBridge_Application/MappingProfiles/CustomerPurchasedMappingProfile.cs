@@ -4,6 +4,7 @@ using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Application.Dtos.GymCourses;
 using FitBridge_Application.Dtos.CustomerPurchaseds;
 using FitBridge_Domain.Enums.GymCourses;
+using FitBridge_Application.Dtos.FreelancePTPackages;
 
 namespace FitBridge_Application.MappingProfiles;
 
@@ -43,7 +44,17 @@ public class CustomerPurchasedMappingProfile : Profile
             .ForMember(dest => dest.CourseImageUrl, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.ImageUrl))
             .ForMember(dest => dest.AvailableSessions, opt => opt.MapFrom(src => src.AvailableSessions))
             .ForMember(dest => dest.ExpirationDate, opt => opt.MapFrom(src => src.ExpirationDate))
+            .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId));
+
+        CreateProjection<CustomerPurchased, GetCustomerPurchasedForFreelancePt>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.PackageName, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Name))
+            .ForMember(dest => dest.CourseImageUrl, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.ImageUrl))
+            .ForMember(dest => dest.AvailableSessions, opt => opt.MapFrom(src => src.AvailableSessions))
+            .ForMember(dest => dest.ExpirationDate, opt => opt.MapFrom(src => src.ExpirationDate))
             .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId))
-            ;
+            .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
+            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName))
+            .ForMember(dest => dest.CustomerImageUrl, opt => opt.MapFrom(src => src.Customer.AvatarUrl));
     }
 }

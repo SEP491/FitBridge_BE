@@ -1,6 +1,7 @@
 using System;
 using AutoMapper;
 using FitBridge_Application.Dtos.Accounts.FreelancePts;
+using FitBridge_Application.Dtos.Accounts.HotResearch;
 using FitBridge_Domain.Entities.Identity;
 
 namespace FitBridge_Application.MappingProfiles;
@@ -24,5 +25,12 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.FreelancePt, opt => opt.MapFrom(src => src))
             .ForMember(dest => dest.UserDetail, opt => opt.MapFrom(src => src.UserDetail))
             .ForMember(dest => dest.FreelancePTPackages, opt => opt.MapFrom(src => src.PTFreelancePackages));
+
+        CreateMap<ApplicationUser, HotResearchAccountDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
+            .ForMember(dest => dest.HotResearch, opt => opt.MapFrom(src => src.hotResearch))
+            .ForMember(dest => dest.GymName, opt => opt.MapFrom(src => src.GymName));
     }
 }

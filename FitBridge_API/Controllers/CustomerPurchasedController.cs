@@ -2,12 +2,15 @@ using System;
 using FitBridge_API.Helpers;
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.CustomerPurchaseds;
+using FitBridge_Application.Dtos.FreelancePTPackages;
 using FitBridge_Application.Dtos.GymCourses;
 using FitBridge_Application.Features.CustomerPurchaseds.CheckCustomerPurchased;
 using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased;
+using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedByFreelancePtId;
 using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedFreelancePt;
 using FitBridge_Application.Features.GymCourses.GetPurchasedGymCoursePtForSchedule;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByCustomerId;
+using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedForFreelancePt;
 using FitBridge_Application.Specifications.GymCoursePts.GetPurchasedGymCoursePtForScheduleGetPurchasedGymCoursePtForSchedule;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -50,5 +53,19 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
         var command = new CheckCustomerPurchasedCommand { PtId = PtId };
         var response = await _mediator.Send(command);
         return Ok(new BaseResponse<Guid>(StatusCodes.Status200OK.ToString(), "Check customer purchased success", response));
+    }
+
+
+    /// <summary>
+    /// Use for freelance pt to view list of customer that purchased their package and still not expired
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpGet("freelance-pt")]
+    public async Task<IActionResult> GetCustomerPurchasedByFreelancePtId([FromQuery] GetCustomerPurchasedForFreelancePtParams parameters)
+    {
+        var response = await _mediator.Send(new GetCustomerPurchasedByFreelancePtIdQuery { Params = parameters });
+        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GetCustomerPurchasedForFreelancePt>>(StatusCodes.Status200OK.ToString(), "Get customer purchased freelance pt by id success", pagination));
     }
 }
