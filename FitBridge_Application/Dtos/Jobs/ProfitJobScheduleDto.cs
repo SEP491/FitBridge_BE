@@ -4,6 +4,6 @@ namespace FitBridge_Application.Dtos.Jobs;
 
 public class ProfitJobScheduleDto
 {
-    public Guid CustomerPurchasedId { get; set; }
+    public Guid OrderItemId { get; set; }
     public DateOnly ProfitDistributionDate { get; set; }
 }

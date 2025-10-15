@@ -48,7 +48,20 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         customerPurchasedToExtend.AvailableSessions += orderItemToExtend.Quantity * numOfSession;
         customerPurchasedToExtend.ExpirationDate = customerPurchasedToExtend.ExpirationDate.AddDays(orderItemToExtend.GymCourse.Duration * orderItemToExtend.Quantity);
         transactionToExtend.Order.Status = OrderStatus.Arrived;
+        var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItemToExtend.GymCourse.GymOwnerId);
+        if (walletToUpdate == null)
+        {
+            throw new NotFoundException("Wallet not found");
+        }
+        walletToUpdate.PendingBalance += orderItemToExtend.Price * orderItemToExtend.Quantity * ProjectConstant.CommissionRate;
+        _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
+        await _unitOfWork.CommitAsync();
 
+        await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
+        {
+            OrderItemId = orderItemToExtend.Id,
+            ProfitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30)
+        });
         await _unitOfWork.CommitAsync();
         return true;
     }
@@ -75,15 +88,14 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         return true;
     }
 
-    public async Task<bool> DistributeProfit(Guid customerPurchasedId)
+    public async Task<bool> DistributeProfit(Guid orderItemId)
     {
-        var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>().GetByIdAsync(customerPurchasedId, includes: new List<string> { "OrderItems.Order", "OrderItems.FreelancePTPackage", "OrderItems.GymCourse" });
+        var orderItem = await _unitOfWork.Repository<OrderItem>().GetByIdAsync(orderItemId, includes: new List<string> { "Order", "FreelancePTPackage", "GymCourse" });
 
-        if (customerPurchased == null)
+        if (orderItem == null)
         {
-            throw new NotFoundException($"{nameof(CustomerPurchased)} with Id {customerPurchasedId} not found");
+            throw new NotFoundException($"{nameof(orderItem)} with Id {orderItemId} not found");
         }
-        var orderItem = customerPurchased.OrderItems.OrderByDescending(o => o.Order.CreatedAt).FirstOrDefault();
         var profit = orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate;
 
         var DistributeProfTransaction = new Transaction
@@ -92,7 +104,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             OrderId = orderItem.OrderId,
             TransactionType = TransactionType.DistributeProfit,
             Status = TransactionStatus.Success,
-            Description = $"Profit distribution for completed course - CustomerPurchased: {customerPurchasedId}",
+            Description = $"Profit distribution for completed course - OrderItem: {orderItemId}",
             OrderCode = GenerateOrderCode(),
             PaymentMethodId = await GetSystemPaymentMethodId.GetPaymentMethodId(MethodType.System, _unitOfWork)
         };
@@ -172,7 +184,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
             await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
             {
-                CustomerPurchasedId = orderItem.CustomerPurchased.Id,
+                OrderItemId = orderItem.Id,
                 ProfitDistributionDate = profitDistributionDate
             });
             
@@ -202,7 +214,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                 {
                     var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
                     var numOfSession = 0;
-                    var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                    var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30);
                     if (orderItem.GymCourseId != null && orderItem.GymPtId != null)
                     {
                         var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItem.GymCourseId.Value, orderItem.GymPtId.Value));
@@ -212,7 +224,6 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                         }
                         numOfSession = gymCoursePT.Session.Value;
                     }
-                    profitDistributionDate = profitDistributionDate.AddDays(30);
 
                     expirationDate = expirationDate.AddDays(orderItem.GymCourse.Duration * orderItem.Quantity);
                     orderItem.CustomerPurchased = new CustomerPurchased
@@ -231,10 +242,10 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                     await _unitOfWork.CommitAsync();
 
                     await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
-                {
-                    CustomerPurchasedId = orderItem.CustomerPurchased.Id,
-                    ProfitDistributionDate = profitDistributionDate
-                });
+                    {
+                        OrderItemId = orderItem.Id,
+                        ProfitDistributionDate = profitDistributionDate
+                    });
                 }
             }
             return true;
