@@ -17,7 +17,13 @@ public class CreateActivitySetCommandHandler(IUnitOfWork unitOfWork, IMapper map
         {
             throw new NotFoundException("Session activity not found Id: " + request.SessionActivityId);
         }
-        var activitySet = mapper.Map<ActivitySet>(request);
+        var activitySet = new ActivitySet
+        {
+            SessionActivityId = request.SessionActivityId,
+            WeightLifted = request.WeightLifted ?? 0,
+            PlannedNumOfReps = request.NumOfReps ?? 0,
+            PlannedPracticeTime = request.PlannedPracticeTime ?? 0.0
+        };
         unitOfWork.Repository<ActivitySet>().Insert(activitySet);
         await unitOfWork.CommitAsync();
         return mapper.Map<ActivitySetResponseDto>(activitySet);

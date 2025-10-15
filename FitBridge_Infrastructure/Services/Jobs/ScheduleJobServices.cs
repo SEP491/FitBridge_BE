@@ -4,6 +4,7 @@ using FitBridge_Application.Interfaces.Services;
 using Quartz;
 using Microsoft.Extensions.Logging;
 using FitBridge_Infrastructure.Jobs;
+using FitBridge_Infrastructure.Jobs.Bookings;
 
 namespace FitBridge_Infrastructure.Services.Jobs;
 
@@ -34,6 +35,29 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         _logger.LogInformation(
         "Scheduled profit distribution job for OrderItem {OrderItemId} at {TriggerTime}",
         profitJobScheduleDto.OrderItemId, triggerTime);
+        return true;
+    }
+
+    public async Task<bool> ScheduleFinishedBookingSession(FinishedBookingSessionJobScheduleDto finishedBookingSessionJobScheduleDto)
+    {
+        var jobKey = new JobKey($"FinishedBookingSession_{finishedBookingSessionJobScheduleDto.BookingId}", "FinishedBookingSession");
+        var triggerKey = new TriggerKey($"FinishedBookingSession_{finishedBookingSessionJobScheduleDto.BookingId}_Trigger", "FinishedBookingSession");
+        var jobData = new JobDataMap
+        {
+            { "bookingId", finishedBookingSessionJobScheduleDto.BookingId.ToString()}
+        };
+        var job = JobBuilder.Create<FinishedBookingSessionJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(finishedBookingSessionJobScheduleDto.TriggerTime)
+        .Build();
+
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation("Scheduled finished booking session job for Booking {BookingId} at {TriggerTime}", finishedBookingSessionJobScheduleDto.BookingId, finishedBookingSessionJobScheduleDto.TriggerTime);
         return true;
     }
 }

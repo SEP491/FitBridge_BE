@@ -264,6 +264,11 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
         return Ok(new BaseResponse<TrainingResultResponseDto>(StatusCodes.Status200OK.ToString(), "Booking result retrieved successfully", result));
     }
 
+    /// <summary>
+    /// Start a booking session, update booking session start time
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
     [HttpPost("start-booking-session")]
     public async Task<IActionResult> StartBookingSession([FromBody] StartBookingSessionCommand command)
     {
@@ -271,6 +276,11 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
         return Ok(new BaseResponse<DateTime>(StatusCodes.Status200OK.ToString(), "Booking session started successfully", result));
     }
 
+    /// <summary>
+    /// End a booking session, update booking status to finished and set session end time
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
     [HttpPost("end-booking-session")]
     public async Task<IActionResult> EndBookingSession([FromBody] EndBookingSessionCommand command)
     {

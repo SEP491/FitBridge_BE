@@ -4,6 +4,8 @@ using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Exceptions;
 using FitBridge_Domain.Enums.Trainings;
+using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Dtos.Jobs;
 namespace FitBridge_Application.Features.Bookings.EndBookingSession;
 
 public class EndBookingSessionCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<EndBookingSessionCommand, DateTime>
