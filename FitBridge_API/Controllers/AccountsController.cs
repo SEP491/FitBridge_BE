@@ -76,6 +76,11 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
         return Ok(new BaseResponse<GetFreelancePtByIdResponseDto>(StatusCodes.Status200OK.ToString(), "Freelance PT retrieved successfully", response));
     }
 
+    /// <summary>
+    /// API endpoint to retrieve a paginated list of hot research accounts, include personal trainers and gyms
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns>HotResearchAccountDto with field UserRole can be "" because data is added manually into database instead of using identity framework</returns>
     [HttpGet("hot-research")]
     public async Task<IActionResult> GetHotResearch([FromQuery] GetHotResearchAccountParams parameters)
     {
@@ -86,7 +91,6 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<HotResearchAccountDto>>(StatusCodes.Status200OK.ToString(), "Hot research retrieved successfully", pagination));
     }
-}
 
     /// Retrieves a paginated list of customers who have purchased packages from the authenticated freelance PT.
     /// </summary>
