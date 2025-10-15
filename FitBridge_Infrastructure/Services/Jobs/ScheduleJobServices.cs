@@ -11,11 +11,11 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 {
     public async Task<bool> ScheduleProfitDistributionJob(ProfitJobScheduleDto profitJobScheduleDto)
     {
-        var jobKey = new JobKey($"ProfitDistribution_{profitJobScheduleDto.CustomerPurchasedId}", "ProfitDistribution");
-        var triggerKey = new TriggerKey($"ProfitDistribution_{profitJobScheduleDto.CustomerPurchasedId}_Trigger", "ProfitDistribution");
+        var jobKey = new JobKey($"ProfitDistribution_{profitJobScheduleDto.OrderItemId}", "ProfitDistribution");
+        var triggerKey = new TriggerKey($"ProfitDistribution_{profitJobScheduleDto.OrderItemId}_Trigger", "ProfitDistribution");
         var jobData = new JobDataMap
         {
-            { "customerPurchasedId", profitJobScheduleDto.CustomerPurchasedId.ToString() }
+            { "orderItemId", profitJobScheduleDto.OrderItemId.ToString() }
         };
         var job = JobBuilder.Create<DistributeProfitJob>()
         .WithIdentity(jobKey)
@@ -32,8 +32,8 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .ScheduleJob(job, trigger);
         
         _logger.LogInformation(
-        "Scheduled profit distribution job for CustomerPurchased {CustomerPurchasedId} at {TriggerTime}",
-        profitJobScheduleDto.CustomerPurchasedId, triggerTime);
+        "Scheduled profit distribution job for OrderItem {OrderItemId} at {TriggerTime}",
+        profitJobScheduleDto.OrderItemId, triggerTime);
         return true;
     }
 }

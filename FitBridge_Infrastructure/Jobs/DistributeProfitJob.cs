@@ -14,10 +14,10 @@ public class DistributeProfitJob(IUnitOfWork _unitOfWork, ILogger<DistributeProf
 {
     public async Task Execute(IJobExecutionContext context)
     {
-        var customerPurchasedId = Guid.Parse(context.JobDetail.JobDataMap.GetString("customerPurchasedId")
-            ?? throw new NotFoundException($"{nameof(DistributeProfitJob)}_customerPurchasedId"));
-        _logger.LogInformation("DistributeProfitJob started for CustomerPurchased: {CustomerPurchasedId}", customerPurchasedId);
+        var orderItemId = Guid.Parse(context.JobDetail.JobDataMap.GetString("orderItemId")
+            ?? throw new NotFoundException($"{nameof(DistributeProfitJob)}_orderItemId"));
+        _logger.LogInformation("DistributeProfitJob started for OrderItem: {OrderItemId}", orderItemId);
 
-        await _transactionService.DistributeProfit(customerPurchasedId);
+        await _transactionService.DistributeProfit(orderItemId);
     }
 }
