@@ -45,4 +45,21 @@ public class UserUtil : IUserUtil
         var roles = roleClaim.Value.Split(',');
         return roles.FirstOrDefault();
     }
+
+    public string? GetUserFullName(HttpContext httpContext)
+    {
+        if (httpContext.User == null)
+        {
+            return null;
+        }
+
+        var nameClaim = httpContext.User.FindFirst(ClaimTypes.Name);
+        if (nameClaim == null)
+        {
+            return null;
+        }
+
+        var roles = nameClaim.Value.Split(',');
+        return roles.FirstOrDefault();
+    }
 }
