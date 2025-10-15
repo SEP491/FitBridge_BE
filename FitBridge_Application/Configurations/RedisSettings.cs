@@ -13,7 +13,10 @@ namespace FitBridge_Application.Configurations
         public int NotificationStorage { get; set; } = 1;
 
         [Required]
-        public string NotificationKeyPrefix { get; set; } = "notification:connections:";
+        public string NotificationConnectionsKeyPrefix { get; set; } = "notification:connections:";
+
+        [Required]
+        public string NotificationHandshakeKeyPrefix { get; set; } = "notification:handshakes:";
 
         /// <summary>
         /// Expiration time for notification connection keys in seconds. Default is 1 day (86400 seconds).
