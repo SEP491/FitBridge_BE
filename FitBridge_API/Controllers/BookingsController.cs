@@ -21,6 +21,8 @@ using FitBridge_Application.Features.Bookings.GetBookingRequest;
 using FitBridge_Application.Features.Bookings.RejectBookingRequest;
 using FitBridge_Application.Features.Bookings.GetTrainingResult;
 using FitBridge_Application.Features.Bookings.CreateBooking;
+using FitBridge_Application.Features.Bookings.StartBookingSession;
+using FitBridge_Application.Features.Bookings.EndBookingSession;
 
 namespace FitBridge_API.Controllers;
 
@@ -260,5 +262,19 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     {
         var result = await _mediator.Send(new GetTrainingResultQuery { BookingId = id });
         return Ok(new BaseResponse<TrainingResultResponseDto>(StatusCodes.Status200OK.ToString(), "Booking result retrieved successfully", result));
+    }
+
+    [HttpPost("start-booking-session")]
+    public async Task<IActionResult> StartBookingSession([FromBody] StartBookingSessionCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<DateTime>(StatusCodes.Status200OK.ToString(), "Booking session started successfully", result));
+    }
+
+    [HttpPost("end-booking-session")]
+    public async Task<IActionResult> EndBookingSession([FromBody] EndBookingSessionCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<DateTime>(StatusCodes.Status200OK.ToString(), "Booking session ended successfully", result));
     }
 }

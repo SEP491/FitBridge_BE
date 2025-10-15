@@ -28,9 +28,8 @@ public class Booking : BaseEntity
     public string? Note { get; set; }
 
     public string? NutritionTip { get; set; }
-    public DateTime? SessionStartTime { get; set; }
+    public DateTime? SessionStartTime { get; set; } 
     public DateTime? SessionEndTime { get; set; }
-
     public PTGymSlot? PTGymSlot { get; set; }
 
     public ApplicationUser Customer { get; set; }
