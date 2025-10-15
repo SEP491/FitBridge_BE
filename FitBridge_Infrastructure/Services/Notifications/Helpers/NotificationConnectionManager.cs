@@ -13,7 +13,8 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         private readonly IDatabase database = connectionMultiplexer.GetDatabase(
             redisSettings.Value.NotificationStorage);
 
-        private readonly string KeyPrefix = redisSettings.Value.NotificationKeyPrefix;
+        private readonly string KeyPrefix = redisSettings.Value.NotificationConnectionsKeyPrefix;
+
         private readonly TimeSpan KeyExpiration = TimeSpan.FromSeconds(redisSettings.Value.ConnectionKeyExpirationSeconds);
 
         private string GetRedisKey(string keyId) => $"{KeyPrefix}{keyId}";
@@ -39,11 +40,11 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
 
                 var redisValues = validIds.Select(id => (RedisValue)id).ToArray();
                 await database.SetAddAsync(redisKey, redisValues);
-                
+
                 // Set expiration time for the key
                 await database.KeyExpireAsync(redisKey, KeyExpiration);
 
-                logger.LogInformation("Added {Count} connection(s) for user {UserId} with expiration of {Expiration}", 
+                logger.LogInformation("Added {Count} connection(s) for user {UserId} with expiration of {Expiration}",
                     validIds.Length, keyId, KeyExpiration);
             }
             catch (Exception ex)
