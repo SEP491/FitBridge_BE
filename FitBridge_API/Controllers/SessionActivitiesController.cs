@@ -4,6 +4,7 @@ using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos.SessionActivities;
 using FitBridge_Application.Features.SessionActivities;
 using FitBridge_Application.Features.SessionActivities.GetSessionActivityById;
+using FitBridge_Application.Features.SessionActivities.SessionPracticeContent;
 using FitBridge_Application.Features.SessionActivities.UpdateSessionActivity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -50,5 +51,12 @@ public class SessionActivitiesController(IMediator _mediator) : _BaseApiControll
     {
         var result = await _mediator.Send(new GetSessionActivityByIdQuery { Id = id });
         return Ok(new BaseResponse<SessionActivityResponseDto>(StatusCodes.Status200OK.ToString(), "Session activity retrieved successfully", result));
+    }
+
+    [HttpGet("practice-content/{bookingId}")]
+    public async Task<IActionResult> GetPracticeContent([FromRoute] Guid bookingId)
+    {
+        var result = await _mediator.Send(new SessionPracticeContentCommand { BookingId = bookingId });
+        return Ok(new BaseResponse<SessionPracticeContentDto>(StatusCodes.Status200OK.ToString(), "Practice content retrieved successfully", result));
     }
 }

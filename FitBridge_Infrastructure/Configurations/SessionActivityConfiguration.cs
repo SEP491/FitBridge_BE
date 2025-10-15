@@ -1,4 +1,5 @@
 using FitBridge_Domain.Entities.Trainings;
+using FitBridge_Domain.Enums.ActivitySets;
 using FitBridge_Domain.Enums.SessionActivities;
 using FitBridge_Domain.Enums.Trainings;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,8 @@ public class SessionActivityConfiguration : IEntityTypeConfiguration<SessionActi
             .IsRequired()
             .ElementType()
             .HasConversion(muscleEnumConverter);
+
+        builder.Property(e => e.ActivitySetType).IsRequired(true).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<ActivitySetType>(s)).HasDefaultValue(ActivitySetType.Reps);
 
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
