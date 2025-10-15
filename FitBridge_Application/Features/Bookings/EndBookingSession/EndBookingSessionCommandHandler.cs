@@ -8,7 +8,7 @@ using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Dtos.Jobs;
 namespace FitBridge_Application.Features.Bookings.EndBookingSession;
 
-public class EndBookingSessionCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<EndBookingSessionCommand, DateTime>
+public class EndBookingSessionCommandHandler(IUnitOfWork _unitOfWork, IScheduleJobServices _scheduleJobServices) : IRequestHandler<EndBookingSessionCommand, DateTime>
 {
     public async Task<DateTime> Handle(EndBookingSessionCommand request, CancellationToken cancellationToken)
     {
@@ -30,6 +30,7 @@ public class EndBookingSessionCommandHandler(IUnitOfWork _unitOfWork) : IRequest
         booking.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Repository<Booking>().Update(booking);
         await _unitOfWork.CommitAsync();
+        await _scheduleJobServices.CancelScheduleJob($"FinishedBookingSession_{request.BookingId}", "FinishedBookingSession");
         return booking.SessionEndTime.Value;
     }
 

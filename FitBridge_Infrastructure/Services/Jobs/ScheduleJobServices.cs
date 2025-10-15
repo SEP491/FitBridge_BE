@@ -5,6 +5,7 @@ using Quartz;
 using Microsoft.Extensions.Logging;
 using FitBridge_Infrastructure.Jobs;
 using FitBridge_Infrastructure.Jobs.Bookings;
+using FitBridge_Domain.Exceptions;
 
 namespace FitBridge_Infrastructure.Services.Jobs;
 
@@ -59,5 +60,37 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
         _logger.LogInformation("Scheduled finished booking session job for Booking {BookingId} at {TriggerTime}", finishedBookingSessionJobScheduleDto.BookingId, finishedBookingSessionJobScheduleDto.TriggerTime);
         return true;
+    }
+
+    public async Task<bool> CancelScheduleJob(string jobName, string jobGroup)
+    {
+        try
+        {
+            var scheduler = await _schedulerFactory.GetScheduler();
+            var jobKey = new JobKey(jobName, jobGroup);
+            var exists = await scheduler.CheckExists(jobKey);
+            if (!exists)
+            {
+                _logger.LogWarning("Job {JobName} in {JobGroup} does not exist", jobName, jobGroup);
+                return false;
+            }
+            var result = await scheduler.DeleteJob(jobKey);
+            if (result)
+            {
+                _logger.LogInformation("Successfully cancelled job: {JobName} in group {JobGroup}",
+                    jobName, jobGroup);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to cancel job: {JobName} in group {JobGroup}",
+                    jobName, jobGroup);
+            }
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error canceling schedule job for {JobName} in {JobGroup}", jobName, jobGroup);
+            throw new BusinessException($"Failed to cancel job: {ex.Message}");
+        }
     }
 }

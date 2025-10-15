@@ -13,7 +13,7 @@ public class StartBookingSessionCommandHandler(IUnitOfWork _unitOfWork, ISchedul
 {
     public async Task<DateTime> Handle(StartBookingSessionCommand request, CancellationToken cancellationToken)
     {
-        var booking = await _unitOfWork.Repository<Booking>().GetByIdAsync(request.BookingId);
+        var booking = await _unitOfWork.Repository<Booking>().GetByIdAsync(request.BookingId, includes: new List<string> { nameof(Booking.CustomerPurchased), "CustomerPurchased.OrderItems", "CustomerPurchased.OrderItems.FreelancePTPackage" });
         if (booking == null)
         {
             throw new NotFoundException("Booking not found");
@@ -32,10 +32,11 @@ public class StartBookingSessionCommandHandler(IUnitOfWork _unitOfWork, ISchedul
 
     public async Task ScheduleFinishedBookingSession(Booking booking)
     {
+        var durationInMinutes = booking.CustomerPurchased.OrderItems.OrderByDescending(x => x.CreatedAt).FirstOrDefault(x => x.FreelancePTPackageId != null)?.FreelancePTPackage?.SessionDurationInMinutes ?? 0;
         await _scheduleJobServices.ScheduleFinishedBookingSession(new FinishedBookingSessionJobScheduleDto
         {
             BookingId = booking.Id,
-            TriggerTime = booking.BookingDate.ToDateTime(booking.PtFreelanceEndTime.Value)
+            TriggerTime = booking.SessionStartTime.Value.AddMinutes(durationInMinutes)
         });
     }
 }
