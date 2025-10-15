@@ -32,6 +32,7 @@ public class UserTokenService(
                 [
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Name, user.FullName),
                     new Claim(ClaimTypes.Role, string.Join(",", roles)),
                 ]),
             Expires = DateTime.Now.AddMinutes(configuration.GetValue<int>("JwtAccessTokenSettings:ExpirationInMinutes")),
@@ -152,18 +153,19 @@ public class UserTokenService(
             }
 
             var expirationClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Exp);
-            if(expirationClaim != null)
+            if (expirationClaim != null)
             {
                 var exp = long.Parse(expirationClaim.Value);
                 var expirationTime = DateTimeOffset.FromUnixTimeSeconds(exp).DateTime;
 
-                if(DateTime.UtcNow > expirationTime)
+                if (DateTime.UtcNow > expirationTime)
                 {
                     return null;
                 }
             }
             return userId;
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             return null;
         }

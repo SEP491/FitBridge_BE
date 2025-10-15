@@ -6,6 +6,8 @@ namespace FitBridge_Application.Interfaces.Utils;
 public interface IUserUtil
 {
     Guid? GetAccountId(HttpContext httpContext);
+
     string? GetUserRole(HttpContext httpContext);
 
+    string? GetUserFullName(HttpContext httpContext);
 }

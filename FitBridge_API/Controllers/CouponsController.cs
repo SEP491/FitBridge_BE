@@ -4,6 +4,7 @@ using FitBridge_Application.Features.Coupons.ApplyCoupon;
 using FitBridge_Application.Features.Coupons.CreateCoupon;
 using FitBridge_Application.Features.Coupons.GetCouponById;
 using FitBridge_Application.Features.Coupons.GetUserCreatedCoupons;
+using FitBridge_Application.Features.Coupons.GiftCoupon;
 using FitBridge_Application.Features.Coupons.RemoveCoupon;
 using FitBridge_Application.Features.Coupons.UpdateCoupon;
 using FitBridge_Application.Specifications.Coupons.GetCouponByCreatorId;
@@ -189,6 +190,33 @@ namespace FitBridge_API.Controllers
                 new BaseResponse<EmptyResult>(
                     StatusCodes.Status200OK.ToString(),
                     "Coupon deleted successfully",
+                    Empty));
+        }
+
+        /// <summary>
+        /// Gifts a coupon to one or more customers by sending them a notification.
+        /// </summary>
+        /// <param name="command">The gift coupon request details, including:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>CouponCode</term>
+        /// <description>The code of the coupon to gift.</description>
+        /// </item>
+        /// <item>
+        /// <term>CustomerIds</term>
+        /// <description>A list of customer IDs who will receive the coupon notification.</description>
+        /// </item>
+        /// </list>
+        /// </param>
+        /// <returns>A success response if the coupon was successfully gifted.</returns>
+        [HttpPost("gift")]
+        public async Task<IActionResult> GiftCoupon([FromBody] GiftCouponCommand command)
+        {
+            await mediator.Send(command);
+            return Ok(
+                new BaseResponse<EmptyResult>(
+                    StatusCodes.Status200OK.ToString(),
+                    "Coupon gifted successfully",
                     Empty));
         }
     }
