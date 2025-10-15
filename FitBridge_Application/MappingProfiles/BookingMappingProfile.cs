@@ -125,19 +125,20 @@ public class BookingMappingProfile : Profile
         .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.BookingDate))
         .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.PtFreelanceStartTime))
         .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.PtFreelanceEndTime))
+        .ForMember(dest => dest.ActualStartTime, opt => opt.MapFrom(src => src.SessionStartTime))
+        .ForMember(dest => dest.ActualEndTime, opt => opt.MapFrom(src => src.SessionEndTime))
         .ForMember(dest => dest.SetsPlan, opt => opt.MapFrom(src => src.SessionActivities.Count))
         .ForMember(dest => dest.SetsCompleted, opt => opt.MapFrom(src => src.SessionActivities.Sum(x => x.ActivitySets.Count(y => y.IsCompleted))))
-        .ForMember(dest => dest.PracticeTime, opt => opt.MapFrom(src => src.SessionActivities.Sum(x => x.ActivitySets.Sum(y => y.PracticeTime ?? 0))))
         .ForMember(dest => dest.RestTime, opt => opt.MapFrom(src => src.SessionActivities.Sum(x => x.ActivitySets.Sum(y => y.RestTime ?? 0))))
-        .ForMember(dest => dest.WeightLifted, opt => opt.MapFrom(src => src.SessionActivities.Sum(x => x.ActivitySets.Sum(y => y.WeightLifted ?? 0))))
-        .ForMember(dest => dest.NumOfReps, opt => opt.MapFrom(src => src.SessionActivities.Sum(x => x.ActivitySets.Sum(y => y.NumOfReps ?? 0))))
         .ForMember(dest => dest.NutritionTip, opt => opt.MapFrom(src => src.NutritionTip))
         .ForMember(dest => dest.Notes, opt => opt.MapFrom(src => src.Note))
         .ForMember(dest => dest.PtName, opt => opt.MapFrom(src => src.PtId != null ? src.Pt.FullName : null))
         .ForMember(dest => dest.PtAvatarUrl, opt => opt.MapFrom(src => src.PtId != null ? src.Pt.AvatarUrl : null))
         .ForPath(dest => dest.RepsProgress.RepsCompleted, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.IsCompleted ? a.NumOfReps ?? 0 : 0))))   
-        .ForPath(dest => dest.WeightLiftedProgress.WeightLiftedCompleted, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.IsCompleted ? a.WeightLifted ?? 0 : 0))))
-        .ForPath(dest => dest.RepsProgress.RepsPlan, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.NumOfReps ?? 0))))
-        .ForPath(dest => dest.WeightLiftedProgress.WeightLiftedPlan, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.WeightLifted ?? 0))));
+        .ForPath(dest => dest.WeightLiftedProgress.WeightLiftedCompleted, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.IsCompleted ? (a.WeightLifted ?? 0) * (a.NumOfReps ?? 0) : 0))))
+        .ForPath(dest => dest.RepsProgress.RepsPlan, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.PlannedNumOfReps ?? 0))))
+        .ForPath(dest => dest.WeightLiftedProgress.WeightLiftedPlan, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => (a.WeightLifted ?? 0) * (a.PlannedNumOfReps ?? 0)))))
+        .ForPath(dest => dest.PracticeTimeProgress.PracticeTimeCompleted, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.IsCompleted ? a.PracticeTime ?? 0 : 0))))
+        .ForPath(dest => dest.PracticeTimeProgress.PracticeTimePlan, opt => opt.MapFrom(src => src.SessionActivities.Sum(s => s.ActivitySets.Sum(a => a.PlannedPracticeTime ?? 0))));
     }
 }
