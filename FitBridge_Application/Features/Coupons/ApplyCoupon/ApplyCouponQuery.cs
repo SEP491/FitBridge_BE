@@ -8,6 +8,10 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
     {
         public string CouponCode { get; set; }
 
+        public bool IsFreelancePtCoupon { get; set; }
+
+        public List<Guid> ItemsId { get; set; } = new();
+
         public decimal TotalPrice { get; set; }
     }
 }

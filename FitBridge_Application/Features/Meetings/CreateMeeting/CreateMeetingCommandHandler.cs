@@ -19,8 +19,6 @@ namespace FitBridge_Application.Features.Meetings.CreateMeeting
             var booking = await unitOfWork.Repository<Booking>().GetBySpecificationAsync(spec)
                     ?? throw new NotFoundException(nameof(Booking));
 
-            ArgumentNullException.ThrowIfNull(booking.PTGymSlot);
-
             var newMeetingSession = new MeetingSession
             {
                 UserOneId = booking.PtId!.Value,
