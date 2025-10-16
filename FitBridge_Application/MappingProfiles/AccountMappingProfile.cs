@@ -16,9 +16,9 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
             .ForMember(dest => dest.GoalTrainings, opt => opt.MapFrom(src => src.GoalTrainings.Select(x => x.Name).ToList()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Bio))
-            .ForMember(dest => dest.PriceFrom, opt => opt.MapFrom(src => src.PTFreelancePackages.Min(x => x.Price)))
-            .ForMember(dest => dest.ExperienceYears, opt => opt.MapFrom(src => src.UserDetail.Experience))
-            .ForMember(dest => dest.Certifications, opt => opt.MapFrom(src => src.UserDetail.Certificates))
+            .ForMember(dest => dest.PriceFrom, opt => opt.MapFrom(src => src.PTFreelancePackages.Count > 0 ? src.PTFreelancePackages.Min(x => x.Price) : 0))
+            .ForMember(dest => dest.ExperienceYears, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Experience : 0))
+            .ForMember(dest => dest.Certifications, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Certificates : new List<string>()))
             .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Reviews.Count > 0 ? src.Reviews.Average(x => x.Rating) : 0));
 
         CreateMap<ApplicationUser, GetFreelancePtByIdResponseDto>()
