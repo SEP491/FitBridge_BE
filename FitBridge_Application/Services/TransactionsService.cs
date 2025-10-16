@@ -96,7 +96,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         {
             throw new NotFoundException($"{nameof(orderItem)} with Id {orderItemId} not found");
         }
-        var profit = orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate;
+        var profit = Math.Round(orderItem.Price * orderItem.Quantity - orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate, 2, MidpointRounding.AwayFromZero);
 
         var DistributeProfTransaction = new Transaction
         {
@@ -187,7 +187,6 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                 OrderItemId = orderItem.Id,
                 ProfitDistributionDate = profitDistributionDate
             });
-            
         }
         return true;
     }
