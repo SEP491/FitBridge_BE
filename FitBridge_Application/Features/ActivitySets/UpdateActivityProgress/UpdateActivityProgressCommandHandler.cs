@@ -21,6 +21,8 @@ public class UpdateActivityProgressCommandHandler(IUnitOfWork _unitOfWork, IMapp
         activitySet.NumOfReps = request.ActivitySet.NumOfReps;
         activitySet.PracticeTime = request.ActivitySet.PracticeTime;
         activitySet.RestTime = request.ActivitySet.RestTime;
+        _unitOfWork.Repository<ActivitySet>().Update(activitySet);
+        await _unitOfWork.CommitAsync();
         return _mapper.Map<ActivitySetResponseDto>(activitySet);
     }
 }

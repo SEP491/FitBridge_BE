@@ -2,7 +2,9 @@ using System;
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.ActivitySets;
 using FitBridge_Application.Features.ActivitySets.CreateActivitySet;
+using FitBridge_Application.Features.ActivitySets.DeleteActivity;
 using FitBridge_Application.Features.ActivitySets.GetActivitySetById;
+using FitBridge_Application.Features.ActivitySets.GetActivitySetBySessionId;
 using FitBridge_Application.Features.ActivitySets.UpdateActivityProgress;
 using FitBridge_Application.Features.ActivitySets.UpdateActivitySet;
 using MediatR;
@@ -23,7 +25,7 @@ public class ActivitySetsController(IMediator _mediator) : _BaseApiController
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<ActivitySetResponseDto>(StatusCodes.Status200OK.ToString(), "Activity set created successfully", result));
     }
-    
+
     /// <summary>
     /// Update activity set in session detail screen where pt create Session activity and activity set
     /// </summary>
@@ -53,5 +55,24 @@ public class ActivitySetsController(IMediator _mediator) : _BaseApiController
     {
         var result = await _mediator.Send(new GetActivitySetByIdQuery { Id = id });
         return Ok(new BaseResponse<ActivitySetResponseDto>(StatusCodes.Status200OK.ToString(), "Activity set retrieved successfully", result));
+    }
+
+    /// <summary>
+    /// Get all activity sets by session activity id
+    /// </summary>
+    /// <param name="sessionActivityId"></param>
+    /// <returns></returns>
+    [HttpGet("session-activity/{sessionActivityId}")]
+    public async Task<IActionResult> GetActivitySetsBySessionActivityId([FromRoute] Guid sessionActivityId)
+    {
+        var result = await _mediator.Send(new GetActivitySetsBySessionActivityIdQuery { SessionActivityId = sessionActivityId });
+        return Ok(new BaseResponse<List<ActivitySetResponseDto>>(StatusCodes.Status200OK.ToString(), "Activity sets retrieved successfully", result));
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteActivitySet([FromRoute] Guid id)
+    {
+        var result = await _mediator.Send(new DeleteActivitySetByIdCommand { Id = id });
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Activity set deleted successfully", result));
     }
 }

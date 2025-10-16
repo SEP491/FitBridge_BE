@@ -23,7 +23,7 @@ public class GetTrainingResultQueryHandler(IUnitOfWork _unitOfWork, IMapper _map
             throw new NotFoundException("Booking not found");
         }
         var trainingResult = _mapper.Map<TrainingResultResponseDto>(bookingEntity);
-        return _mapper.Map<TrainingResultResponseDto>(trainingResult);
+        return trainingResult;
     }
 
 }

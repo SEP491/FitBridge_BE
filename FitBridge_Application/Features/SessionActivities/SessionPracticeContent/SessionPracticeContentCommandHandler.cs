@@ -36,6 +36,8 @@ public class SessionPracticeContentCommandHandler(IUnitOfWork _unitOfWork) : IRe
         }
         return new SessionPracticeContentDto {
         BookingId = request.BookingId,
+        SessionStartTime = sessionActivities.FirstOrDefault().Booking.SessionStartTime ?? null,
+        SessionEndTime = sessionActivities.FirstOrDefault().Booking.SessionEndTime ?? null,
         SessionActivities = sessionActivitiesDtos,
         BookingName = sessionActivities.FirstOrDefault()?.Booking.BookingName,
         note = sessionActivities.FirstOrDefault()?.Booking.Note,
