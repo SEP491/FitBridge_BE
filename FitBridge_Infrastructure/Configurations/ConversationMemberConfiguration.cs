@@ -22,6 +22,5 @@ public class ConversationMemberConfiguration : IEntityTypeConfiguration<Conversa
 
         builder.HasOne(e => e.User).WithMany(e => e.ConversationMembers).HasForeignKey(e => e.UserId);
         builder.HasOne(e => e.Conversation).WithMany(e => e.ConversationMembers).HasForeignKey(e => e.ConversationId);
-        builder.HasOne(e => e.LastMessage).WithMany(e => e.ConversationMembers).HasForeignKey(e => e.LastMessageId);
     }
 }

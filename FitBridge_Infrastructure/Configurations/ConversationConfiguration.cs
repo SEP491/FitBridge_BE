@@ -20,8 +20,6 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.Property(e => e.LastMessageId).IsRequired(true);
         builder.Property(e => e.LastMessageSenderId).IsRequired(true);
-
-        builder.HasOne(e => e.LastMessage).WithMany(e => e.Conversations).HasForeignKey(e => e.LastMessageId);
         
         builder.HasOne(e => e.LastMessageSender).WithMany(e => e.Conversations).HasForeignKey(e => e.LastMessageSenderId);
     }
