@@ -51,9 +51,15 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork)
             TotalWeightLifted = allActivitySets
                 .Where(s => s.IsCompleted && s.WeightLifted.HasValue)
                 .Sum(s => s.WeightLifted.Value),
+            PlannedNumOfReps = allActivitySets
+                .Where(s => s.IsCompleted && s.PlannedNumOfReps.HasValue)
+                .Sum(s => s.PlannedNumOfReps.Value),
             TotalRepsCompleted = allActivitySets
                 .Where(s => s.IsCompleted && s.NumOfReps.HasValue)
                 .Sum(s => s.NumOfReps.Value),
+            PlannedPracticeTime = allActivitySets
+                .Where(s => s.IsCompleted && s.PlannedPracticeTime.HasValue)
+                .Sum(s => s.PlannedPracticeTime.Value),
             TotalPracticeTimeSeconds = allActivitySets
                 .Where(s => s.IsCompleted && s.PracticeTime.HasValue)
                 .Sum(s => s.PracticeTime.Value),
