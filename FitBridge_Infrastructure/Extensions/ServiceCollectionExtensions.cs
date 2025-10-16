@@ -97,6 +97,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.Configure<PayOSSettings>(configuration.GetSection(PayOSSettings.SectionName));
             services.Configure<NotificationSettings>(configuration.GetSection(NotificationSettings.SectionName));
             services.Configure<AppWriteSettings>(configuration.GetSection(AppWriteSettings.SectionName));
+            services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
             var channel = Channel.CreateUnbounded<NotificationMessage>(new UnboundedChannelOptions
             {
                 SingleWriter = false,

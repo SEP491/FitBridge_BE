@@ -7,11 +7,13 @@ using FitBridge_Infrastructure.Jobs;
 using FluentEmail.Core;
 using FluentEmail.Smtp;
 using Microsoft.Extensions.Configuration;
+using MimeKit;
 using Quartz;
 using System;
-using System.Net;
-using System.Net.Mail;
 using System.Text.Json;
+using FitBridge_Application.Configurations;
+using Microsoft.Extensions.Options;
+using MailKit.Net.Smtp;
 
 
 namespace FitBridge_Infrastructure.Services.Implements;
@@ -19,34 +21,31 @@ namespace FitBridge_Infrastructure.Services.Implements;
 public class EmailService : IEmailService
 {
     private readonly IConfiguration _configuration;
+    private readonly EmailSettings _emailSettings;
     private readonly ISchedulerFactory _schedulerFactory;
-    public EmailService(IConfiguration configuration, ISchedulerFactory schedulerFactory)
+    public EmailService(IConfiguration configuration, ISchedulerFactory schedulerFactory, IOptions<EmailSettings> emailSettings)
     {
         _configuration = configuration;
         _schedulerFactory = schedulerFactory;
+        _emailSettings = emailSettings.Value;
     }
     public async Task SendEmailAsync(string email, string subject, string message)
     {
 
-        var smtpClient = new SmtpClient(_configuration["Smtp:Host"])
-        {
-            Port = int.Parse(_configuration["Smtp:Port"]),
-            DeliveryMethod = SmtpDeliveryMethod.Network,
-            UseDefaultCredentials = false,
-            EnableSsl = true,
-            Credentials = new NetworkCredential(_configuration["Smtp:Username"], _configuration["Smtp:Password"])
-        };
+        var messageModel = new MimeMessage();
+        messageModel.Subject = subject;
+        messageModel.From.Add(new MailboxAddress("FitBridge", _emailSettings.From));
+        messageModel.To.Add(new MailboxAddress("User", email));
+        messageModel.Body = new TextPart("html") { Text = message };
 
-        var mailMessage = new MailMessage
+        using (var client = new SmtpClient())
         {
-            From = new MailAddress(_configuration["Smtp:From"]),
-            Subject = subject,
-            Body = message,
-            IsBodyHtml = true,
-        };
-        mailMessage.To.Add(email);
-
-        await smtpClient.SendMailAsync(mailMessage);
+            client.Connect(_emailSettings.Host, _emailSettings.Port, false);
+            client.Authenticate(_emailSettings.Username, _emailSettings.Password);
+            var result = client.Send(messageModel);
+            Console.WriteLine($"Email sent: {result}");
+            client.Disconnect(true);
+        }
     }
 
     public async Task SendRegistrationConfirmationEmailAsync(string email, string confirmationLink, string fullName)
@@ -55,7 +54,7 @@ public class EmailService : IEmailService
         string message = EmailContentBuilder.BuildRegistrationConfirmationEmail(confirmationLink, fullName);
         await SendEmailAsync(email, subject, message);
     }
-    
+
     public async Task SendAccountInformationEmailAsync(ApplicationUser user, string password, string role)
     {
         string subject = "Account Information";
