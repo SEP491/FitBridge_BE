@@ -32,6 +32,7 @@ namespace FitBridge_Domain.Entities.Identity
         public int PtMaxCourse { get; set; }
         public int MinimumSlot { get; set; } // Minimum slot register perweek, control by gym owner account
         public string? Bio { get; set; }
+        public DateTime LastSeen { get; set; }
         public ApplicationUser? GymOwner { get; set; }
         public ICollection<ApplicationUser> GymPTs { get; set; } = new List<ApplicationUser>();
         public List<string> GymImages { get; set; } = new List<string>();

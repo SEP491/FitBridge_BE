@@ -13,14 +13,10 @@ public class Message : BaseEntity
     public DateTime? DeletedAt { get; set; }
 
     public Guid ConversationId { get; set; }
-
-    public ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
-
     public Conversation Conversation { get; set; }
 
     public ConversationMember Sender { get; set; }
-
-    public ICollection<ConversationMember> ConversationMembers { get; set; } = new List<ConversationMember>();
+    public bool IsEdited { get; set; }
 
     public Guid SenderId { get; set; }
 
