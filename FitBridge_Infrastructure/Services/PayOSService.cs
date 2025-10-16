@@ -77,8 +77,8 @@ public class PayOSService : IPayOSService
                 amount: 5000,
                 description: user.UserName,
                 items: items,
-                cancelUrl: $"{_settings.CancelUrl}?code=01&message&orderCode={orderCode}&amount={request.TotalAmount}",
-                returnUrl: $"{_settings.ReturnUrl}?code=00&message&orderCode={orderCode}&amount={request.TotalAmount}",
+                cancelUrl: $"{_settings.CancelUrl}?code=01&message&orderCode={orderCode}&amount={request.TotalAmountPrice}",
+                returnUrl: $"{_settings.ReturnUrl}?code=00&message&orderCode={orderCode}&amount={request.TotalAmountPrice}",
                 expiredAt: DateTimeOffset.UtcNow.AddMinutes(_settings.ExpirationMinutes).ToUnixTimeSeconds(),
                 buyerName: user.UserName,
                 buyerEmail: user.Email,
@@ -230,7 +230,9 @@ public class PayOSService : IPayOSService
             if (!transaction.TransactionType.Equals(TransactionType.ProductOrder))
             {
                 //Calculate commission amount
-                transaction.ProfitAmount = transaction.Order.SubTotalPrice * ProjectConstant.CommissionRate;
+                var profitAmount = Math.Round(transaction.Order.SubTotalPrice * ProjectConstant.CommissionRate, 2, MidpointRounding.AwayFromZero);
+                
+                transaction.ProfitAmount = profitAmount;
             }
             _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().Update(transaction);
             await _unitOfWork.CommitAsync();

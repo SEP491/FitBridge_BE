@@ -42,9 +42,10 @@ public async Task<PaymentResponseDto> Handle(PurchasePtCommand request, Cancella
         });
         await GetAndValidateOrderItems(createPaymentRequestDto.OrderItems.First(), request.CustomerPurchasedId);
         
-        var totalPrice = CalculateTotalPrice(createPaymentRequestDto.OrderItems.First());
-        createPaymentRequestDto.TotalAmount = totalPrice;
-        
+        var subTotalPrice = CalculateSubTotalPrice(createPaymentRequestDto.OrderItems.First());
+        createPaymentRequestDto.SubTotalPrice = subTotalPrice;
+        createPaymentRequestDto.TotalAmountPrice = subTotalPrice;
+
         var paymentResponse = await _payOSService.CreatePaymentLinkAsync(createPaymentRequestDto, user);
         var orderId = await CreateOrder(createPaymentRequestDto, paymentResponse.Data.CheckoutUrl, request.GymCoursePTId);
         await CreateTransaction(paymentResponse, request.PaymentMethodId, orderId);
@@ -70,7 +71,7 @@ public async Task<PaymentResponseDto> Handle(PurchasePtCommand request, Cancella
 
     public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl, Guid gymCoursePTId)
     {
-        var subTotalPrice = request.TotalAmount;
+        var subTotalPrice = request.SubTotalPrice;
         var order = _mapper.Map<Order>(request);
         order.SubTotalPrice = subTotalPrice;
         order.Status = OrderStatus.PaymentProcessing;
@@ -114,7 +115,7 @@ public async Task<PaymentResponseDto> Handle(PurchasePtCommand request, Cancella
         }
     }
     
-    public decimal CalculateTotalPrice(OrderItemDto OrderItem)
+    public decimal CalculateSubTotalPrice(OrderItemDto OrderItem)
     {
         return OrderItem.Price * OrderItem.Quantity;
     }
