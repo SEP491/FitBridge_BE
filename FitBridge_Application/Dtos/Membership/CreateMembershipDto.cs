@@ -10,6 +10,6 @@
 
         public int MaximumHotResearchSlot { get; set; }
 
-        public int AvailableHotResearch { get; set; }
+        public int AvailableHotResearchSlot { get; set; }
     }
 }

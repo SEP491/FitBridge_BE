@@ -1,6 +1,7 @@
 ﻿using FitBridge_Application.Dtos.Meetings;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Specifications.Bookings;
+using FitBridge_Application.Specifications.Bookings.GetBookingById;
 using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Domain.Entities.Meetings;
 using FitBridge_Domain.Entities.Trainings;
