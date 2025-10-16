@@ -75,7 +75,7 @@ public class PayOSService : IPayOSService
                 orderCode: orderCode,
                 //amount: (int)request.TotalAmount,
                 amount: 5000,
-                description: user.UserName,
+                description: user.PhoneNumber,
                 items: items,
                 cancelUrl: $"{_settings.CancelUrl}?code=01&message&orderCode={orderCode}&amount={request.TotalAmountPrice}",
                 returnUrl: $"{_settings.ReturnUrl}?code=00&message&orderCode={orderCode}&amount={request.TotalAmountPrice}",
