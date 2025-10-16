@@ -15,7 +15,7 @@ namespace FitBridge_Application.Features.Meetings.CreateMeeting
     {
         async Task<CreateMeetingDto> IRequestHandler<CreateMeetingCommand, CreateMeetingDto>.Handle(CreateMeetingCommand request, CancellationToken cancellationToken)
         {
-            var spec = new GetBookingByIdSpec(request.BookingId, isIncludePtGymSlot: true);
+            var spec = new GetBookingByIdSpec(request.BookingId);
             var booking = await unitOfWork.Repository<Booking>().GetBySpecificationAsync(spec)
                     ?? throw new NotFoundException(nameof(Booking));
 
@@ -23,7 +23,7 @@ namespace FitBridge_Application.Features.Meetings.CreateMeeting
 
             var newMeetingSession = new MeetingSession
             {
-                UserOneId = booking.PTGymSlot.PTId,
+                UserOneId = booking.PtId!.Value,
                 UserTwoId = booking.CustomerId,
                 BookingId = request.BookingId
             };

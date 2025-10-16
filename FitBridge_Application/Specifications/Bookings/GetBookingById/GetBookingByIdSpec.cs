@@ -4,13 +4,9 @@ namespace FitBridge_Application.Specifications.Bookings.GetBookingById
 {
     public class GetBookingByIdSpec : BaseSpecification<Booking>
     {
-        public GetBookingByIdSpec(Guid bookingId, bool isIncludePtGymSlot = false) : base(x =>
+        public GetBookingByIdSpec(Guid bookingId) : base(x =>
             x.IsEnabled && x.Id == bookingId)
         {
-            if (isIncludePtGymSlot)
-            {
-                AddInclude(x => x.PTGymSlot!);
-            }
         }
     }
 }
