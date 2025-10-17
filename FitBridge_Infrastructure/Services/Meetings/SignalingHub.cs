@@ -1,13 +1,19 @@
-﻿using FitBridge_Application.Interfaces.Repositories;
+﻿using FitBridge_Application.Configurations;
+using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services.Meetings;
 using FitBridge_Domain.Entities.Meetings;
 using FitBridge_Domain.Entities.Trainings;
+using FitBridge_Domain.Exceptions;
 using FitBridge_Infrastructure.Jobs.Meetings;
+using FitBridge_Infrastructure.Services.Meetings.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Quartz;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FitBridge_Infrastructure.Services.Meetings
 {
@@ -15,10 +21,18 @@ namespace FitBridge_Infrastructure.Services.Meetings
     public class SignalingHub(
         ILogger<SignalingHub> logger,
         SessionManager sessionManager,
+        IOptions<MeetingSettings> options,
         ISchedulerFactory schedulerFactory,
         IUnitOfWork unitOfWork) : Hub<ISignalingClients>
     {
+        private readonly JsonSerializerOptions jsonSerializerOptions =
+        new JsonSerializerOptions
+        {
+            Converters = { new JsonStringEnumConverter() }
+        };
+
         /// <summary>
+
         /// Adds a user to a WebRTC room and notifies other participants
         /// </summary>
         /// <param name="roomId">The ID of the room to join</param>
@@ -32,20 +46,30 @@ namespace FitBridge_Infrastructure.Services.Meetings
             }
             var userId = Context.UserIdentifier;
             var connectionId = Context.ConnectionId;
-            var meetingSession = await unitOfWork.Repository<MeetingSession>().GetByIdAsync(roomId, includes: [nameof(Booking)]);
+            var meetingSession = await unitOfWork.Repository<MeetingSession>()
+                .GetByIdAsync(roomId, includes: [nameof(Booking)]);
 
             if (meetingSession == null)
             {
                 logger.LogInformation("Room {RoomId} does not exist", roomId);
-                await Clients.Caller.RoomDoesNotExist(strRoomId);
-                return null;
+                var error = new HubError
+                {
+                    Code = HubErrorEnum.ROOM_NOT_FOUND,
+                    Message = $"Room {strRoomId} does not exist"
+                };
+                throw new HubException(JsonSerializer.Serialize(error, jsonSerializerOptions));
             }
 
             if (meetingSession.UserOneId.ToString() != userId && meetingSession.UserTwoId.ToString() != userId)
             {
                 logger.LogInformation("User {UserId} is not authorized to join room {RoomId}", userId, roomId);
-                await Clients.Caller.NotAuthorizedToJoin(strRoomId);
-                return null;
+                logger.LogInformation("Room {RoomId} does not exist", roomId);
+                var error = new HubError
+                {
+                    Code = HubErrorEnum.NOT_AUTHORIZED_TO_JOIN,
+                    Message = $"Room {strRoomId} does not exist"
+                };
+                throw new HubException(JsonSerializer.Serialize(error, jsonSerializerOptions));
             }
 
             // if user is the first to join, create a new session
@@ -217,7 +241,7 @@ namespace FitBridge_Infrastructure.Services.Meetings
             var stopMeetingTrigger = TriggerBuilder.Create()
                 .WithIdentity(stopMeetingTriggerKey)
                 .WithDescription("Stop meeting room trigger")
-                .StartAt(DateTime.UtcNow.AddSeconds(15))
+                .StartAt(DateTime.UtcNow.AddSeconds(options.Value.StopMeetingTime))
                 .Build();
 
             // MeetingRoomExpirationAlertJob
@@ -233,7 +257,7 @@ namespace FitBridge_Infrastructure.Services.Meetings
             var showMeetingAlertTrigger = TriggerBuilder.Create()
                 .WithIdentity(alertTriggerKey)
                 .WithDescription("Show meeting room alert trigger")
-                .StartAt(DateTime.UtcNow.AddSeconds(10))
+                .StartAt(DateTime.UtcNow.AddSeconds(options.Value.ShowMeetingAlertTime))
                 .Build();
 
             await scheduler.ScheduleJob(stopMeetingJob, stopMeetingTrigger);
