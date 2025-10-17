@@ -6,7 +6,7 @@ namespace FitBridge_Application.Specifications.Meetings
     public class GetMeetingSessionByBookingIdSpecification : BaseSpecification<MeetingSession>
     {
         public GetMeetingSessionByBookingIdSpecification(Guid bookingId) : base(x =>
-            x.IsEnabled)
+            x.IsEnabled && x.BookingId == bookingId)
         {
         }
     }
