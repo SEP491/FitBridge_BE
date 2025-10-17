@@ -17,7 +17,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         ILogger<NotificationHandshakeManager> logger)
     {
         private readonly NotificationSettings settings = notificationSettings.Value;
-        private readonly IDatabase database = connectionMultiplexer.GetDatabase(redisSettings.Value.NotificationStorage);
+        private readonly IDatabase database = connectionMultiplexer.GetDatabase(redisSettings.Value.DefaultStorage);
         private readonly string KeyPrefix = redisSettings.Value.NotificationHandshakeKeyPrefix;
         private readonly TimeSpan KeyExpiration = TimeSpan.FromSeconds(redisSettings.Value.ConnectionKeyExpirationSeconds);
 

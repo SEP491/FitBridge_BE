@@ -11,7 +11,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         ILogger<NotificationConnectionManager> logger)
     {
         private readonly IDatabase database = connectionMultiplexer.GetDatabase(
-            redisSettings.Value.NotificationStorage);
+            redisSettings.Value.DefaultStorage);
 
         private readonly string KeyPrefix = redisSettings.Value.NotificationConnectionsKeyPrefix;
 
