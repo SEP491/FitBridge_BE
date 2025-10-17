@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 using System.Text.Json;
 
-namespace FitBridge_Infrastructure.Services.Meetings
+namespace FitBridge_Infrastructure.Services.Meetings.Helpers
 {
     public class SessionManager(
         IConnectionMultiplexer connectionMultiplexer,

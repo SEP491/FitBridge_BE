@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace FitBridge_Infrastructure.Services.Meetings
+namespace FitBridge_Infrastructure.Services.Meetings.Helpers
 {
     public class CallInfo
     {

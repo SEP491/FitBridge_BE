@@ -16,7 +16,6 @@ using FitBridge_Infrastructure.Seeder;
 using FitBridge_Infrastructure.Services;
 using FitBridge_Infrastructure.Services.Implements;
 using FitBridge_Infrastructure.Services.Jobs;
-using FitBridge_Infrastructure.Services.Meetings;
 using FitBridge_Infrastructure.Services.Notifications;
 using FitBridge_Infrastructure.Services.Notifications.Helpers;
 using FitBridge_Infrastructure.Services.Templating;
@@ -32,6 +31,7 @@ using StackExchange.Redis;
 using System.Threading.Channels;
 using Appwrite;
 using Appwrite.Services;
+using FitBridge_Infrastructure.Services.Meetings.Helpers;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -100,6 +100,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.Configure<AppWriteSettings>(configuration.GetSection(AppWriteSettings.SectionName));
             services.Configure<RedisSettings>(configuration.GetSection(RedisSettings.SectionName));
             services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
+            services.Configure<MeetingSettings>(configuration.GetSection(MeetingSettings.SectionName));
             var channel = Channel.CreateUnbounded<NotificationMessage>(new UnboundedChannelOptions
             {
                 SingleWriter = false,
