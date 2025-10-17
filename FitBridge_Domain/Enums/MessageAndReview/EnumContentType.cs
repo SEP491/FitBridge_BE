@@ -16,6 +16,8 @@
 
         NewCoupon,
 
+        NewPaymentRequest,
+
         CreateBookingRequest, // Customer/FreelancePT create a booking request to create a booking
 
         EditBookingRequest, // Customer/FreelancePT create a request to edit a booking

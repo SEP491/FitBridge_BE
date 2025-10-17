@@ -4,6 +4,7 @@ using FitBridge_Application.Features.Payments.CancelPaymentCommand;
 using FitBridge_Application.Features.Payments.CreatePaymentLink;
 using FitBridge_Application.Features.Payments.GetPaymentInfor;
 using FitBridge_Application.Features.Payments.PaymentCallbackWebhook;
+using FitBridge_Application.Features.Payments.RequestPayment;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
