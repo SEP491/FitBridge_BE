@@ -30,5 +30,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Dtos\Orders\" />
+	  <Folder Include="Features\Tests\" />
 	</ItemGroup>
 </Project>

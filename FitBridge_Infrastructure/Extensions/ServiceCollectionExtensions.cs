@@ -99,6 +99,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.Configure<NotificationSettings>(configuration.GetSection(NotificationSettings.SectionName));
             services.Configure<AppWriteSettings>(configuration.GetSection(AppWriteSettings.SectionName));
             services.Configure<RedisSettings>(configuration.GetSection(RedisSettings.SectionName));
+            services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
             var channel = Channel.CreateUnbounded<NotificationMessage>(new UnboundedChannelOptions
             {
                 SingleWriter = false,
@@ -177,6 +178,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddHostedService<NotificationsBackgroundService>();
             services.AddScoped<IScheduleJobServices, ScheduleJobServices>();
             services.AddScoped<IUploadService, UploadService>();
+            services.AddScoped<CouponService>();
         }
     }
 }

@@ -21,10 +21,11 @@ using AutoMapper;
 using FitBridge_Domain.Enums.Orders;
 using FitBridge_Application.Specifications.Coupons;
 using FitBridge_Application.Specifications.Coupons.GetCouponById;
+using FitBridge_Application.Services;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
-public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
+public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper, CouponService couponService) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
 {
     public async Task<PaymentResponseDto> Handle(CreatePaymentLinkCommand request, CancellationToken cancellationToken)
     {
@@ -39,12 +40,14 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             throw new NotFoundException("User not found");
         }
         await GetAndValidateOrderItems(request.Request.OrderItems, userId.Value);
-        var totalPrice = CalculateTotalPrice(request.Request.OrderItems);
-        request.Request.TotalAmount = totalPrice;
+        var SubTotalPrice = CalculateSubTotalPrice(request.Request.OrderItems);
+        request.Request.SubTotalPrice = SubTotalPrice;
         request.Request.AccountId = userId;
+        var calculateTotalPrice = await CalculateTotalPrice(request.Request, userId.Value);
+        request.Request.TotalAmountPrice = calculateTotalPrice;
 
         var paymentResponse = await _payOSService.CreatePaymentLinkAsync(request.Request, user);
-        var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl);
+        var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl, userId.Value);
         await CreateTransaction(paymentResponse, request, orderId);
         await AssignOrderItemProductName(request.Request.OrderItems);
         await _unitOfWork.CommitAsync();
@@ -81,13 +84,14 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         _unitOfWork.Repository<Transaction>().Insert(newTransaction);
     }
 
-    public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl)
+    public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl, Guid userId)
     {
-        var subTotalPrice = await CalculateSubTotalPrice(request);
         var order = _mapper.Map<Order>(request);
-        order.SubTotalPrice = subTotalPrice;
+        order.SubTotalPrice = request.SubTotalPrice;
+        order.TotalAmount = request.TotalAmountPrice;
         order.Status = OrderStatus.PaymentProcessing;
         order.CheckoutUrl = checkoutUrl;
+        order.CouponId = request.CouponId ?? null;
         _unitOfWork.Repository<Order>().Insert(order);
         return order.Id;
     }
@@ -187,29 +191,24 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         }
     }
 
-    public decimal CalculateTotalPrice(List<OrderItemDto> OrderItems)
+    public decimal CalculateSubTotalPrice(List<OrderItemDto> OrderItems)
     {
-        decimal totalPrice = 0;
+        decimal subTotalPrice = 0;
         foreach (var item in OrderItems)
         {
-            totalPrice += item.Price * item.Quantity;
+            subTotalPrice += item.Price * item.Quantity;
         }
-        return totalPrice;
+        return subTotalPrice;
     }
 
-    public async Task<decimal> CalculateSubTotalPrice(CreatePaymentRequestDto request)
+    public async Task<decimal> CalculateTotalPrice(CreatePaymentRequestDto request, Guid userId)
     {
         if (request.CouponId != null)
         {
-            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpecification(request.CouponId!.Value));
-            if (coupon == null)
-            {
-                throw new NotFoundException("Coupon not found");
-            }
-            var couponDiscountAmount = (decimal)coupon.DiscountPercent / 100 * request.TotalAmount > coupon.MaxDiscount ? coupon.MaxDiscount : (decimal)coupon.DiscountPercent / 100 * request.TotalAmount;
-            return request.TotalAmount - couponDiscountAmount + request.ShippingFee;
+            var priceAfterDiscount = await couponService.ApplyCouponAsync(userId, request.CouponId.Value, request.SubTotalPrice);
+            return priceAfterDiscount.DiscountAmount + request.ShippingFee;
         }
 
-        return request.TotalAmount + request.ShippingFee;
+        return request.SubTotalPrice + request.ShippingFee;
     }
 }

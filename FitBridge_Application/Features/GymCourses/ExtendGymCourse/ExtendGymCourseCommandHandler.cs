@@ -1,30 +1,32 @@
-using System;
+using AutoMapper;
+using FitBridge_Application.Dtos.OrderItems;
 using FitBridge_Application.Dtos.Payments;
-using FitBridge_Domain.Exceptions;
-using FitBridge_Domain.Entities.Orders;
-using FitBridge_Domain.Enums.Orders;
-using MediatR;
-using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
-using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using FitBridge_Application.Dtos.OrderItems;
-using FitBridge_Domain.Entities.Gyms;
-using FitBridge_Application.Specifications.GymCourses.GetGymCourseById;
+using FitBridge_Application.Interfaces.Utils;
+using FitBridge_Application.Services;
 using FitBridge_Application.Specifications.Accounts;
+using FitBridge_Application.Specifications.Coupons;
+using FitBridge_Application.Specifications.Coupons.GetCouponById;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByGymId;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedById;
 using FitBridge_Application.Specifications.FreelancePtPackages.GetFreelancePtPackageById;
+using FitBridge_Application.Specifications.GymCourses.GetGymCourseById;
 using FitBridge_Application.Specifications.ProductDetails;
 using FitBridge_Domain.Entities.Ecommerce;
+using FitBridge_Domain.Entities.Gyms;
+using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Entities.ServicePackages;
-using FitBridge_Application.Specifications.Coupons;
-using FitBridge_Application.Specifications.Coupons.GetCouponById;
+using FitBridge_Domain.Enums.Orders;
+using FitBridge_Domain.Exceptions;
+using MediatR;
+using Microsoft.AspNetCore.Http;
+using System;
 
 namespace FitBridge_Application.Features.GymCourses.ExtendGymCourse;
 
-public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IApplicationUserService _applicationUserService, IPayOSService _payOSService, IMapper _mapper) : IRequestHandler<ExtendGymCourseCommand, PaymentResponseDto>
+public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IApplicationUserService _applicationUserService, 
+    IPayOSService _payOSService, IMapper _mapper, CouponService couponService) : IRequestHandler<ExtendGymCourseCommand, PaymentResponseDto>
 {
     public async Task<PaymentResponseDto> Handle(ExtendGymCourseCommand request, CancellationToken cancellationToken)
     {
@@ -51,12 +53,14 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
         ];
         await GetAndValidateOrderItems(requestDto.OrderItems, request.CustomerPurchasedIdToExtend);
 
-        var totalPrice = CalculateTotalPrice(requestDto.OrderItems);
-        requestDto.TotalAmount = totalPrice;
+        var subTotalPrice = CalculateSubTotalPrice(requestDto.OrderItems);
+        requestDto.SubTotalPrice = subTotalPrice;
+        var totalPrice = await CalculateTotalPrice(requestDto, userId.Value);
+        requestDto.TotalAmountPrice = totalPrice;
         requestDto.AccountId = userId;
 
         var paymentResponse = await _payOSService.CreatePaymentLinkAsync(requestDto, user);
-        var orderId = await CreateOrder(requestDto, paymentResponse.Data.CheckoutUrl);
+        var orderId = await CreateOrder(requestDto, paymentResponse.Data.CheckoutUrl, userId.Value);
         await CreateTransaction(paymentResponse, requestDto.PaymentMethodId, orderId);
         await AssignOrderItemProductName(requestDto.OrderItems);
 
@@ -79,15 +83,15 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
         await _unitOfWork.CommitAsync();
     }
 
-    public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl)
+    public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl, Guid userId)
     {
-        var subTotalPrice = await CalculateSubTotalPrice(request);
         var order = _mapper.Map<Order>(request);
-        order.SubTotalPrice = subTotalPrice;
+        order.SubTotalPrice = request.SubTotalPrice;
+        order.TotalAmount = request.TotalAmountPrice;
         order.Status = OrderStatus.PaymentProcessing;
         order.CheckoutUrl = checkoutUrl;
+        order.CouponId = request.CouponId ?? null;
         _unitOfWork.Repository<Order>().Insert(order);
-        await _unitOfWork.CommitAsync();
         return order.Id;
     }
 
@@ -177,29 +181,24 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
         }
     }
 
-    public decimal CalculateTotalPrice(List<OrderItemDto> OrderItems)
+    public decimal CalculateSubTotalPrice(List<OrderItemDto> OrderItems)
     {
-        decimal totalPrice = 0;
+        decimal SubTotalPrice = 0;
         foreach (var item in OrderItems)
         {
-            totalPrice += item.Price * item.Quantity;
+            SubTotalPrice += item.Price * item.Quantity;
         }
-        return totalPrice;
+        return SubTotalPrice;
     }
 
-    public async Task<decimal> CalculateSubTotalPrice(CreatePaymentRequestDto request)
+    public async Task<decimal> CalculateTotalPrice(CreatePaymentRequestDto request, Guid userId)
     {
         if (request.CouponId != null)
         {
-            var coupon = await _unitOfWork.Repository<Coupon>().GetBySpecificationAsync(new GetCouponByIdSpecification(request.CouponId!.Value));
-            if (coupon == null)
-            {
-                throw new NotFoundException("Coupon not found");
-            }
-            var couponDiscountAmount = (decimal)coupon.DiscountPercent / 100 * request.TotalAmount > coupon.MaxDiscount ? coupon.MaxDiscount : (decimal)coupon.DiscountPercent / 100 * request.TotalAmount;
-            return request.TotalAmount - couponDiscountAmount;
+            var priceAfterDiscount = await couponService.ApplyCouponAsync(userId, request.CouponId.Value, request.SubTotalPrice);
+            return priceAfterDiscount.DiscountAmount + request.ShippingFee;
         }
 
-        return request.TotalAmount;
+        return request.SubTotalPrice + request.ShippingFee;
     }
 }
