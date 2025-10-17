@@ -12,7 +12,7 @@ using System.Security.Claims;
 namespace FitBridge_Infrastructure.Services.Meetings
 {
     [Authorize]
-    internal class SignalingHub(
+    public class SignalingHub(
         ILogger<SignalingHub> logger,
         SessionManager sessionManager,
         ISchedulerFactory schedulerFactory,
@@ -50,17 +50,17 @@ namespace FitBridge_Infrastructure.Services.Meetings
 
             // if user is the first to join, create a new session
             // if user is the second to join, add them to the session
-            var session = sessionManager.GetCallInfo(strRoomId);
+            var session = await sessionManager.GetCallInfoAsync(strRoomId);
             if (session != null)
             {
                 await Groups.AddToGroupAsync(connectionId, strRoomId);
-                sessionManager.AddConnectionToRoom(strRoomId, connectionId);
+                await sessionManager.AddConnectionToRoomAsync(strRoomId, connectionId);
                 await StartSessionCleanupJobAsync(roomId);
                 return false; // is impolite peer
             }
             else
             {
-                sessionManager.SetCallInfo(strRoomId, new CallInfo
+                await sessionManager.SetCallInfoAsync(strRoomId, new CallInfo
                 {
                     CallDetails = new Dictionary<string, object>
                     {
@@ -68,7 +68,7 @@ namespace FitBridge_Infrastructure.Services.Meetings
                     }
                 });
                 await Groups.AddToGroupAsync(connectionId, strRoomId);
-                sessionManager.AddConnectionToRoom(strRoomId, connectionId);
+                await sessionManager.AddConnectionToRoomAsync(strRoomId, connectionId);
                 return true; // is polite peer
             }
         }
@@ -93,18 +93,18 @@ namespace FitBridge_Infrastructure.Services.Meetings
             await Groups.RemoveFromGroupAsync(connectionId, strRoomId);
 
             logger.LogInformation("Removing connection {ConnectionId} from room {RoomId}", connectionId, roomId);
-            var meetingSession = sessionManager.GetCallInfo(strRoomId);
+            var meetingSession = await sessionManager.GetCallInfoAsync(strRoomId);
             if (meetingSession == null)
             {
                 logger.LogInformation("No such room exists {RoomId}", roomId);
                 return;
             }
 
-            sessionManager.RemoveConnectionFromRoom(strRoomId, connectionId);
-            if (meetingSession.ConnectedConnectionIds.IsEmpty)
+            await sessionManager.RemoveConnectionFromRoomAsync(strRoomId, connectionId);
+            if (meetingSession.ConnectedConnectionIds.Count == 0)
             {
                 logger.LogInformation("No participants left in room {RoomId}, removing session", roomId);
-                sessionManager.RemoveCallInfo(strRoomId);
+                await sessionManager.RemoveCallInfoAsync(strRoomId);
                 unitOfWork.Repository<MeetingSession>().SoftDelete(roomId);
                 await KillJobsAsync(roomId);
             }
@@ -124,7 +124,8 @@ namespace FitBridge_Infrastructure.Services.Meetings
         /// <returns>A task representing the asynchronous operation</returns>
         public async Task SendMessage(string strRoomId, object message)
         {
-            var isConnectionInRoom = sessionManager.GetCallInfo(strRoomId)?.ConnectedConnectionIds.TryGetValue(Context.ConnectionId, out _);
+            var callInfo = await sessionManager.GetCallInfoAsync(strRoomId);
+            var isConnectionInRoom = callInfo?.ConnectedConnectionIds.Contains(Context.ConnectionId);
             if (isConnectionInRoom != true)
             {
                 logger.LogInformation("Connection {ConnectionId} is not in room {RoomId}, cannot send message", Context.ConnectionId, strRoomId);
@@ -163,8 +164,8 @@ namespace FitBridge_Infrastructure.Services.Meetings
             var connectionId = Context.ConnectionId;
             logger.LogInformation("Connection disconnected: {ConnectionId}", connectionId);
 
-            foreach (var room in sessionManager.GetAllCallInfo()
-                .Where(r => r.Value.ConnectedConnectionIds.ContainsKey(connectionId)))
+            var allRooms = await sessionManager.GetAllCallInfoAsync();
+            foreach (var room in allRooms.Where(r => r.Value.ConnectedConnectionIds.Contains(connectionId)))
             {
                 await LeaveRoom(room.Key);
             }

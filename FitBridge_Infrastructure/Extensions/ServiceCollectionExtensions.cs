@@ -16,6 +16,7 @@ using FitBridge_Infrastructure.Seeder;
 using FitBridge_Infrastructure.Services;
 using FitBridge_Infrastructure.Services.Implements;
 using FitBridge_Infrastructure.Services.Jobs;
+using FitBridge_Infrastructure.Services.Meetings;
 using FitBridge_Infrastructure.Services.Notifications;
 using FitBridge_Infrastructure.Services.Notifications.Helpers;
 using FitBridge_Infrastructure.Services.Templating;
@@ -97,6 +98,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.Configure<PayOSSettings>(configuration.GetSection(PayOSSettings.SectionName));
             services.Configure<NotificationSettings>(configuration.GetSection(NotificationSettings.SectionName));
             services.Configure<AppWriteSettings>(configuration.GetSection(AppWriteSettings.SectionName));
+            services.Configure<RedisSettings>(configuration.GetSection(RedisSettings.SectionName));
             var channel = Channel.CreateUnbounded<NotificationMessage>(new UnboundedChannelOptions
             {
                 SingleWriter = false,
@@ -160,6 +162,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddSingleton<PushNotificationService>();
             services.AddSingleton<NotificationConnectionManager>();
             services.AddSingleton<NotificationHandshakeManager>();
+            services.AddSingleton<SessionManager>();
 
             services.AddScoped<INotificationService, NotificationsService>();
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
