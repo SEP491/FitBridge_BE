@@ -1,4 +1,5 @@
 using FitBridge_API.Helpers.RequestHelpers;
+using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos.Payments;
 using FitBridge_Application.Features.Payments.CancelPaymentCommand;
 using FitBridge_Application.Features.Payments.CreatePaymentLink;
@@ -95,7 +96,7 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
     /// <response code="400">If a withdrawal request already exists for the user.</response>
     /// <response code="401">If the user is not authenticated.</response>
     [HttpPost("request-withdrawal")]
-    [Authorize]
+    [Authorize(Roles = ProjectConstant.UserRoles.FreelancePT + "," + ProjectConstant.UserRoles.GymOwner)]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(BaseResponse<RequestPaymentResponseDto>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
