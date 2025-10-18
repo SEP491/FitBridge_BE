@@ -9,7 +9,7 @@ public class SessionActivity : BaseEntity
     public ActivityType ActivityType { get; set; }
 
     public string ActivityName { get; set; }
-    public MuscleGroupEnum[] MuscleGroups { get; set; } = Array.Empty<MuscleGroupEnum>();
+    public MuscleGroupEnum MuscleGroup { get; set; }
     public ActivitySetType ActivitySetType { get; set; }
     public Guid BookingId { get; set; }
 
