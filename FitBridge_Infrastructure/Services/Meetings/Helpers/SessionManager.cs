@@ -146,8 +146,7 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
                 var connections = await json.GetAsync<List<string>>(callInfoKey, "$.ConnectedConnectionIds");
                 if (connections != null && connections.Count > 0)
                 {
-                    var connectionsList = connections[0];
-                    var index = connectionsList.IndexOf(connectionId);
+                    var index = connections.IndexOf(connectionId);
 
                     if (index >= 0)
                     {
