@@ -125,21 +125,9 @@ namespace FitBridge_Infrastructure.Services.Meetings
             }
 
             await sessionManager.RemoveConnectionFromRoomAsync(strRoomId, connectionId);
-            if (meetingSession.ConnectedConnectionIds.Count == 1)
-            {
-                logger.LogInformation("No participants left in room {RoomId}, removing session", roomId);
-                // TODO: add a slight delay until remove call
-                await sessionManager.RemoveCallInfoAsync(strRoomId);
-                unitOfWork.Repository<MeetingSession>().SoftDelete(roomId);
-                await unitOfWork.CommitAsync();
-                await KillJobsAsync(roomId);
-            }
-            else
-            {
-                logger.LogInformation("Notifying other users in room {RoomId} that connection {ConnectionId} has left", roomId, connectionId);
-                var username = Context.User?.FindFirst(ClaimTypes.Name)?.Value ?? "Anonymous";
-                await Clients.OthersInGroup(strRoomId).UserLeft(username);
-            }
+            logger.LogInformation("Notifying other users in room {RoomId} that connection {ConnectionId} has left", roomId, connectionId);
+            var username = Context.User?.FindFirst(ClaimTypes.Name)?.Value ?? "Anonymous";
+            await Clients.OthersInGroup(strRoomId).UserLeft(username);
         }
 
         /// <summary>
@@ -230,40 +218,47 @@ namespace FitBridge_Infrastructure.Services.Meetings
             var scheduler = await schedulerFactory.GetScheduler();
             logger.LogInformation("Starting jobs");
 
-            // StopMeetingRoomJob
-            var stopMeetingJobKey = new JobKey(nameof(StopMeetingRoomJob), nameof(StopMeetingRoomJob));
-            var stopMeetingTriggerKey = new TriggerKey($"{nameof(StopMeetingRoomJob)}Trigger", nameof(StopMeetingRoomJob));
+            try
+            {
+                // StopMeetingRoomJob
+                var stopMeetingJobKey = new JobKey(nameof(StopMeetingRoomJob), nameof(StopMeetingRoomJob));
+                var stopMeetingTriggerKey = new TriggerKey($"{nameof(StopMeetingRoomJob)}Trigger", nameof(StopMeetingRoomJob));
 
-            var stopMeetingJob = JobBuilder.Create<StopMeetingRoomJob>()
-                .WithIdentity(stopMeetingJobKey)
-                .WithDescription("Stop meeting room job")
-                .UsingJobData("roomId", roomId.ToString())
-                .Build();
+                var stopMeetingJob = JobBuilder.Create<StopMeetingRoomJob>()
+                    .WithIdentity(stopMeetingJobKey)
+                    .WithDescription("Stop meeting room job")
+                    .UsingJobData("roomId", roomId.ToString())
+                    .Build();
 
-            var stopMeetingTrigger = TriggerBuilder.Create()
-                .WithIdentity(stopMeetingTriggerKey)
-                .WithDescription("Stop meeting room trigger")
-                .StartAt(DateTime.UtcNow.AddSeconds(options.Value.StopMeetingTime))
-                .Build();
+                var stopMeetingTrigger = TriggerBuilder.Create()
+                    .WithIdentity(stopMeetingTriggerKey)
+                    .WithDescription("Stop meeting room trigger")
+                    .StartAt(DateTime.UtcNow.AddSeconds(options.Value.StopMeetingTime))
+                    .Build();
 
-            // MeetingRoomExpirationAlertJob
-            var alertJobKey = new JobKey(nameof(MeetingRoomExpirationAlertJob), nameof(MeetingRoomExpirationAlertJob));
-            var alertTriggerKey = new TriggerKey($"{nameof(MeetingRoomExpirationAlertJob)}Trigger", nameof(MeetingRoomExpirationAlertJob));
+                // MeetingRoomExpirationAlertJob
+                var alertJobKey = new JobKey(nameof(MeetingRoomExpirationAlertJob), nameof(MeetingRoomExpirationAlertJob));
+                var alertTriggerKey = new TriggerKey($"{nameof(MeetingRoomExpirationAlertJob)}Trigger", nameof(MeetingRoomExpirationAlertJob));
 
-            var showMeetingAlertJob = JobBuilder.Create<MeetingRoomExpirationAlertJob>()
-                .WithIdentity(alertJobKey)
-                .WithDescription("Show meeting room expiration alert job")
-                .UsingJobData("roomId", roomId.ToString())
-                .Build();
+                var showMeetingAlertJob = JobBuilder.Create<MeetingRoomExpirationAlertJob>()
+                    .WithIdentity(alertJobKey)
+                    .WithDescription("Show meeting room expiration alert job")
+                    .UsingJobData("roomId", roomId.ToString())
+                    .Build();
 
-            var showMeetingAlertTrigger = TriggerBuilder.Create()
-                .WithIdentity(alertTriggerKey)
-                .WithDescription("Show meeting room alert trigger")
-                .StartAt(DateTime.UtcNow.AddSeconds(options.Value.ShowMeetingAlertTime))
-                .Build();
+                var showMeetingAlertTrigger = TriggerBuilder.Create()
+                    .WithIdentity(alertTriggerKey)
+                    .WithDescription("Show meeting room alert trigger")
+                    .StartAt(DateTime.UtcNow.AddSeconds(options.Value.ShowMeetingAlertTime))
+                    .Build();
 
-            await scheduler.ScheduleJob(stopMeetingJob, stopMeetingTrigger);
-            await scheduler.ScheduleJob(showMeetingAlertJob, showMeetingAlertTrigger);
+                await scheduler.ScheduleJob(stopMeetingJob, stopMeetingTrigger);
+                await scheduler.ScheduleJob(showMeetingAlertJob, showMeetingAlertTrigger);
+            }
+            catch (JobPersistenceException ex)
+            {
+                logger.LogWarning("Jobs for room {RoomId} already exist: {Message}", roomId, ex.Message);
+            }
         }
     }
 }
