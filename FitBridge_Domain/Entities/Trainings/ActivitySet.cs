@@ -12,6 +12,8 @@ public class ActivitySet : BaseEntity
     public double? PlannedPracticeTime { get; set; }
     public double? WeightLifted { get; set; }
     public double? PracticeTime { get; set; }
+    public int? PlannedDistance { get; set; }
+    public int? ActualDistance { get; set; }
     public Guid SessionActivityId { get; set; }
     public SessionActivity SessionActivity { get; set; }
     public bool IsCompleted { get; set; }

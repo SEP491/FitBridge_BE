@@ -24,7 +24,7 @@ public class SessionPracticeContentCommandHandler(IUnitOfWork _unitOfWork) : IRe
                 Id = sessionActivity.Id,
                 ActivityName = sessionActivity.ActivityName,
                 ActivityType = sessionActivity.ActivityType,
-                MuscleGroups = sessionActivity.MuscleGroups.Select(x => x.ToString()).ToList(),
+                MuscleGroup = sessionActivity.MuscleGroup,
                 NumOfReps = sessionActivity.ActivitySets.Sum(x => x.NumOfReps ?? 0),
                 WeightLifted = sessionActivity.ActivitySets.Sum(x => x.WeightLifted * x.NumOfReps ?? 0),
                 TotalSets = sessionActivity.ActivitySets.Count,

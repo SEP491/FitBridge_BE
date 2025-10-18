@@ -25,7 +25,7 @@ public class UpdateSessionActivityCommandHandler(IUnitOfWork unitOfWork, IMapper
         }
         sessionActivity.ActivityType = request.ActivityType;
         sessionActivity.ActivityName = request.ActivityName;
-        sessionActivity.MuscleGroups = request.MuscleGroups;
+        sessionActivity.MuscleGroup = request.MuscleGroup;
         sessionActivity.ActivitySetType = request.ActivitySetType;
         await unitOfWork.CommitAsync();
         return _mapper.Map<SessionActivityResponseDto>(sessionActivity);

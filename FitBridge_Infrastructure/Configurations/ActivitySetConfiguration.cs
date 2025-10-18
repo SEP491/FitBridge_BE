@@ -15,6 +15,8 @@ public class ActivitySetConfiguration : IEntityTypeConfiguration<ActivitySet>
         builder.Property(e => e.NumOfReps).IsRequired(false).HasDefaultValue(0);
         builder.Property(e => e.WeightLifted).IsRequired(false).HasDefaultValue(0.0);
         builder.Property(e => e.PracticeTime).IsRequired(false).HasDefaultValue(0.0);
+        builder.Property(e => e.PlannedDistance).IsRequired(false).HasDefaultValue(0);
+        builder.Property(e => e.ActualDistance).IsRequired(false).HasDefaultValue(0);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);

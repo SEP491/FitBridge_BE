@@ -18,14 +18,8 @@ public class SessionActivityConfiguration : IEntityTypeConfiguration<SessionActi
         .HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<ActivityType>(s));
         builder.Property(e => e.ActivityName).IsRequired(true);
 
-        var muscleEnumConverter = new ValueConverter<MuscleGroupEnum, string>(
-            v => v.ToString(),
-            v => (MuscleGroupEnum)Enum.Parse(typeof(MuscleGroupEnum), v));
-
-        builder.PrimitiveCollection(e => e.MuscleGroups)
-            .IsRequired()
-            .ElementType()
-            .HasConversion(muscleEnumConverter);
+        builder.Property(e => e.MuscleGroup).IsRequired(true)
+        .HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<MuscleGroupEnum>(s));
 
         builder.Property(e => e.ActivitySetType).IsRequired(true).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<ActivitySetType>(s)).HasDefaultValue(ActivitySetType.Reps);
 

@@ -4,12 +4,11 @@
     {
         Pending,
 
-        Approved,
+        AdminApproved,
 
         Rejected,
 
-        Failed,
-
-        Success
+        Resolved,
+        UserDisapproved
     }
 }

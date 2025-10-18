@@ -16,5 +16,5 @@ public class UpdateSessionActivityCommand : IRequest<SessionActivityResponseDto>
     public ActivitySetType ActivitySetType { get; set; }
     public string? Note { get; set; }
     public string? NutritionTip { get; set; }
-    public MuscleGroupEnum[] MuscleGroups { get; set; } = Array.Empty<MuscleGroupEnum>();
+    public MuscleGroupEnum MuscleGroup { get; set; }
 }
