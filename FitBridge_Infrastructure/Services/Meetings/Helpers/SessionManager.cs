@@ -1,8 +1,11 @@
 ﻿using FitBridge_Application.Configurations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NRedisStack.Json.DataTypes;
+using NRedisStack.RedisStackCommands;
 using StackExchange.Redis;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace FitBridge_Infrastructure.Services.Meetings.Helpers
 {
@@ -15,13 +18,16 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
 
         private readonly ILogger<SessionManager> _logger = logger;
 
-        private readonly string _connectionsKeyPrefix = redisSettings.Value.MeetingConnectionsKeyPrefix;
-
         private readonly string _callInfoKeyPrefix = redisSettings.Value.MeetingCallInfoKeyPrefix;
 
         private readonly TimeSpan _sessionExpiration = TimeSpan.FromSeconds(redisSettings.Value.MeetingSessionExpirationSeconds);
 
-        private string GetConnectionsKey(string roomId) => $"{_connectionsKeyPrefix}{roomId}";
+        private readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new JsonStringEnumConverter() }
+        };
 
         private string GetCallInfoKey(string roomId) => $"{_callInfoKeyPrefix}{roomId}";
 
@@ -35,22 +41,8 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
                 ArgumentException.ThrowIfNullOrEmpty(roomId);
 
                 var callInfoKey = GetCallInfoKey(roomId);
-                var serializedData = await _database.StringGetAsync(callInfoKey);
-
-                if (serializedData.IsNullOrEmpty)
-                {
-                    return null;
-                }
-
-                var callInfo = JsonSerializer.Deserialize<CallInfo>(serializedData.ToString());
-
-                // Load connections from Redis set
-                if (callInfo != null)
-                {
-                    var connectionsKey = GetConnectionsKey(roomId);
-                    var connections = await _database.SetMembersAsync(connectionsKey);
-                    callInfo.ConnectedConnectionIds = connections.Select(c => c.ToString()).ToHashSet();
-                }
+                var json = _database.JSON();
+                var callInfo = await json.GetAsync<CallInfo>(callInfoKey);
 
                 return callInfo;
             }
@@ -72,20 +64,10 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
                 ArgumentNullException.ThrowIfNull(callInfo);
 
                 var callInfoKey = GetCallInfoKey(roomId);
-                var connectionsKey = GetConnectionsKey(roomId);
+                var json = _database.JSON();
 
-                // Store call info (without connections - they're stored separately)
-                var callInfoToStore = new CallInfo
-                {
-                    ConnectedConnectionIds = new HashSet<string>(),
-                    CallDetails = callInfo.CallDetails
-                };
-
-                var serializedData = JsonSerializer.Serialize(callInfoToStore);
-                await _database.StringSetAsync(callInfoKey, serializedData, _sessionExpiration);
-
-                // Initialize empty connections set
-                await _database.KeyExpireAsync(connectionsKey, _sessionExpiration);
+                await json.SetAsync(callInfoKey, "$", callInfo);
+                await _database.KeyExpireAsync(callInfoKey, _sessionExpiration);
 
                 _logger.LogInformation("Set CallInfo for room {RoomId}", roomId);
             }
@@ -106,7 +88,6 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
                 ArgumentException.ThrowIfNullOrEmpty(roomId);
                 ArgumentException.ThrowIfNullOrEmpty(connectionId);
 
-                var connectionsKey = GetConnectionsKey(roomId);
                 var callInfoKey = GetCallInfoKey(roomId);
 
                 // Check if room exists
@@ -117,14 +98,18 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
                     return;
                 }
 
-                // Add connection to set
-                await _database.SetAddAsync(connectionsKey, connectionId);
+                var json = _database.JSON();
 
-                // Refresh expiration on both keys
-                await _database.KeyExpireAsync(connectionsKey, _sessionExpiration);
+                // Add connection to the array using JSON.ARRAPPEND
+                await json.ArrAppendAsync(callInfoKey, "$.ConnectedConnectionIds", connectionId);
+
+                // Refresh expiration
                 await _database.KeyExpireAsync(callInfoKey, _sessionExpiration);
 
-                var connectionCount = await _database.SetLengthAsync(connectionsKey);
+                // Get the updated array length for logging
+                var lengths = await json.ArrLenAsync(callInfoKey, "$.ConnectedConnectionIds");
+                var connectionCount = lengths?.FirstOrDefault() ?? 0;
+
                 _logger.LogInformation("Added connection {ConnectionId} to room {RoomId}. ConnectedCount={ConnectedCount}",
                     connectionId, roomId, connectionCount);
             }
@@ -145,7 +130,6 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
                 ArgumentException.ThrowIfNullOrEmpty(roomId);
                 ArgumentException.ThrowIfNullOrEmpty(connectionId);
 
-                var connectionsKey = GetConnectionsKey(roomId);
                 var callInfoKey = GetCallInfoKey(roomId);
 
                 // Check if room exists
@@ -156,23 +140,30 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
                     return;
                 }
 
-                // Remove connection from set
-                var removed = await _database.SetRemoveAsync(connectionsKey, connectionId);
+                var json = _database.JSON();
 
-                if (removed)
+                // Get current connections array
+                var connections = await json.GetAsync<List<string>>(callInfoKey, "$.ConnectedConnectionIds");
+                if (connections != null && connections.Count > 0)
                 {
-                    // Check remaining connections
-                    var remainingCount = await _database.SetLengthAsync(connectionsKey);
+                    var connectionsList = connections[0];
+                    var index = connectionsList.IndexOf(connectionId);
 
-                    if (remainingCount > 0)
+                    if (index >= 0)
                     {
-                        // Refresh expiration if there are still connections
-                        await _database.KeyExpireAsync(connectionsKey, _sessionExpiration);
-                        await _database.KeyExpireAsync(callInfoKey, _sessionExpiration);
-                    }
+                        // Remove the element at the found index using JSON.ARRPOP
+                        await json.ArrPopAsync(callInfoKey, "$.ConnectedConnectionIds", index);
 
-                    _logger.LogInformation("Removed connection {ConnectionId} from room {RoomId}. ConnectedCount={ConnectedCount}",
-                        connectionId, roomId, remainingCount);
+                        // Refresh expiration
+                        await _database.KeyExpireAsync(callInfoKey, _sessionExpiration);
+
+                        // Get the updated array length for logging
+                        var lengths = await json.ArrLenAsync(callInfoKey, "$.ConnectedConnectionIds");
+                        var remainingCount = lengths?.FirstOrDefault() ?? 0;
+
+                        _logger.LogInformation("Removed connection {ConnectionId} from room {RoomId}. ConnectedCount={ConnectedCount}",
+                            connectionId, roomId, remainingCount);
+                    }
                 }
             }
             catch (Exception ex)
@@ -192,18 +183,13 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
                 ArgumentException.ThrowIfNullOrEmpty(roomId);
 
                 var callInfoKey = GetCallInfoKey(roomId);
-                var connectionsKey = GetConnectionsKey(roomId);
 
                 // Get connection count before deletion
-                var connectionCount = await _database.SetLengthAsync(connectionsKey);
+                var callInfo = await GetCallInfoAsync(roomId);
+                var connectionCount = callInfo?.ConnectedConnectionIds.Count ?? 0;
 
-                // Delete both keys
-                var batch = _database.CreateBatch();
-                var deleteCallInfoTask = batch.KeyDeleteAsync(callInfoKey);
-                var deleteConnectionsTask = batch.KeyDeleteAsync(connectionsKey);
-                batch.Execute();
-
-                await Task.WhenAll(deleteCallInfoTask, deleteConnectionsTask);
+                // Delete the key
+                await _database.KeyDeleteAsync(callInfoKey);
 
                 _logger.LogInformation("Removed CallInfo for room {RoomId}: ConnectedCount={ConnectedCount}",
                     roomId, connectionCount);
@@ -259,8 +245,8 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
                 ArgumentException.ThrowIfNullOrEmpty(roomId);
                 ArgumentException.ThrowIfNullOrEmpty(connectionId);
 
-                var connectionsKey = GetConnectionsKey(roomId);
-                return await _database.SetContainsAsync(connectionsKey, connectionId);
+                var callInfo = await GetCallInfoAsync(roomId);
+                return callInfo?.ConnectedConnectionIds.Contains(connectionId) ?? false;
             }
             catch (Exception ex)
             {
@@ -278,8 +264,8 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
             {
                 ArgumentException.ThrowIfNullOrEmpty(roomId);
 
-                var connectionsKey = GetConnectionsKey(roomId);
-                return await _database.SetLengthAsync(connectionsKey);
+                var callInfo = await GetCallInfoAsync(roomId);
+                return callInfo?.ConnectedConnectionIds.Count ?? 0;
             }
             catch (Exception ex)
             {

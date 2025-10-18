@@ -5,7 +5,7 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
     public class CallInfo
     {
         [JsonInclude]
-        public HashSet<string> ConnectedConnectionIds { get; set; } = new();
+        public List<string> ConnectedConnectionIds { get; set; } = new();
 
         [JsonInclude]
         public Dictionary<string, object>? CallDetails { get; set; }
@@ -15,7 +15,7 @@ namespace FitBridge_Infrastructure.Services.Meetings.Helpers
         }
 
         [JsonConstructor]
-        public CallInfo(HashSet<string> connectedConnectionIds, Dictionary<string, object>? callDetails)
+        public CallInfo(List<string> connectedConnectionIds, Dictionary<string, object>? callDetails)
         {
             ConnectedConnectionIds = connectedConnectionIds;
             CallDetails = callDetails;

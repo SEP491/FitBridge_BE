@@ -125,11 +125,13 @@ namespace FitBridge_Infrastructure.Services.Meetings
             }
 
             await sessionManager.RemoveConnectionFromRoomAsync(strRoomId, connectionId);
-            if (meetingSession.ConnectedConnectionIds.Count == 0)
+            if (meetingSession.ConnectedConnectionIds.Count == 1)
             {
                 logger.LogInformation("No participants left in room {RoomId}, removing session", roomId);
+                // TODO: add a slight delay until remove call
                 await sessionManager.RemoveCallInfoAsync(strRoomId);
                 unitOfWork.Repository<MeetingSession>().SoftDelete(roomId);
+                await unitOfWork.CommitAsync();
                 await KillJobsAsync(roomId);
             }
             else
