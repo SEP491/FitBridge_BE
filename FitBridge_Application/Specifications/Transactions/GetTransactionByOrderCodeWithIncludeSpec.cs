@@ -18,5 +18,6 @@ public class GetTransactionByOrderCodeWithIncludeSpec : BaseSpecification<Transa
         AddInclude("Order.OrderItems.ProductDetail");
         AddInclude("Order.OrderItems.GymCourse");
         AddInclude("Order.GymCoursePTToAssign");
+        AddInclude("Order.Coupon");
     }
 }

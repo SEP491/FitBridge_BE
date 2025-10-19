@@ -14,10 +14,11 @@ using FitBridge_Application.Commons.Utils;
 using FitBridge_Application.Specifications.Orders;
 using Quartz;
 using FitBridge_Application.Dtos.Jobs;
+using FitBridge_Application.Dtos.Payments;
 
 namespace FitBridge_Application.Services;
 
-public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsService> _logger, ISchedulerFactory _schedulerFactory, IScheduleJobServices _scheduleJobServices) : ITransactionService
+public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsService> _logger, ISchedulerFactory _schedulerFactory, IScheduleJobServices _scheduleJobServices, IApplicationUserService _applicationUserService) : ITransactionService
 {
     public async Task<bool> ExtendCourse(long orderCode)
     {
@@ -26,6 +27,12 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         {
             throw new NotFoundException("Transaction not found with order code " + orderCode);
         }
+        if (transactionToExtend.Order.Coupon != null)
+        {
+            transactionToExtend.Order.Coupon.Quantity--;
+            transactionToExtend.Order.Coupon.NumberOfUsedCoupon++;
+        }
+        transactionToExtend.ProfitAmount = await CalculateSystemProfit(transactionToExtend.Order);
         var orderItemToExtend = transactionToExtend.Order.OrderItems.First();
         var customerPurchasedToExtend = transactionToExtend.Order.CustomerPurchasedToExtend;
         orderItemToExtend.CustomerPurchasedId = customerPurchasedToExtend.Id;
@@ -53,7 +60,11 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         {
             throw new NotFoundException("Wallet not found");
         }
-        walletToUpdate.PendingBalance += orderItemToExtend.Price * orderItemToExtend.Quantity * ProjectConstant.CommissionRate;
+        var profit = await CalculateMerchantProfit(orderItemToExtend, transactionToExtend.Order.Coupon);
+        walletToUpdate.PendingBalance += profit;
+        _logger.LogInformation($"Wallet {walletToUpdate.Id} updated with new pending balance {walletToUpdate.PendingBalance} after adding profit {profit}");
+        transactionToExtend.ProfitAmount = profit;
+
         _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
         await _unitOfWork.CommitAsync();
 
@@ -62,8 +73,24 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             OrderItemId = orderItemToExtend.Id,
             ProfitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30)
         });
-        await _unitOfWork.CommitAsync();
         return true;
+    }
+    public async Task<decimal> CalculateSystemProfit(Order order)
+    {
+        var systemProfit = order.SubTotalPrice * ProjectConstant.CommissionRate;
+        if (order.Coupon != null)
+        {
+            if (order.Coupon.Type == CouponType.FreelancePT)
+            {
+                systemProfit = order.TotalAmount * ProjectConstant.CommissionRate;
+            }
+            else if (order.Coupon.Type == CouponType.System)
+            {
+                var discountAmount = order.SubTotalPrice * (decimal)(order.Coupon.DiscountPercent / 100) > order.Coupon.MaxDiscount ? order.Coupon.MaxDiscount : order.SubTotalPrice * (decimal)(order.Coupon.DiscountPercent / 100);
+                systemProfit = (order.SubTotalPrice * ProjectConstant.CommissionRate) - discountAmount;
+            }
+        }
+        return Math.Round(systemProfit, 0, MidpointRounding.AwayFromZero);
     }
 
     public async Task<bool> PurchasePt(long orderCode)
@@ -90,13 +117,13 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<bool> DistributeProfit(Guid orderItemId)
     {
-        var orderItem = await _unitOfWork.Repository<OrderItem>().GetByIdAsync(orderItemId, includes: new List<string> { "Order", "FreelancePTPackage", "GymCourse" });
+        var orderItem = await _unitOfWork.Repository<OrderItem>().GetByIdAsync(orderItemId, includes: new List<string> { "Order", "FreelancePTPackage", "GymCourse", "Order.Coupon", "Order.Coupon.Creator" });
 
         if (orderItem == null)
         {
             throw new NotFoundException($"{nameof(orderItem)} with Id {orderItemId} not found");
         }
-        var profit = Math.Round(orderItem.Price * orderItem.Quantity - orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate, 2, MidpointRounding.AwayFromZero);
+        var profit = await CalculateMerchantProfit(orderItem, orderItem.Order.Coupon);
 
         var DistributeProfTransaction = new Transaction
         {
@@ -153,6 +180,13 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         {
             OrderEntity.Status = OrderStatus.Arrived;
         }
+        OrderEntity.Transactions.FirstOrDefault(t => t.OrderCode == orderCode).ProfitAmount = await CalculateSystemProfit(OrderEntity);
+
+        if (OrderEntity.Coupon != null)
+        {
+            OrderEntity.Coupon.Quantity--;
+            OrderEntity.Coupon.NumberOfUsedCoupon++;
+        }
         foreach (var orderItem in OrderEntity.OrderItems)
         {
             var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -178,7 +212,10 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             {
                 throw new NotFoundException("Wallet not found");
             }
-            walletToUpdate.PendingBalance += orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate;
+            var profit = await CalculateMerchantProfit(orderItem, OrderEntity.Coupon);
+            walletToUpdate.PendingBalance += profit;
+
+
             _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
             await _unitOfWork.CommitAsync();
 
@@ -191,62 +228,90 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         return true;
     }
 
+    private async Task<decimal> CalculateMerchantProfit(OrderItem orderItem, Coupon? coupon)
+    {
+        var subTotalOrderItemPrice = orderItem.Price * orderItem.Quantity;
+        var commissionAmount = subTotalOrderItemPrice * ProjectConstant.CommissionRate;
+        var merchantPtProfit = Math.Round(subTotalOrderItemPrice - commissionAmount, 0, MidpointRounding.AwayFromZero);
+        if (coupon != null) // If there is a voucher, recalculate the profit
+        {
+            var voucherOwnerRoles = await _applicationUserService.GetUserRoleAsync(coupon.Creator);
+            if (voucherOwnerRoles == ProjectConstant.UserRoles.FreelancePT)
+            {
+                var discountAmount = subTotalOrderItemPrice * (decimal)(coupon.DiscountPercent / 100) > coupon.MaxDiscount ? coupon.MaxDiscount : subTotalOrderItemPrice * (decimal)(coupon.DiscountPercent / 100);
+                merchantPtProfit = merchantPtProfit - discountAmount;
+            }
+        }
+
+        return Math.Round(merchantPtProfit, 0, MidpointRounding.AwayFromZero);
+
+    }
+
     public async Task<bool> PurchaseGymCourse(long orderCode)
     {
         var OrderEntity = await _unitOfWork.Repository<Order>()
                 .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(orderCode), false);
-            if (OrderEntity == null)
+        if (OrderEntity == null)
+        {
+            throw new NotFoundException("Order not found");
+        }
+        if (OrderEntity.OrderItems.Any(item => item.ProductDetailId != null))
+        {
+            OrderEntity.Status = OrderStatus.Pending;
+        }
+        else
+        {
+            OrderEntity.Status = OrderStatus.Arrived;
+        }
+        if (OrderEntity.Coupon != null)
+        {
+            OrderEntity.Coupon.Quantity--;
+            OrderEntity.Coupon.NumberOfUsedCoupon++;
+            _unitOfWork.Repository<Coupon>().Update(OrderEntity.Coupon);
+        }
+        OrderEntity.Transactions.FirstOrDefault(t => t.OrderCode == orderCode).ProfitAmount = await CalculateSystemProfit(OrderEntity);
+        foreach (var orderItem in OrderEntity.OrderItems)
+        {
+            if (orderItem.ProductDetailId == null)
             {
-                throw new NotFoundException("Order not found");
-            }
-            if (OrderEntity.OrderItems.Any(item => item.ProductDetailId != null))
-            {
-                OrderEntity.Status = OrderStatus.Pending;
-            }
-            else
-            {
-                OrderEntity.Status = OrderStatus.Arrived;
-            }
-            foreach (var orderItem in OrderEntity.OrderItems)
-            {
-                if (orderItem.ProductDetailId == null)
+                var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                var numOfSession = 0;
+                var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30);
+                if (orderItem.GymCourseId != null && orderItem.GymPtId != null)
                 {
-                    var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
-                    var numOfSession = 0;
-                    var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30);
-                    if (orderItem.GymCourseId != null && orderItem.GymPtId != null)
+                    var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItem.GymCourseId.Value, orderItem.GymPtId.Value));
+                    if (gymCoursePT == null)
                     {
-                        var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItem.GymCourseId.Value, orderItem.GymPtId.Value));
-                        if (gymCoursePT == null)
-                        {
-                            throw new NotFoundException("Gym course PT with gym course id and pt id not found");
-                        }
-                        numOfSession = gymCoursePT.Session.Value;
+                        throw new NotFoundException("Gym course PT with gym course id and pt id not found");
                     }
-
-                    expirationDate = expirationDate.AddDays(orderItem.GymCourse.Duration * orderItem.Quantity);
-                    orderItem.CustomerPurchased = new CustomerPurchased
-                    {
-                        CustomerId = OrderEntity.AccountId,
-                        AvailableSessions = orderItem.Quantity * numOfSession,
-                        ExpirationDate = expirationDate,
-                    };
-                    var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.GymCourse.GymOwnerId);
-                    if (walletToUpdate == null)
-                    {
-                        throw new NotFoundException("Wallet not found");
-                    }
-                    walletToUpdate.PendingBalance += orderItem.Price * orderItem.Quantity * ProjectConstant.CommissionRate;
-                    _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
-                    await _unitOfWork.CommitAsync();
-
-                    await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
-                    {
-                        OrderItemId = orderItem.Id,
-                        ProfitDistributionDate = profitDistributionDate
-                    });
+                    numOfSession = gymCoursePT.Session.Value;
                 }
+
+                expirationDate = expirationDate.AddDays(orderItem.GymCourse.Duration * orderItem.Quantity);
+                orderItem.CustomerPurchased = new CustomerPurchased
+                {
+                    CustomerId = OrderEntity.AccountId,
+                    AvailableSessions = orderItem.Quantity * numOfSession,
+                    ExpirationDate = expirationDate,
+                };
+                var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.GymCourse.GymOwnerId);
+                if (walletToUpdate == null)
+                {
+                    throw new NotFoundException("Wallet not found");
+                }
+                var profit = await CalculateMerchantProfit(orderItem, OrderEntity.Coupon);
+                walletToUpdate.PendingBalance += profit;
+                OrderEntity.Transactions.FirstOrDefault(t => t.OrderCode == orderCode).ProfitAmount = profit;
+                _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
+                await _unitOfWork.CommitAsync();
+
+                await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
+                {
+                    OrderItemId = orderItem.Id,
+                    ProfitDistributionDate = profitDistributionDate
+                });
             }
-            return true;
+        }
+        return true;
     }
 }

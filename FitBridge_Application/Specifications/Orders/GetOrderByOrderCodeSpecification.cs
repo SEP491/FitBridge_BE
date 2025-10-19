@@ -15,5 +15,7 @@ public class GetOrderByOrderCodeSpecification : BaseSpecification<Order>
         AddInclude("OrderItems.ServiceInformation");
         AddInclude("OrderItems.ProductDetail");
         AddInclude("OrderItems.GymCourse");
+        AddInclude(o => o.Coupon);
+        AddInclude(o => o.Coupon.Creator);
     }
 }

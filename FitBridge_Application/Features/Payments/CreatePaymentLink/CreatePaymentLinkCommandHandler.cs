@@ -39,7 +39,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         {
             throw new NotFoundException("User not found");
         }
-        await GetAndValidateOrderItems(request.Request.OrderItems, userId.Value);
+        await GetAndValidateOrderItems(request.Request.OrderItems, userId.Value, request.Request.CouponId);
         var SubTotalPrice = CalculateSubTotalPrice(request.Request.OrderItems);
         request.Request.SubTotalPrice = SubTotalPrice;
         request.Request.AccountId = userId;
@@ -140,8 +140,21 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         }
     }
 
-    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid userId)
+    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid userId, Guid? couponId)
     {
+        if (couponId != null)
+        {
+            var coupon = await _unitOfWork.Repository<Coupon>().GetByIdAsync(couponId.Value);
+            if (coupon == null)
+            {
+                throw new NotFoundException("Coupon not found");
+            }
+            if(coupon.Type == CouponType.FreelancePT && OrderItems.Count > 1)
+            {
+                throw new NotFoundException("This coupon type freelance PT only can be used for pt " + coupon.CreatorId);
+            }
+        }
+
         foreach (var item in OrderItems)
         {
             if (item.GymCourseId != null)

@@ -19,7 +19,7 @@ public class CouponService(IUnitOfWork unitOfWork)
 
             if (order != null)
             {
-                throw new InvalidDataException("Coupon already applied");
+                throw new BusinessException("Coupon already applied");
             }
 
             if (coupon.Quantity - 1 <= 0)
