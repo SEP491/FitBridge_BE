@@ -15,6 +15,6 @@ public class CreateSessionActivityCommand : IRequest<SessionActivityResponseDto>
     public ActivityType ActivityType { get; set; }
     public ActivitySetType ActivitySetType { get; set; }
     public string ActivityName { get; set; }
-    public List<MuscleGroupEnum> MuscleGroups { get; set; } = new List<MuscleGroupEnum>();
+    public MuscleGroupEnum MuscleGroup { get; set; }
     public List<ActivitySetRequestDto> ActivitySets { get; set; } = new List<ActivitySetRequestDto>();
 }
