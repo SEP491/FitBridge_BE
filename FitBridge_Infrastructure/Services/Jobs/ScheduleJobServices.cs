@@ -25,7 +25,7 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .Build();
 
         // var triggerTime = profitJobScheduleDto.ProfitDistributionDate.ToDateTime(TimeOnly.MinValue);
-        var triggerTime = DateTime.UtcNow.AddMinutes(2);
+        var triggerTime = DateTime.UtcNow.AddMinutes(1);
         var trigger = TriggerBuilder.Create()
         .WithIdentity(triggerKey)
         .StartAt(triggerTime)

@@ -227,13 +227,7 @@ public class PayOSService : IPayOSService
             }
 
             transaction.Status = TransactionStatus.Success;
-            if (!transaction.TransactionType.Equals(TransactionType.ProductOrder))
-            {
-                //Calculate commission amount
-                var profitAmount = Math.Round(transaction.Order.SubTotalPrice * ProjectConstant.CommissionRate, 2, MidpointRounding.AwayFromZero);
-                
-                transaction.ProfitAmount = profitAmount;
-            }
+
             _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().Update(transaction);
             await _unitOfWork.CommitAsync();
 
