@@ -29,7 +29,7 @@ namespace FitBridge_API.Controllers;
 public class BookingsController(IMediator _mediator) : _BaseApiController
 {
     [HttpPost("cancel-booking")]
-    [Authorize(Roles = ProjectConstant.UserRoles.Customer + "," + ProjectConstant.UserRoles.GymPT)]
+    [Authorize(Roles = ProjectConstant.UserRoles.Customer + "," + ProjectConstant.UserRoles.GymPT + "," + ProjectConstant.UserRoles.FreelancePT)]
     public async Task<IActionResult> CancelBooking([FromBody] CancelGymPtBookingCommand command)
     {
         var result = await _mediator.Send(command);
