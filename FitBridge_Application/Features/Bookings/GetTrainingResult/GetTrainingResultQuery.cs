@@ -4,7 +4,7 @@ using MediatR;
 
 namespace FitBridge_Application.Features.Bookings.GetTrainingResult;
 
-public class GetTrainingResultQuery : IRequest<TrainingResultResponseDto>
+public class GetTrainingResultQuery : IRequest<SessionReportDto>
 {
     public Guid BookingId { get; set; }
 }

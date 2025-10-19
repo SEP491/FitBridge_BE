@@ -261,7 +261,7 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     public async Task<IActionResult> GetTrainingResult([FromRoute] Guid id)
     {
         var result = await _mediator.Send(new GetTrainingResultQuery { BookingId = id });
-        return Ok(new BaseResponse<TrainingResultResponseDto>(StatusCodes.Status200OK.ToString(), "Booking result retrieved successfully", result));
+        return Ok(new BaseResponse<SessionReportDto>(StatusCodes.Status200OK.ToString(), "Booking result retrieved successfully", result));
     }
 
     /// <summary>
