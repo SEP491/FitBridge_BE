@@ -13,7 +13,7 @@ namespace FitBridge_Application.Features.Coupons.GiftCoupon
         IHttpContextAccessor httpContextAccessor,
         IUserUtil userUtil) : IRequestHandler<GiftCouponCommand>
     {
-        public Task Handle(GiftCouponCommand request, CancellationToken cancellationToken)
+        public async Task Handle(GiftCouponCommand request, CancellationToken cancellationToken)
         {
             var userName = userUtil.GetUserFullName(httpContextAccessor.HttpContext!);
             var notificationMessage = new NotificationMessage(
@@ -21,9 +21,7 @@ namespace FitBridge_Application.Features.Coupons.GiftCoupon
                 request.CustomerIds,
                 new NewCouponModel(request.CouponCode, userName, request.CouponCode));
 
-            notificationService.NotifyUsers(notificationMessage);
-
-            return Task.CompletedTask;
+            await notificationService.NotifyUsers(notificationMessage);
         }
     }
 }
