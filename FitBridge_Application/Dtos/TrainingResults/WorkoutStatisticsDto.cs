@@ -8,9 +8,13 @@ public class WorkoutStatisticsDto
 
     public double PlannedPracticeTime { get; set; }
 
+    public int PlannedDistance { get; set; }
+
     public int TotalRepsCompleted { get; set; }
 
     public double TotalPracticeTimeSeconds { get; set; }
+
+    public double TotalDistance { get; set; }
 
     public int AverageRestTimeSeconds { get; set; }
 

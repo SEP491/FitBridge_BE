@@ -5,6 +5,7 @@ using FitBridge_Application.Features.FreelancePTPackages.UpdateFreelancePTPackag
 using FitBridge_Application.Features.FreelancePTPackages.DeleteFreelancePTPackage;
 using FitBridge_Application.Features.FreelancePTPackages.GetFreelancePTPackageById;
 using FitBridge_Application.Features.FreelancePTPackages.GetAllFreelancePTPackages;
+using FitBridge_Application.Dtos.TrainingResults;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
