@@ -15,6 +15,8 @@ using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchas
 using FitBridge_Application.Specifications.GymCoursePts.GetPurchasedGymCoursePtForScheduleGetPurchasedGymCoursePtForSchedule;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using FitBridge_Application.Features.CustomerPurchaseds.GetPackageTrainingResults;
+using FitBridge_Application.Dtos.TrainingResults;
 
 namespace FitBridge_API.Controllers;
 
@@ -69,19 +71,19 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
     [ProducesResponseType(typeof(BaseResponse<Pagination<CustomerPurchasedFreelancePtResponseDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCustomerPurchasedByCustomerId(
-        [FromRoute] Guid customerId, 
+        [FromRoute] Guid customerId,
         [FromQuery] GetCustomerPurchasedParams parameters)
     {
         var query = new GetCustomerPurchasedByCustomerIdQuery(parameters)
         {
             CustomerId = customerId
         };
-        
+
         var response = await _mediator.Send(query);
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<CustomerPurchasedFreelancePtResponseDto>>(
-            StatusCodes.Status200OK.ToString(), 
-            "Customer purchased packages retrieved successfully", 
+            StatusCodes.Status200OK.ToString(),
+            "Customer purchased packages retrieved successfully",
             pagination));
     }
 
@@ -98,7 +100,6 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
         return Ok(new BaseResponse<Guid>(StatusCodes.Status200OK.ToString(), "Check customer purchased success", response));
     }
 
-
     /// <summary>
     /// Use for freelance pt to view list of customer that purchased their package and still not expired
     /// </summary>
@@ -110,5 +111,16 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
         var response = await _mediator.Send(new GetCustomerPurchasedByFreelancePtIdQuery { Params = parameters });
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GetCustomerPurchasedForFreelancePt>>(StatusCodes.Status200OK.ToString(), "Get customer purchased freelance pt by id success", pagination));
+    }
+
+    /// <summary>
+    /// Get training results for a purchased freelance PT package
+    /// </summary>
+    /// <param name="customerPurchasedId">The ID of the purchased package</param>
+    [HttpGet("result/{customerPurchasedId}")]
+    public async Task<IActionResult> GetPackageTrainingResults([FromRoute] Guid customerPurchasedId)
+    {
+        var result = await _mediator.Send(new GetPackageTrainingResultsQuery { CustomerPurchasedId = customerPurchasedId });
+        return Ok(new BaseResponse<CustomerPurchasedAnalyticsDto>(StatusCodes.Status200OK.ToString(), "Training results retrieved successfully", result));
     }
 }

@@ -49,7 +49,10 @@ namespace FitBridge_Application.Features.Coupons.CreateCoupon
             };
 
             var overlappedCoupons = await GetOverlappedCoupons(newCoupon.StartDate);
-            if (overlappedCoupons.Count > 0) throw new CouponOverlapException(overlappedCoupons[0].CouponCode);
+            if (overlappedCoupons.Count > 0)
+            {
+                throw new CouponOverlapException(overlappedCoupons[0].CouponCode);
+            }
 
             unitOfWork.Repository<Coupon>().Insert(newCoupon);
 
