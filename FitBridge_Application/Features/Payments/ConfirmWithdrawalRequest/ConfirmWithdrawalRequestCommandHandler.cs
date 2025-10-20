@@ -29,9 +29,6 @@ namespace FitBridge_Application.Features.Payments.ConfirmWithdrawalRequest
                     $"{withdrawalRequest.Status}. Only pending requests can be confirmed.");
             }
 
-            var validatedWallet = await ValidateWalletBalance(withdrawalRequest);
-            UpdateWalletBalance(validatedWallet, withdrawalRequest.Amount);
-
             UpdateWithdrawalRequest(withdrawalRequest, request.ImageUrl);
 
             await InsertTransactionAsync(withdrawalRequest);
@@ -78,26 +75,6 @@ namespace FitBridge_Application.Features.Payments.ConfirmWithdrawalRequest
             withdrawalRequest.ImageUrl = imageUrl;
             withdrawalRequest.UpdatedAt = DateTime.UtcNow;
             unitOfWork.Repository<WithdrawalRequest>().Update(withdrawalRequest);
-        }
-
-        private void UpdateWalletBalance(Wallet wallet, decimal amount)
-        {
-            wallet.AvailableBalance -= amount;
-            wallet.UpdatedAt = DateTime.UtcNow;
-            unitOfWork.Repository<Wallet>().Update(wallet);
-        }
-
-        private async Task<Wallet> ValidateWalletBalance(WithdrawalRequest withdrawalRequest)
-        {
-            var wallet = await unitOfWork.Repository<Wallet>()
-                .GetByIdAsync(withdrawalRequest.AccountId)
-                ?? throw new NotFoundException($"Wallet not found for user with ID: {withdrawalRequest.AccountId}");
-
-            if (wallet.AvailableBalance < withdrawalRequest.Amount)
-            {
-                throw new InsufficientWalletBalanceException(wallet.AvailableBalance, withdrawalRequest.Amount);
-            }
-            return wallet;
         }
 
         private static long GenerateOrderCode()

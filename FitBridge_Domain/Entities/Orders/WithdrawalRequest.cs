@@ -17,11 +17,12 @@ public class WithdrawalRequest : BaseEntity
 
     public string AccountNumber { get; set; }
 
-    public string ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
 
     public string Reason { get; set; }
 
     public Guid AccountId { get; set; }
+
     public bool IsUserApproved { get; set; }
 
     public ApplicationUser Account { get; set; }
