@@ -24,6 +24,7 @@ public class WithdrawalRequestConfiguration : IEntityTypeConfiguration<Withdrawa
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.Property(e => e.AccountId).IsRequired(true);
+        builder.Property(e => e.IsUserApproved).HasDefaultValue(false);
 
         builder.HasOne(e => e.Account).WithMany(e => e.WithdrawalRequests).HasForeignKey(e => e.AccountId);
     }
