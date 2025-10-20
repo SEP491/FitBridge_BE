@@ -47,7 +47,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
                                 logger.LogInformation("Notified connectionId: {Id}", connectionId);
                             }
 
-                            await hubContext.Clients.Clients(connectionIds.ToList()).NotificationReceived();
+                            await hubContext.Clients.Clients(connectionIds.ToList()).NotificationReceived(dto);
 
                             var handshakeContext = new HandshakeContext
                             {

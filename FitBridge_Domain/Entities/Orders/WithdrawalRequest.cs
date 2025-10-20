@@ -9,7 +9,7 @@ public class WithdrawalRequest : BaseEntity
 
     public decimal Amount { get; set; }
 
-    public string Note { get; set; }
+    public string? Note { get; set; }
 
     public string BankName { get; set; }
 
@@ -19,7 +19,7 @@ public class WithdrawalRequest : BaseEntity
 
     public string? ImageUrl { get; set; }
 
-    public string Reason { get; set; }
+    public string? Reason { get; set; }
 
     public Guid AccountId { get; set; }
 

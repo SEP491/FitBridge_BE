@@ -4,6 +4,6 @@ namespace FitBridge_Application.Interfaces.Services.Notifications.UserNotificati
 {
     public interface IUserNotifications
     {
-        public Task NotificationReceived();
+        public Task NotificationReceived(NotificationDto notificationDto);
     }
 }
