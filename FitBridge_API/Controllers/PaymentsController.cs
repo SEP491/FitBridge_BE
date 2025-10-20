@@ -1,11 +1,17 @@
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Payments;
+using FitBridge_Application.Features.Payments.ApproveWithdrawalRequest;
 using FitBridge_Application.Features.Payments.CancelPaymentCommand;
+using FitBridge_Application.Features.Payments.ConfirmWithdrawalRequest;
 using FitBridge_Application.Features.Payments.CreatePaymentLink;
+using FitBridge_Application.Features.Payments.CreateRequestPayment;
+using FitBridge_Application.Features.Payments.GetAllWithdrawalRequests;
 using FitBridge_Application.Features.Payments.GetPaymentInfor;
 using FitBridge_Application.Features.Payments.PaymentCallbackWebhook;
-using FitBridge_Application.Features.Payments.RequestPayment;
+using FitBridge_Application.Features.Payments.RejectWithdrawalRequest;
+using FitBridge_Application.Specifications.Payments.GetAllWithdrawalRequests;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -101,7 +107,7 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> RequestPayment([FromBody] RequestPaymentCommand command)
+    public async Task<IActionResult> RequestPayment([FromBody] CreateRequestPaymentCommand command)
     {
         var result = await _mediator.Send(command);
         return Created(
@@ -110,5 +116,122 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
                 StatusCodes.Status201Created.ToString(),
                 "Withdrawal request submitted successfully",
                 result));
+    }
+
+    /// <summary>
+    /// Gets all withdrawal requests.
+    /// Admin users can view all requests, while GymOwner and FreelancePT users can only view their own requests.
+    /// </summary>
+    /// <param name="parameters">Query parameters for pagination and filtering.</param>
+    /// <returns>A paginated list of withdrawal requests.</returns>
+    /// <response code="200">Returns the list of withdrawal requests.</response>
+    /// <response code="401">If the user is not authenticated.</response>
+    [HttpGet("withdrawal-requests")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin + "," + ProjectConstant.UserRoles.FreelancePT + "," + ProjectConstant.UserRoles.GymOwner)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<PagingResultDto<GetWithdrawalRequestResponseDto>>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetAllWithdrawalRequests([FromQuery] GetAllWithdrawalRequestsParams parameters)
+    {
+        var query = new GetAllWithdrawalRequestsQuery { Params = parameters };
+        var result = await _mediator.Send(query);
+        return Ok(new BaseResponse<PagingResultDto<GetWithdrawalRequestResponseDto>>(
+            StatusCodes.Status200OK.ToString(),
+            "Withdrawal requests retrieved successfully",
+            result));
+    }
+
+    /// <summary>
+    /// Confirms a withdrawal request by admin.
+    /// Updates the withdrawal request status to Success, deducts amount from user's wallet,
+    /// and creates a transaction record with the proof image URL,
+    /// Sends notification to the user upon confirmation.
+    /// </summary>
+    /// <param name="withdrawalRequestId">The ID of the withdrawal request to confirm.</param>
+    /// <param name="command">The confirmation details including the proof image URL.</param>
+    /// <returns>Success response if the confirmation is successful.</returns>
+    /// <response code="200">Returns success if the withdrawal request is confirmed.</response>
+    /// <response code="400">If the request is not in pending status or validation fails.</response>
+    /// <response code="401">If the user is not authenticated.</response>
+    /// <response code="403">If the user is not an admin.</response>
+    /// <response code="404">If the withdrawal request or wallet is not found.</response>
+    [HttpPut("withdrawal-requests/{withdrawalRequestId}/confirm")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<bool>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConfirmWithdrawalRequest(
+        [FromRoute] Guid withdrawalRequestId,
+        [FromBody] ConfirmWithdrawalRequestCommand command)
+    {
+        command.WithdrawalRequestId = withdrawalRequestId;
+        await _mediator.Send(command);
+        return Ok(new BaseResponse<EmptyResult>(
+            StatusCodes.Status200OK.ToString(),
+            "Withdrawal request confirmed successfully",
+            Empty));
+    }
+
+    /// <summary>
+    /// Rejects a withdrawal request.
+    /// Admin can reject any pending withdrawal request.
+    /// Users can reject (disapprove) their own pending withdrawal request.
+    /// Sends notification to admins or user upon rejection.
+    /// </summary>
+    /// <param name="withdrawalRequestId">The ID of the withdrawal request to reject.</param>
+    /// <param name="command">The rejection details including the reason.</param>
+    /// <returns>Success response if the rejection is successful.</returns>
+    /// <response code="200">Returns success if the withdrawal request is rejected.</response>
+    /// <response code="400">If the request is not in pending status or validation fails.</response>
+    /// <response code="401">If the user is not authenticated.</response>
+    /// <response code="403">If the user is not authorized to reject this request.</response>
+    /// <response code="404">If the withdrawal request is not found.</response>
+    [HttpPut("withdrawal-requests/{withdrawalRequestId}/reject")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin + "," + ProjectConstant.UserRoles.FreelancePT + "," + ProjectConstant.UserRoles.GymOwner)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<EmptyResult>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RejectWithdrawalRequest(
+        [FromRoute] Guid withdrawalRequestId,
+        [FromBody] RejectWithdrawalRequestCommand command)
+    {
+        command.WithdrawalRequestId = withdrawalRequestId;
+        await _mediator.Send(command);
+        return Ok(new BaseResponse<EmptyResult>(
+            StatusCodes.Status200OK.ToString(),
+            "Withdrawal request rejected successfully",
+            Empty));
+    }
+
+    /// <summary>
+    /// Approves a withdrawal request by the user.
+    /// User can approve their own withdrawal request that has been approved by admin.
+    /// This action marks the request as resolved.
+    /// </summary>
+    /// <param name="withdrawalRequestId">The ID of the withdrawal request to approve.</param>
+    /// <returns>Success response if the approval is successful.</returns>
+    /// <response code="200">Returns success if the withdrawal request is approved by user.</response>
+    /// <response code="400">If the request is not in AdminApproved status.</response>
+    /// <response code="401">If the user is not authenticated.</response>
+    /// <response code="403">If the user is not authorized to approve this request.</response>
+    /// <response code="404">If the withdrawal request is not found.</response>
+    [HttpPut("withdrawal-requests/{withdrawalRequestId}/approve")]
+    [Authorize(Roles = ProjectConstant.UserRoles.FreelancePT + "," + ProjectConstant.UserRoles.GymOwner)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<EmptyResult>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ApproveWithdrawalRequest([FromRoute] Guid withdrawalRequestId)
+    {
+        var command = new ApproveWithdrawalRequestCommand { WithdrawalRequestId = withdrawalRequestId };
+        await _mediator.Send(command);
+        return Ok(new BaseResponse<EmptyResult>(
+            StatusCodes.Status200OK.ToString(),
+            "Withdrawal request approved successfully",
+            Empty));
     }
 }

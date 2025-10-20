@@ -1,9 +1,9 @@
 ﻿using FitBridge_Application.Dtos.Payments;
 using MediatR;
 
-namespace FitBridge_Application.Features.Payments.RequestPayment
+namespace FitBridge_Application.Features.Payments.CreateRequestPayment
 {
-    public class RequestPaymentCommand : IRequest<RequestPaymentResponseDto>
+    public class CreateRequestPaymentCommand : IRequest<RequestPaymentResponseDto>
     {
         public decimal Amount { get; set; }
 
@@ -16,7 +16,5 @@ namespace FitBridge_Application.Features.Payments.RequestPayment
         public string AccountNumber { get; set; }
 
         public string ImageUrl { get; set; }
-
-        public string Reason { get; set; }
     }
 }

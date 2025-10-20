@@ -16,16 +16,16 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FitBridge_Application.Features.Payments.RequestPayment
+namespace FitBridge_Application.Features.Payments.CreateRequestPayment
 {
-    internal class RequestPaymentCommandHandler(
+    internal class CreateRequestPaymentCommandHandler(
         IUnitOfWork unitOfWork,
         IUserUtil userUtil,
         IHttpContextAccessor httpContextAccessor,
         IApplicationUserService applicationUserService,
-        INotificationService notificationService) : IRequestHandler<RequestPaymentCommand, RequestPaymentResponseDto>
+        INotificationService notificationService) : IRequestHandler<CreateRequestPaymentCommand, RequestPaymentResponseDto>
     {
-        public async Task<RequestPaymentResponseDto> Handle(RequestPaymentCommand request, CancellationToken cancellationToken)
+        public async Task<RequestPaymentResponseDto> Handle(CreateRequestPaymentCommand request, CancellationToken cancellationToken)
         {
             var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
                 ?? throw new NotFoundException(nameof(ApplicationUser));
@@ -38,19 +38,7 @@ namespace FitBridge_Application.Features.Payments.RequestPayment
                 throw new DuplicateException("User already registered a withdrawal request");
             }
 
-            var newWithdrawalRequest = new WithdrawalRequest
-            {
-                AccountId = accountId,
-                Amount = request.Amount,
-                BankName = request.BankName,
-                Reason = request.Reason,
-                Note = request.Note,
-                AccountName = request.AccountName,
-                AccountNumber = request.AccountNumber,
-                Status = WithdrawalRequestStatus.Pending,
-            };
-
-            unitOfWork.Repository<WithdrawalRequest>().Insert(newWithdrawalRequest);
+            var newWithdrawalRequest = InsertWithdrawalRequest(accountId, request);
 
             await unitOfWork.CommitAsync();
 
@@ -59,7 +47,24 @@ namespace FitBridge_Application.Features.Payments.RequestPayment
             return new RequestPaymentResponseDto { Id = newWithdrawalRequest.Id };
         }
 
-        private async Task SendNotification(RequestPaymentCommand request)
+        private WithdrawalRequest InsertWithdrawalRequest(Guid accountId, CreateRequestPaymentCommand request)
+        {
+            var newWithdrawalRequest = new WithdrawalRequest
+            {
+                AccountId = accountId,
+                Amount = request.Amount,
+                BankName = request.BankName,
+                Note = request.Note,
+                AccountName = request.AccountName,
+                AccountNumber = request.AccountNumber,
+                Status = WithdrawalRequestStatus.Pending,
+            };
+
+            unitOfWork.Repository<WithdrawalRequest>().Insert(newWithdrawalRequest);
+            return newWithdrawalRequest;
+        }
+
+        private async Task SendNotification(CreateRequestPaymentCommand request)
         {
             var admins = await applicationUserService.GetUsersByRoleAsync(
                 ProjectConstant.UserRoles.Admin);
