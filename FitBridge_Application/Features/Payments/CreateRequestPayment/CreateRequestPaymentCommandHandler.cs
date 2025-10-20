@@ -80,8 +80,7 @@ namespace FitBridge_Application.Features.Payments.CreateRequestPayment
                 Note = request.Note,
                 AccountName = request.AccountName,
                 AccountNumber = request.AccountNumber,
-                Status = WithdrawalRequestStatus.Pending,
-                ImageUrl = ""
+                Status = WithdrawalRequestStatus.Pending
             };
 
             unitOfWork.Repository<WithdrawalRequest>().Insert(newWithdrawalRequest);
