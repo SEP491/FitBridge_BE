@@ -14,7 +14,5 @@ namespace FitBridge_Application.Features.Payments.CreateRequestPayment
         public string AccountName { get; set; }
 
         public string AccountNumber { get; set; }
-
-        public string ImageUrl { get; set; }
     }
 }
