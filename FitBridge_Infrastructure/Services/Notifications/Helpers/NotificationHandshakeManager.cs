@@ -17,8 +17,11 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
         ILogger<NotificationHandshakeManager> logger)
     {
         private readonly NotificationSettings settings = notificationSettings.Value;
+
         private readonly IDatabase database = connectionMultiplexer.GetDatabase(redisSettings.Value.DefaultStorage);
+
         private readonly string KeyPrefix = redisSettings.Value.NotificationHandshakeKeyPrefix;
+
         private readonly TimeSpan KeyExpiration = TimeSpan.FromSeconds(redisSettings.Value.ConnectionKeyExpirationSeconds);
 
         private string GetRedisKey(string userId) => $"{KeyPrefix}{userId}";
@@ -28,7 +31,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             try
             {
                 var state = new HandshakeState { RetryCount = 0, StartedAt = DateTime.UtcNow };
-                
+
                 // Store initial state in Redis
                 await SetHandshakeStateAsync(userId, state);
 
@@ -55,11 +58,11 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                     await Task.Delay(settings.InitialRetryDelayMs, state.CancellationTokenSource.Token);
 
                     state.RetryCount++;
-                    
+
                     // Update state in Redis
                     await SetHandshakeStateAsync(userId, state);
 
-                    await hubContext.Clients.User(userId).NotificationReceived();
+                    await hubContext.Clients.User(userId).NotificationReceived(handshakeContext.NotificationDto);
                 }
                 catch (TaskCanceledException)
                 {
@@ -101,7 +104,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             try
             {
                 var stateData = await GetHandshakeStateAsync(userId);
-                
+
                 if (stateData != null)
                 {
                     logger.LogInformation("Client {UserId} confirmed handshake", userId);
@@ -130,7 +133,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                 var serializedData = JsonSerializer.Serialize(stateData);
                 await database.StringSetAsync(redisKey, serializedData, KeyExpiration);
 
-                logger.LogDebug("Stored handshake state for user {UserId} with retry count {RetryCount}", 
+                logger.LogDebug("Stored handshake state for user {UserId} with retry count {RetryCount}",
                     userId, state.RetryCount);
             }
             catch (Exception ex)
