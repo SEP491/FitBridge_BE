@@ -10,13 +10,20 @@
 
         NewGymFeedback,
 
-        PaymentRequest,
-
         PackageBought,
 
         NewCoupon,
 
+        // Withdrawal request
         NewPaymentRequest,
+
+        WithdrawalRequestAdminApproved,
+
+        WithdrawalRequestAdminRejected,
+
+        WithdrawalRequestUserDisapproved,
+
+        // Bookings
 
         CreateBookingRequest, // Customer/FreelancePT create a booking request to create a booking
 
