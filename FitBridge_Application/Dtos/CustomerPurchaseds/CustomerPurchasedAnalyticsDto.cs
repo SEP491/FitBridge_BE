@@ -1,6 +1,8 @@
-﻿using System;
+﻿using FitBridge_Application.Dtos.CustomerPurchaseds.TrainingResults;
+using FitBridge_Application.Dtos.UserGoals;
+using System;
 
-namespace FitBridge_Application.Dtos.TrainingResults;
+namespace FitBridge_Application.Dtos.CustomerPurchaseds;
 
 public class CustomerPurchasedAnalyticsDto
 {
@@ -49,4 +51,7 @@ public class CustomerPurchasedAnalyticsDto
 
     // Muscle group breakdown
     public List<MuscleGroupActivityDto> MuscleGroupBreakdown { get; set; } = new();
+
+    // User goals
+    public UserGoalsDto UserGoals { get; set; } = new();
 }

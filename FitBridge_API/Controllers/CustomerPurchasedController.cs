@@ -16,7 +16,6 @@ using FitBridge_Application.Specifications.GymCoursePts.GetPurchasedGymCoursePtF
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FitBridge_Application.Features.CustomerPurchaseds.GetPackageTrainingResults;
-using FitBridge_Application.Dtos.TrainingResults;
 
 namespace FitBridge_API.Controllers;
 

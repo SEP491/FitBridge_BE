@@ -1,10 +1,10 @@
-using System;
-using System.Linq;
-using FitBridge_Application.Dtos.TrainingResults;
+using AutoMapper;
+using FitBridge_Application.Dtos.CustomerPurchaseds;
+using FitBridge_Application.Dtos.CustomerPurchaseds.TrainingResults;
+using FitBridge_Application.Dtos.UserGoals;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedById;
 using FitBridge_Domain.Entities.Gyms;
-using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Domain.Exceptions;
@@ -12,23 +12,24 @@ using MediatR;
 
 namespace FitBridge_Application.Features.CustomerPurchaseds.GetPackageTrainingResults;
 
-public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork)
+public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork, IMapper mapper)
     : IRequestHandler<GetPackageTrainingResultsQuery, CustomerPurchasedAnalyticsDto>
 {
     public async Task<CustomerPurchasedAnalyticsDto> Handle(
-        GetPackageTrainingResultsQuery request,
-        CancellationToken cancellationToken)
+        GetPackageTrainingResultsQuery request, CancellationToken cancellationToken)
     {
-        var spec = new GetCustomerPurchasedByIdSpec(
+        var customerPurchasedSpec = new GetCustomerPurchasedByIdSpec(
             request.CustomerPurchasedId,
             isIncludeBooking: true,
             isIncludeActivitySets: true,
-            isIncludeSessionActivities: true);
+            isIncludeSessionActivities: true,
+            isIncludeUserGoals: true);
         var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>()
-            .GetBySpecificationAsync(spec)
+            .GetBySpecificationAsync(customerPurchasedSpec)
             ?? throw new NotFoundException(nameof(CustomerPurchased));
 
         var bookings = customerPurchased.Bookings.ToList();
+        var userGoals = mapper.Map<UserGoalsDto?>(customerPurchased.UserGoal);
         var completedBookings = bookings.Where(b => b.SessionStatus == SessionStatus.Finished).ToList();
         var completedSessions = completedBookings.Count;
         var cancelledSessions = bookings.Count(b => b.SessionStatus == SessionStatus.Cancelled);
@@ -45,12 +46,155 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork)
 
         var completedSets = allActivitySets.Count(s => s.IsCompleted);
 
-        // Calculate workout statistics
-        var workoutStats = new WorkoutStatisticsDto
+        var workoutStats = CalculateWorkoutStatistics(allActivities, allActivitySets);
+
+        CalculateAverageMetrics(completedSessions,
+            completedSets,
+            workoutStats,
+            out double averageSessionTimeSeconds,
+            out double averageWeightLifted,
+            out double averageSetsPerSession);
+
+        // Calculate highest performance (session with most weight lifted)
+        CalculateBestPerformance(out HighestPerformanceDto? highestPerformance, completedBookings);
+        List<MuscleGroupActivityDto> muscleGroupBreakdown = BreakdownMuscleGroups(allActivities);
+
+        MuscleGroupInsightDto? mostTrainedMuscleGroup = null;
+        MuscleGroupInsightDto? leastTrainedMuscleGroup = null;
+        if (muscleGroupBreakdown.Count > 0)
+        {
+            var mostTrained = muscleGroupBreakdown[0];
+            mostTrainedMuscleGroup = GetMostTrained(mostTrained);
+
+            var leastTrained = muscleGroupBreakdown[^1];
+            leastTrainedMuscleGroup = GetLeastTrained(leastTrained);
+        }
+
+        return new CustomerPurchasedAnalyticsDto
+        {
+            CustomerPurchasedId = customerPurchased.Id,
+            TotalSessions = bookings.Count,
+            CompletedSessions = completedSessions,
+            CancelledSessions = cancelledSessions,
+            UpcomingSessions = upcomingSessions,
+            AvailableSessions = customerPurchased.AvailableSessions,
+            ExpirationDate = customerPurchased.ExpirationDate,
+            CompletionRate = bookings.Count > 0
+                ? Math.Round((double)completedSessions / bookings.Count * 100, 2)
+                : 0,
+            TotalActivities = allActivities.Count,
+            TotalActivitySets = allActivitySets.Count,
+            CompletedActivitySets = completedSets,
+            ActivityCompletionRate = allActivitySets.Count > 0
+                ? Math.Round((double)completedSets / allActivitySets.Count * 100, 2)
+                : 0,
+            AverageSessionTimeSeconds = averageSessionTimeSeconds,
+            AverageWeightLifted = averageWeightLifted,
+            AverageSetsPerSession = averageSetsPerSession,
+            HighestPerformance = highestPerformance,
+            MostTrainedMuscleGroup = mostTrainedMuscleGroup,
+            LeastTrainedMuscleGroup = leastTrainedMuscleGroup,
+            WorkoutStatistics = workoutStats,
+            MuscleGroupBreakdown = muscleGroupBreakdown,
+            UserGoals = userGoals
+        };
+    }
+
+    private static MuscleGroupInsightDto GetLeastTrained(MuscleGroupActivityDto leastTrained)
+    {
+        return new MuscleGroupInsightDto
+        {
+            MuscleGroup = leastTrained.MuscleGroup,
+            TotalSets = leastTrained.SetsCompleted,
+            TotalWeight = leastTrained.TotalWeight,
+            ActivityCount = leastTrained.ActivityCount
+        };
+    }
+
+    private static MuscleGroupInsightDto GetMostTrained(MuscleGroupActivityDto mostTrained)
+    {
+        return new MuscleGroupInsightDto
+        {
+            MuscleGroup = mostTrained.MuscleGroup,
+            TotalSets = mostTrained.SetsCompleted,
+            TotalWeight = mostTrained.TotalWeight,
+            ActivityCount = mostTrained.ActivityCount
+        };
+    }
+
+    private static List<MuscleGroupActivityDto> BreakdownMuscleGroups(List<SessionActivity> allActivities)
+    {
+        return allActivities
+            .GroupBy(a => a.MuscleGroup.ToString())
+            .Select(g => new MuscleGroupActivityDto
+            {
+                MuscleGroup = g.Key,
+                ActivityCount = g.Count(),
+                SetsCompleted = g.SelectMany(a => a.ActivitySets)
+                    .Count(s => s.IsCompleted),
+                TotalWeight = g.SelectMany(a => a.ActivitySets)
+                    .Where(s => s.IsCompleted && s.WeightLifted.HasValue)
+                    .Sum(s => s.WeightLifted!.Value),
+                TotalReps = g.SelectMany(a => a.ActivitySets)
+                    .Where(s => s.IsCompleted && s.NumOfReps.HasValue)
+                    .Sum(s => s.NumOfReps!.Value)
+            })
+            .OrderByDescending(m => m.SetsCompleted)
+            .ToList();
+    }
+
+    private static void CalculateBestPerformance(out HighestPerformanceDto? highestPerformance, List<Booking> completedBookings)
+    {
+        highestPerformance = null;
+        var sessionPerformances = completedBookings
+            .Select(b => new
+            {
+                Booking = b,
+                TotalWeight = b.SessionActivities
+                    .SelectMany(a => a.ActivitySets)
+                    .Where(s => s.IsCompleted && s.WeightLifted.HasValue)
+                    .Sum(s => s.WeightLifted!.Value)
+            })
+            .Where(x => x.TotalWeight > 0)
+            .OrderByDescending(x => x.TotalWeight)
+            .FirstOrDefault();
+
+        if (sessionPerformances != null)
+        {
+            highestPerformance = new HighestPerformanceDto
+            {
+                TotalWeight = sessionPerformances.TotalWeight,
+                Date = sessionPerformances.Booking.BookingDate,
+                SessionName = sessionPerformances.Booking.BookingName
+            };
+        }
+    }
+
+    private static void CalculateAverageMetrics(int completedSessions,
+        int completedSets,
+        WorkoutStatisticsDto workoutStats,
+        out double averageSessionTimeSeconds, out double averageWeightLifted, out double averageSetsPerSession)
+    {
+        averageSessionTimeSeconds = completedSessions > 0
+            ? workoutStats.TotalPracticeTimeSeconds / completedSessions
+            : 0;
+
+        averageWeightLifted = completedSessions > 0
+            ? Math.Round(workoutStats.TotalWeightLifted / completedSessions, 1)
+            : 0;
+
+        averageSetsPerSession = completedSessions > 0
+            ? Math.Round((double)completedSets / completedSessions, 1)
+            : 0;
+    }
+
+    private static WorkoutStatisticsDto CalculateWorkoutStatistics(List<SessionActivity> allActivities, List<ActivitySet> allActivitySets)
+    {
+        return new WorkoutStatisticsDto
         {
             TotalWeightLifted = allActivitySets
-                .Where(s => s.IsCompleted && s.WeightLifted.HasValue)
-                .Sum(s => s.WeightLifted.Value),
+            .Where(s => s.IsCompleted && s.WeightLifted.HasValue)
+            .Sum(s => s.WeightLifted.Value),
 
             PlannedDistance = allActivitySets
                 .Where(s => s.IsCompleted && s.PlannedDistance.HasValue)
@@ -82,116 +226,5 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork)
                 .GroupBy(a => a.ActivityType.ToString())
                 .ToDictionary(g => g.Key, g => g.Count())
         };
-
-        // Calculate average metrics
-        var averageSessionTimeSeconds = completedSessions > 0
-            ? workoutStats.TotalPracticeTimeSeconds / completedSessions
-            : 0;
-
-        var averageWeightLifted = completedSessions > 0
-            ? Math.Round(workoutStats.TotalWeightLifted / completedSessions, 1)
-            : 0;
-
-        var averageSetsPerSession = completedSessions > 0
-            ? Math.Round((double)completedSets / completedSessions, 1)
-            : 0;
-
-        // Calculate highest performance (session with most weight lifted)
-        HighestPerformanceDto? highestPerformance = null;
-        var sessionPerformances = completedBookings
-            .Select(b => new
-            {
-                Booking = b,
-                TotalWeight = b.SessionActivities
-                    .SelectMany(a => a.ActivitySets)
-                    .Where(s => s.IsCompleted && s.WeightLifted.HasValue)
-                    .Sum(s => s.WeightLifted!.Value)
-            })
-            .Where(x => x.TotalWeight > 0)
-            .OrderByDescending(x => x.TotalWeight)
-            .FirstOrDefault();
-
-        if (sessionPerformances != null)
-        {
-            highestPerformance = new HighestPerformanceDto
-            {
-                TotalWeight = sessionPerformances.TotalWeight,
-                Date = sessionPerformances.Booking.BookingDate,
-                SessionName = sessionPerformances.Booking.BookingName
-            };
-        }
-
-        // Muscle group breakdown
-        var muscleGroupBreakdown = allActivities
-            .GroupBy(a => a.MuscleGroup.ToString())
-            .Select(g => new MuscleGroupActivityDto
-            {
-                MuscleGroup = g.Key,
-                ActivityCount = g.Count(),
-                SetsCompleted = g.SelectMany(a => a.ActivitySets)
-                    .Count(s => s.IsCompleted),
-                TotalWeight = g.SelectMany(a => a.ActivitySets)
-                    .Where(s => s.IsCompleted && s.WeightLifted.HasValue)
-                    .Sum(s => s.WeightLifted!.Value),
-                TotalReps = g.SelectMany(a => a.ActivitySets)
-                    .Where(s => s.IsCompleted && s.NumOfReps.HasValue)
-                    .Sum(s => s.NumOfReps!.Value)
-            })
-            .OrderByDescending(m => m.SetsCompleted)
-            .ToList();
-
-        // Most and least trained muscle groups
-        MuscleGroupInsightDto? mostTrainedMuscleGroup = null;
-        MuscleGroupInsightDto? leastTrainedMuscleGroup = null;
-
-        if (muscleGroupBreakdown.Any())
-        {
-            var mostTrained = muscleGroupBreakdown[0];
-            mostTrainedMuscleGroup = new MuscleGroupInsightDto
-            {
-                MuscleGroup = mostTrained.MuscleGroup,
-                TotalSets = mostTrained.SetsCompleted,
-                TotalWeight = mostTrained.TotalWeight,
-                ActivityCount = mostTrained.ActivityCount
-            };
-
-            var leastTrained = muscleGroupBreakdown[^1];
-            leastTrainedMuscleGroup = new MuscleGroupInsightDto
-            {
-                MuscleGroup = leastTrained.MuscleGroup,
-                TotalSets = leastTrained.SetsCompleted,
-                TotalWeight = leastTrained.TotalWeight,
-                ActivityCount = leastTrained.ActivityCount
-            };
-        }
-
-        return new CustomerPurchasedAnalyticsDto
-        {
-            CustomerPurchasedId = customerPurchased.Id,
-            TotalSessions = bookings.Count,
-            CompletedSessions = completedSessions,
-            CancelledSessions = cancelledSessions,
-            UpcomingSessions = upcomingSessions,
-            AvailableSessions = customerPurchased.AvailableSessions,
-            ExpirationDate = customerPurchased.ExpirationDate,
-            CompletionRate = bookings.Count > 0
-                ? Math.Round((double)completedSessions / bookings.Count * 100, 2)
-                : 0,
-            TotalActivities = allActivities.Count,
-            TotalActivitySets = allActivitySets.Count,
-            CompletedActivitySets = completedSets,
-            ActivityCompletionRate = allActivitySets.Count > 0
-                ? Math.Round((double)completedSets / allActivitySets.Count * 100, 2)
-                : 0,
-            AverageSessionTimeSeconds = averageSessionTimeSeconds,
-            AverageWeightLifted = averageWeightLifted,
-            AverageSetsPerSession = averageSetsPerSession,
-            HighestPerformance = highestPerformance,
-            MostTrainedMuscleGroup = mostTrainedMuscleGroup,
-            LeastTrainedMuscleGroup = leastTrainedMuscleGroup,
-            WorkoutStatistics = workoutStats,
-            MuscleGroupBreakdown = muscleGroupBreakdown
-        };
-        return new CustomerPurchasedAnalyticsDto(); // Comment for fix build error
     }
 }

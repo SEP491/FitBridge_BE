@@ -8,7 +8,8 @@ public class GetCustomerPurchasedByIdSpec : BaseSpecification<CustomerPurchased>
     public GetCustomerPurchasedByIdSpec(Guid id,
         bool isIncludeBooking = false,
         bool isIncludeSessionActivities = false,
-        bool isIncludeActivitySets = false) : base(x => x.Id == id
+        bool isIncludeActivitySets = false,
+        bool isIncludeUserGoals = false) : base(x => x.Id == id
     && x.IsEnabled)
     {
         AddInclude(x => x.OrderItems);
@@ -24,6 +25,10 @@ public class GetCustomerPurchasedByIdSpec : BaseSpecification<CustomerPurchased>
         if (isIncludeActivitySets)
         {
             AddInclude("Bookings.SessionActivities.ActivitySets");
+        }
+        if (isIncludeUserGoals)
+        {
+            AddInclude(nameof(CustomerPurchased.UserGoal));
         }
     }
 }

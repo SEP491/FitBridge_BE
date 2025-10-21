@@ -1,5 +1,5 @@
 using MediatR;
-using FitBridge_Application.Dtos.TrainingResults;
+using FitBridge_Application.Dtos.CustomerPurchaseds;
 
 namespace FitBridge_Application.Features.CustomerPurchaseds.GetPackageTrainingResults;
 
