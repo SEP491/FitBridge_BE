@@ -14,10 +14,11 @@ using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchas
 using FitBridge_Application.Dtos.Bookings;
 using AutoMapper;
 using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Interfaces.Services;
 
 namespace FitBridge_Application.Features.Bookings.CreateBooking;
 
-public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<CreateRequestBookingCommand, List<CreateRequestBookingResponseDto>>
+public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IMapper _mapper, IScheduleJobServices _scheduleJobServices) : IRequestHandler<CreateRequestBookingCommand, List<CreateRequestBookingResponseDto>>
 {
     public async Task<List<CreateRequestBookingResponseDto>> Handle(CreateRequestBookingCommand request, CancellationToken cancellationToken)
     {
@@ -27,18 +28,6 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
             throw new NotFoundException("User not found");
         }
         var role = _userUtil.GetUserRole(_httpContextAccessor.HttpContext);
-        // var bookingSpec = new GetBookingForValidationSpec(userId.Value, request.BookingDate, request.PtFreelanceStartTime, request.PtFreelanceEndTime);
-        // var booking = await _unitOfWork.Repository<Booking>().GetBySpecificationAsync(bookingSpec, false);
-        // if (booking != null)
-        // {
-        //     throw new DuplicateException($"Customer have course at this time, booking that overlapped: {booking.Id}");
-        // }
-        // var freelancePtBookingSpec = new GetFreelancePtBookingForValidationSpec(userId.Value, request.BookingDate, request.PtFreelanceStartTime, request.PtFreelanceEndTime);
-        // var freelancePtBooking = await _unitOfWork.Repository<Booking>().GetBySpecificationAsync(freelancePtBookingSpec, false);
-        // if (freelancePtBooking != null)
-        // {
-        //     throw new DuplicateException($"PT have course at this time booking that overlapped: {freelancePtBooking.Id}");
-        // }
         var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>().GetByIdAsync(request.CustomerPurchasedId, true, new List<string> { "OrderItems.FreelancePTPackage" });
 
         if (customerPurchased == null)
@@ -82,9 +71,11 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
             };
             _unitOfWork.Repository<BookingRequest>().Insert(insertRequestBooking);
             response.Add(_mapper.Map<CreateRequestBookingResponseDto>(insertRequestBooking));
+            await _unitOfWork.CommitAsync();
+            await _scheduleJobServices.ScheduleAutoRejectBookingRequestJob(insertRequestBooking);
         }
+        
 
-        await _unitOfWork.CommitAsync();
         return response;
     }
 

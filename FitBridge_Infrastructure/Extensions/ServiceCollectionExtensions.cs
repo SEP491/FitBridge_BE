@@ -128,6 +128,16 @@ namespace FitBridge_Infrastructure.Extensions
                     .WithIdentity("EnableStartingCouponsTrigger")
                     .WithCronSchedule("0 0 0 * * ?") // Run daily at 00:00:00
                     .WithDescription("Enables starting coupons daily at midnight"));
+                q.UsePersistentStore(store =>
+                {
+                    store.UsePostgres(postgres =>
+                    {
+                        postgres.ConnectionString = configuration.GetConnectionString("FitBridgeDb");
+                        postgres.TablePrefix = "qrtz_";
+                    });
+                    store.UseNewtonsoftJsonSerializer();
+                    store.UseClustering();
+                });
             });
 
             services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);

@@ -6,6 +6,10 @@ using Microsoft.Extensions.Logging;
 using FitBridge_Infrastructure.Jobs;
 using FitBridge_Infrastructure.Jobs.Bookings;
 using FitBridge_Domain.Exceptions;
+using FitBridge_Domain.Entities.Trainings;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Build.Framework;
+using FitBridge_Infrastructure.Jobs.BookingRequests;
 
 namespace FitBridge_Infrastructure.Services.Jobs;
 
@@ -30,10 +34,10 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .WithIdentity(triggerKey)
         .StartAt(triggerTime)
         .Build();
-        
+
         await _schedulerFactory.GetScheduler().Result
         .ScheduleJob(job, trigger);
-        
+
         _logger.LogInformation(
         "Scheduled profit distribution job for OrderItem {OrderItemId} at {TriggerTime}",
         profitJobScheduleDto.OrderItemId, triggerTime);
@@ -93,5 +97,51 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
             _logger.LogError(ex, "Error canceling schedule job for {JobName} in {JobGroup}", jobName, jobGroup);
             throw new BusinessException($"Failed to cancel job: {ex.Message}");
         }
+    }
+
+    public async Task<bool> ScheduleAutoCancelBookingJob(Booking booking)
+    {
+        var jobKey = new JobKey($"AutoCancelBooking_{booking.Id}", "AutoCancelBooking");
+        var triggerKey = new TriggerKey($"AutoCancelBooking_{booking.Id}_Trigger", "AutoCancelBooking");
+        var jobData = new JobDataMap
+        {
+            { "bookingId", booking.Id.ToString() }
+        };
+        var triggerTime = booking.BookingDate.ToDateTime(booking.PtFreelanceEndTime.Value);
+        var job = JobBuilder.Create<CancelBookingJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+
+        _logger.LogInformation($"Successfully scheduled auto cancel job for booking {booking.Id} at {triggerTime}");
+        return true;
+    }
+
+    public async Task<bool> ScheduleAutoRejectBookingRequestJob(BookingRequest bookingRequest)
+    {
+        var jobKey = new JobKey($"AutoRejectBookingRequest_{bookingRequest.Id}", "AutoRejectBookingRequest");
+        var triggerKey = new TriggerKey($"AutoRejectBookingRequest_{bookingRequest.Id}_Trigger", "AutoRejectBookingRequest");
+        var jobData = new JobDataMap
+        {
+            { "bookingRequestId", bookingRequest.Id.ToString() }
+        };
+        var triggerTime = bookingRequest.BookingDate.ToDateTime(bookingRequest.StartTime);
+        var job = JobBuilder.Create<RejectBookingRequestJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled auto reject booking request job for booking request {bookingRequest.Id} at {triggerTime}");
+        return true;
     }
 }
