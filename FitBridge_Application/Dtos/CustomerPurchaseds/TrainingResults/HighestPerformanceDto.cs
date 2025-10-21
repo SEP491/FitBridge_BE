@@ -1,6 +1,6 @@
 using System;
 
-namespace FitBridge_Application.Dtos.TrainingResults;
+namespace FitBridge_Application.Dtos.CustomerPurchaseds.TrainingResults;
 
 public class HighestPerformanceDto
 {
