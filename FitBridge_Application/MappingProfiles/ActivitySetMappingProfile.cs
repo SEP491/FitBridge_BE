@@ -12,7 +12,8 @@ public class ActivitySetMappingProfile : Profile
     {
         CreateMap<ActivitySetRequestDto, ActivitySet>()
         .ForMember(dest => dest.PlannedNumOfReps, opt => opt.MapFrom(src => src.PlannedNumOfReps ?? 0))
-        .ForMember(dest => dest.PlannedPracticeTime, opt => opt.MapFrom(src => src.PlannedPracticeTime ?? 0));
+        .ForMember(dest => dest.PlannedPracticeTime, opt => opt.MapFrom(src => src.PlannedPracticeTime ?? 0))
+        .ForMember(dest => dest.PlannedDistance, opt => opt.MapFrom(src => src.PlannedDistance ?? 0));
         CreateMap<ActivitySet, ActivitySetResponseDto>()
         .ForMember(dest => dest.PlannedNumOfReps, opt => opt.MapFrom(src => src.PlannedNumOfReps ?? 0))
         .ForMember(dest => dest.PlannedPracticeTime, opt => opt.MapFrom(src => src.PlannedPracticeTime ?? 0))

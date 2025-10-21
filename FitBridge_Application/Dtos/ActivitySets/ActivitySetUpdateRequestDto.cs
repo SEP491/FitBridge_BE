@@ -9,5 +9,6 @@ public class ActivitySetUpdateRequestDto
     public int? NumOfReps { get; set; }
     public bool IsCompleted { get; set; }
     public double? PracticeTime { get; set; }
+    public int? ActualDistance { get; set; }
     public double? RestTime { get; set; }
 }
