@@ -17,4 +17,6 @@ public class SessionActivityListDto
     public ActivitySetType ActivitySetType { get; set; }
     public int TotalPlannedNumOfReps { get; set; }
     public double TotalPlannedPracticeTime { get; set; }
+    public int? TotalPlannedDistance { get; set; }
+    public bool IsCompleted { get; set; }
 }
