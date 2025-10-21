@@ -14,6 +14,7 @@ using Quartz;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using JsonSerializerOptions = System.Text.Json.JsonSerializerOptions;
 
 namespace FitBridge_Infrastructure.Services.Meetings
 {
