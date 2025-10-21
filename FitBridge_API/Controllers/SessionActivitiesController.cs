@@ -3,6 +3,7 @@ using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos.SessionActivities;
 using FitBridge_Application.Features.SessionActivities;
+using FitBridge_Application.Features.SessionActivities.DeleteSessionActivity;
 using FitBridge_Application.Features.SessionActivities.GetSessionActivityById;
 using FitBridge_Application.Features.SessionActivities.SessionPracticeContent;
 using FitBridge_Application.Features.SessionActivities.UpdateSessionActivity;
@@ -58,5 +59,12 @@ public class SessionActivitiesController(IMediator _mediator) : _BaseApiControll
     {
         var result = await _mediator.Send(new SessionPracticeContentCommand { BookingId = bookingId });
         return Ok(new BaseResponse<SessionPracticeContentDto>(StatusCodes.Status200OK.ToString(), "Practice content retrieved successfully", result));
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteSessionActivity([FromRoute] Guid id)
+    {
+        var result = await _mediator.Send(new DeleteSessionActivityCommand { Id = id });
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Session activity deleted successfully", result));
     }
 }

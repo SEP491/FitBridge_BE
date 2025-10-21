@@ -17,10 +17,11 @@ public class UpdateActivityProgressCommandHandler(IUnitOfWork _unitOfWork, IMapp
             throw new NotFoundException(nameof(ActivitySet));
         }
         activitySet.IsCompleted = request.ActivitySet.IsCompleted;
-        activitySet.WeightLifted = request.ActivitySet.WeightLifted;
-        activitySet.NumOfReps = request.ActivitySet.NumOfReps;
-        activitySet.PracticeTime = request.ActivitySet.PracticeTime;
-        activitySet.RestTime = request.ActivitySet.RestTime;
+        activitySet.WeightLifted = request.ActivitySet.WeightLifted ?? activitySet.WeightLifted;
+        activitySet.NumOfReps = request.ActivitySet.NumOfReps ?? activitySet.NumOfReps;
+        activitySet.PracticeTime = request.ActivitySet.PracticeTime ?? activitySet.PracticeTime;
+        activitySet.RestTime = request.ActivitySet.RestTime ?? activitySet.RestTime;
+        activitySet.ActualDistance = request.ActivitySet.ActualDistance ?? activitySet.ActualDistance;
         _unitOfWork.Repository<ActivitySet>().Update(activitySet);
         await _unitOfWork.CommitAsync();
         return _mapper.Map<ActivitySetResponseDto>(activitySet);

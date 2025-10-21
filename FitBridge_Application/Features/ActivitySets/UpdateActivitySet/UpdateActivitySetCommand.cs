@@ -8,5 +8,7 @@ public class UpdateActivitySetCommand : IRequest<ActivitySetResponseDto>
 {
     public Guid ActivitySetId { get; set; }
     public double? WeightLifted { get; set; }
-    public int? NumOfReps { get; set; }
+    public int? PlannedNumOfReps { get; set; }
+    public int? PlannedDistance { get; set; }
+    public double? PlannedPracticeTime { get; set; }
 }

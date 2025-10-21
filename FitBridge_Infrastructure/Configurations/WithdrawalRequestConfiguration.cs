@@ -14,11 +14,11 @@ public class WithdrawalRequestConfiguration : IEntityTypeConfiguration<Withdrawa
         builder.Property(e => e.Status).IsRequired(true)
         .HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<WithdrawalRequestStatus>(s));
         builder.Property(e => e.Amount).IsRequired(true);
-        builder.Property(e => e.Note).IsRequired(true);
+        builder.Property(e => e.Note).IsRequired(false);
         builder.Property(e => e.BankName).IsRequired(true);
         builder.Property(e => e.AccountName).IsRequired(true);
         builder.Property(e => e.AccountNumber).IsRequired(true);
-        builder.Property(e => e.ImageUrl).IsRequired(true);
+        builder.Property(e => e.ImageUrl).IsRequired(false);
         builder.Property(e => e.Reason).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");

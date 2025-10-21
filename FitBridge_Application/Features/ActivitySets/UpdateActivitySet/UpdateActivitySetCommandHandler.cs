@@ -22,7 +22,10 @@ public class UpdateActivitySetCommandHandler(IUnitOfWork unitOfWork, IMapper map
             throw new BusinessException("Activity set already completed, cannot update");
         }
         activitySet.WeightLifted = request.WeightLifted ?? activitySet.WeightLifted;
-        activitySet.NumOfReps = request.NumOfReps ?? activitySet.NumOfReps;
+        activitySet.PlannedNumOfReps = request.PlannedNumOfReps ?? activitySet.PlannedNumOfReps;
+        activitySet.ActualDistance = request.PlannedDistance ?? activitySet.ActualDistance;
+        activitySet.PlannedPracticeTime = request.PlannedPracticeTime ?? activitySet.PlannedPracticeTime;
+        activitySet.PlannedDistance = request.PlannedDistance ?? activitySet.PlannedDistance;
         activitySet.UpdatedAt = DateTime.UtcNow;
         unitOfWork.Repository<ActivitySet>().Update(activitySet);
         await unitOfWork.CommitAsync();
