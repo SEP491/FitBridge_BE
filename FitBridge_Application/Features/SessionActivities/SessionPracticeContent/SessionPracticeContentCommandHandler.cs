@@ -31,17 +31,19 @@ public class SessionPracticeContentCommandHandler(IUnitOfWork _unitOfWork) : IRe
                 ActivitySetType = sessionActivity.ActivitySetType,
                 TotalPlannedNumOfReps = sessionActivity.ActivitySets.Sum(x => x.PlannedNumOfReps ?? 0),
                 TotalPlannedPracticeTime = sessionActivity.ActivitySets.Sum(x => x.PlannedPracticeTime ?? 0),
+                TotalPlannedDistance = sessionActivity.ActivitySets.Sum(x => x.PlannedDistance ?? 0),
+                IsCompleted = sessionActivity.ActivitySets.All(x => x.IsCompleted),
             };
             sessionActivitiesDtos.Add(sessionActivityDto);
         }
         return new SessionPracticeContentDto {
-        BookingId = request.BookingId,
-        SessionStartTime = sessionActivities.FirstOrDefault().Booking.SessionStartTime ?? null,
-        SessionEndTime = sessionActivities.FirstOrDefault().Booking.SessionEndTime ?? null,
-        SessionActivities = sessionActivitiesDtos,
-        BookingName = sessionActivities.FirstOrDefault()?.Booking.BookingName,
-        note = sessionActivities.FirstOrDefault()?.Booking.Note,
-        NutritionTip = sessionActivities.FirstOrDefault()?.Booking.NutritionTip ?? "",
+            BookingId = request.BookingId,
+            SessionStartTime = sessionActivities.FirstOrDefault().Booking.SessionStartTime ?? null,
+            SessionEndTime = sessionActivities.FirstOrDefault().Booking.SessionEndTime ?? null,
+            SessionActivities = sessionActivitiesDtos,
+            BookingName = sessionActivities.FirstOrDefault()?.Booking.BookingName,
+            note = sessionActivities.FirstOrDefault()?.Booking.Note,
+            NutritionTip = sessionActivities.FirstOrDefault()?.Booking.NutritionTip ?? "",
         };
     }
 }
