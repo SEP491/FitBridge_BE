@@ -8,10 +8,11 @@ using FitBridge_Domain.Exceptions;
 using AutoMapper;
 using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidate;
+using FitBridge_Application.Interfaces.Services;
 
 namespace FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
 
-public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<AcceptBookingRequestCommand, Guid>
+public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IScheduleJobServices _scheduleJobServices) : IRequestHandler<AcceptBookingRequestCommand, Guid>
 {
     public async Task<Guid> Handle(AcceptBookingRequestCommand request, CancellationToken cancellationToken)
     {
@@ -40,6 +41,7 @@ public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper
         customerPurchased.AvailableSessions--;
         _unitOfWork.Repository<CustomerPurchased>().Update(customerPurchased);
         _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
+        await _scheduleJobServices.ScheduleAutoCancelBookingJob(newBooking);
         await _unitOfWork.CommitAsync();
         return request.BookingRequestId;
     }

@@ -21,6 +21,7 @@ using FitBridge_Domain.Enums.Payments;
 using FitBridge_Application.Commons.Constants;
 using Quartz;
 using FitBridge_Infrastructure.Jobs;
+using JsonSerializerOptions = System.Text.Json.JsonSerializerOptions;
 
 namespace FitBridge_Infrastructure.Services;
 

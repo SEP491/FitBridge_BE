@@ -26,6 +26,7 @@ public class StartBookingSessionCommandHandler(IUnitOfWork _unitOfWork, ISchedul
         booking.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Repository<Booking>().Update(booking);
         await ScheduleFinishedBookingSession(booking);
+        await CancelAutoCancelBookingJob(booking);
         await _unitOfWork.CommitAsync();
         return booking.SessionStartTime.Value;
     }
@@ -38,5 +39,10 @@ public class StartBookingSessionCommandHandler(IUnitOfWork _unitOfWork, ISchedul
             BookingId = booking.Id,
             TriggerTime = booking.SessionStartTime.Value.AddMinutes(durationInMinutes)
         });
+    }
+
+    public async Task CancelAutoCancelBookingJob(Booking booking)
+    {
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelBooking_{booking.Id}", "AutoCancelBooking");
     }
 }
