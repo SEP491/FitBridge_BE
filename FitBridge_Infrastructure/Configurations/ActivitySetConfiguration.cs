@@ -24,6 +24,6 @@ public class ActivitySetConfiguration : IEntityTypeConfiguration<ActivitySet>
         builder.Property(e => e.PlannedPracticeTime).IsRequired(false).HasDefaultValue(0.0);
         builder.Property(e => e.SessionActivityId).IsRequired(true);
         builder.Property(e => e.IsCompleted).IsRequired(true).HasDefaultValue(false);
-        builder.HasOne(e => e.SessionActivity).WithMany(e => e.ActivitySets).HasForeignKey(e => e.SessionActivityId);
+        builder.HasOne(e => e.SessionActivity).WithMany(e => e.ActivitySets).HasForeignKey(e => e.SessionActivityId).OnDelete(DeleteBehavior.Cascade);
     }
 }
