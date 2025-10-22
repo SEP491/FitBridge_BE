@@ -8,6 +8,9 @@ public class GetFreelancePtScheduleSpec : BaseSpecification<Booking>
     public GetFreelancePtScheduleSpec(GetFreelancePtScheduleParams parameters, Guid PtId) : base(x => x.PtId == PtId && x.BookingDate == parameters.Date)
     {
         AddInclude(x => x.Customer);
+        AddInclude(x => x.CustomerPurchased);
+        AddInclude(x => x.CustomerPurchased.OrderItems);
+        AddInclude("CustomerPurchased.OrderItems.FreelancePTPackage");
 
         if (parameters.DoApplyPaging)
         {
