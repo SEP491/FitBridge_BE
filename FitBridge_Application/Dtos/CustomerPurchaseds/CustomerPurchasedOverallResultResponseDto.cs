@@ -4,7 +4,7 @@ using System;
 
 namespace FitBridge_Application.Dtos.CustomerPurchaseds;
 
-public class CustomerPurchasedAnalyticsDto
+public class CustomerPurchasedOverallResultResponseDto
 {
     public Guid CustomerPurchasedId { get; set; }
 
@@ -48,9 +48,6 @@ public class CustomerPurchasedAnalyticsDto
 
     // Workout statistics
     public WorkoutStatisticsDto WorkoutStatistics { get; set; } = new();
-
-    // Muscle group breakdown
-    public List<MuscleGroupActivityDto> MuscleGroupBreakdown { get; set; } = new();
 
     // User goals
     public UserGoalsDto UserGoals { get; set; } = new();
