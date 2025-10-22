@@ -72,6 +72,7 @@ namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased
                 {
                     MuscleGroup = mg.Key.ToString(),
                     TotalReps = totalReps,
+                    TotalTime = totalTimeSpentSeconds,
                     TotalWeight = totalWeightLifted,
                     SetsCount = allActivitySets.Count,
                     SetsCompleted = totalSetsCompleted,

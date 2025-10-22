@@ -19,6 +19,10 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
     public async Task<CustomerPurchasedOverallResultResponseDto> Handle(
         GetCustomerPurchasedOverallTrainingResultsQuery request, CancellationToken cancellationToken)
     {
+        // get completed bookings
+        // calculate total/average metrics (only take completed activity sets into account)
+        // get highest/worst performance muscle groups (only take completed activity sets into account)
+
         var customerPurchasedSpec = new GetCustomerPurchasedByIdSpec(
             request.CustomerPurchasedId,
             isIncludeBooking: true,
