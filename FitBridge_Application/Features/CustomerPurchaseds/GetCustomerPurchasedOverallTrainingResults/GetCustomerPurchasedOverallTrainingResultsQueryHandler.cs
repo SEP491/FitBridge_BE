@@ -10,13 +10,14 @@ using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Domain.Exceptions;
 using MediatR;
 
-namespace FitBridge_Application.Features.CustomerPurchaseds.GetPackageTrainingResults;
+namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedOverallTrainingResults;
 
-public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork, IMapper mapper)
-    : IRequestHandler<GetPackageTrainingResultsQuery, CustomerPurchasedAnalyticsDto>
+public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
+    IUnitOfWork unitOfWork, IMapper mapper)
+    : IRequestHandler<GetCustomerPurchasedOverallTrainingResultsQuery, CustomerPurchasedOverallResultResponseDto>
 {
-    public async Task<CustomerPurchasedAnalyticsDto> Handle(
-        GetPackageTrainingResultsQuery request, CancellationToken cancellationToken)
+    public async Task<CustomerPurchasedOverallResultResponseDto> Handle(
+        GetCustomerPurchasedOverallTrainingResultsQuery request, CancellationToken cancellationToken)
     {
         var customerPurchasedSpec = new GetCustomerPurchasedByIdSpec(
             request.CustomerPurchasedId,
@@ -24,7 +25,7 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork, IMap
             isIncludeActivitySets: true,
             isIncludeSessionActivities: true,
             isIncludeUserGoals: true);
-        var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>()
+        var customerPurchased = await unitOfWork.Repository<CustomerPurchased>()
             .GetBySpecificationAsync(customerPurchasedSpec)
             ?? throw new NotFoundException(nameof(CustomerPurchased));
 
@@ -70,7 +71,7 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork, IMap
             leastTrainedMuscleGroup = GetLeastTrained(leastTrained);
         }
 
-        return new CustomerPurchasedAnalyticsDto
+        return new CustomerPurchasedOverallResultResponseDto
         {
             CustomerPurchasedId = customerPurchased.Id,
             TotalSessions = bookings.Count,
@@ -95,7 +96,6 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork, IMap
             MostTrainedMuscleGroup = mostTrainedMuscleGroup,
             LeastTrainedMuscleGroup = leastTrainedMuscleGroup,
             WorkoutStatistics = workoutStats,
-            MuscleGroupBreakdown = muscleGroupBreakdown,
             UserGoals = userGoals
         };
     }
@@ -107,7 +107,7 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork, IMap
             MuscleGroup = leastTrained.MuscleGroup,
             TotalSets = leastTrained.SetsCompleted,
             TotalWeight = leastTrained.TotalWeight,
-            ActivityCount = leastTrained.ActivityCount
+            SetsCount = leastTrained.SetsCount
         };
     }
 
@@ -118,7 +118,7 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork, IMap
             MuscleGroup = mostTrained.MuscleGroup,
             TotalSets = mostTrained.SetsCompleted,
             TotalWeight = mostTrained.TotalWeight,
-            ActivityCount = mostTrained.ActivityCount
+            SetsCount = mostTrained.SetsCount
         };
     }
 
@@ -129,7 +129,7 @@ public class GetPackageTrainingResultsQueryHandler(IUnitOfWork _unitOfWork, IMap
             .Select(g => new MuscleGroupActivityDto
             {
                 MuscleGroup = g.Key,
-                ActivityCount = g.Count(),
+                SetsCount = g.SelectMany(a => a.ActivitySets).Count(),
                 SetsCompleted = g.SelectMany(a => a.ActivitySets)
                     .Count(s => s.IsCompleted),
                 TotalWeight = g.SelectMany(a => a.ActivitySets)

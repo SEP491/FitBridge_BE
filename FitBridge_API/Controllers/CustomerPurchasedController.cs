@@ -15,7 +15,8 @@ using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchas
 using FitBridge_Application.Specifications.GymCoursePts.GetPurchasedGymCoursePtForScheduleGetPurchasedGymCoursePtForSchedule;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using FitBridge_Application.Features.CustomerPurchaseds.GetPackageTrainingResults;
+using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedOverallTrainingResults;
+using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedDailyTrainingResults;
 
 namespace FitBridge_API.Controllers;
 
@@ -119,7 +120,24 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
     [HttpGet("result/{customerPurchasedId}")]
     public async Task<IActionResult> GetPackageTrainingResults([FromRoute] Guid customerPurchasedId)
     {
-        var result = await _mediator.Send(new GetPackageTrainingResultsQuery { CustomerPurchasedId = customerPurchasedId });
-        return Ok(new BaseResponse<CustomerPurchasedAnalyticsDto>(StatusCodes.Status200OK.ToString(), "Training results retrieved successfully", result));
+        var result = await _mediator.Send(new GetCustomerPurchasedOverallTrainingResultsQuery { CustomerPurchasedId = customerPurchasedId });
+        return Ok(new BaseResponse<CustomerPurchasedOverallResultResponseDto>(
+            StatusCodes.Status200OK.ToString(),
+            "Training results retrieved successfully",
+            result));
+    }
+
+    /// <summary>
+    /// Get daily training results for a purchased freelance PT package
+    /// </summary>
+    /// <param name="customerPurchasedId">The ID of the purchased package</param>
+    [HttpGet("result/{customerPurchasedId}/daily")]
+    public async Task<IActionResult> GetDailyTrainingResults([FromRoute] Guid customerPurchasedId)
+    {
+        var result = await _mediator.Send(new GetCustomerPurchasedDailyTrainingResultsQuery { CustomerPurchasedId = customerPurchasedId });
+        return Ok(new BaseResponse<CustomerPurchasedDailyResultsResponseDto>(
+            StatusCodes.Status200OK.ToString(),
+            "Daily training results retrieved successfully",
+            result));
     }
 }

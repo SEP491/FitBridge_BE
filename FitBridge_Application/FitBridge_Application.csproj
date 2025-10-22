@@ -29,4 +29,12 @@
 		<PackageReference Include="System.Formats.Asn1" Version="9.0.8" />
 		<PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Features\Reports\CreateReports\" />
+	  <Folder Include="Features\Reports\GetAllReports\" />
+	  <Folder Include="Features\Reports\GetReportById\" />
+	  <Folder Include="Features\Reports\ResolveReport\" />
+	  <Folder Include="Features\Reports\ProcessReport\" />
+	  <Folder Include="Features\Reports\GetCustomerReports\" />
+	</ItemGroup>
 </Project>
