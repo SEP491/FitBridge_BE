@@ -37,7 +37,7 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
         var upcomingSessions = bookings.Count(b => b.SessionStatus == SessionStatus.Booked);
 
         // Get all activities and sets
-        var allActivities = bookings
+        var allActivities = completedBookings
             .SelectMany(b => b.SessionActivities)
             .ToList();
 
@@ -110,6 +110,7 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
             SetsCompleted = leastTrained.SetsCompleted,
             TotalWeight = leastTrained.TotalWeight,
             TotalTime = leastTrained.TotalTime,
+            TotalReps = leastTrained.TotalReps,
             SetsCount = leastTrained.SetsCount
         };
     }
@@ -122,6 +123,7 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
             SetsCompleted = mostTrained.SetsCompleted,
             TotalWeight = mostTrained.TotalWeight,
             TotalTime = mostTrained.TotalTime,
+            TotalReps = mostTrained.TotalReps,
             SetsCount = mostTrained.SetsCount
         };
     }
