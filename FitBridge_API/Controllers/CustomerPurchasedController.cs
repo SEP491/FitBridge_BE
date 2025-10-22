@@ -16,7 +16,7 @@ using FitBridge_Application.Specifications.GymCoursePts.GetPurchasedGymCoursePtF
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedOverallTrainingResults;
-using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedDailyTrainingResults;
+using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedTrainingResultsDetails;
 
 namespace FitBridge_API.Controllers;
 
@@ -128,14 +128,14 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
     }
 
     /// <summary>
-    /// Get daily training results for a purchased freelance PT package
+    /// Get detailed training results for a purchased freelance PT package
     /// </summary>
     /// <param name="customerPurchasedId">The ID of the purchased package</param>
-    [HttpGet("result/{customerPurchasedId}/daily")]
-    public async Task<IActionResult> GetDailyTrainingResults([FromRoute] Guid customerPurchasedId)
+    [HttpGet("result/{customerPurchasedId}/detail")]
+    public async Task<IActionResult> GetTrainingResultsDetails([FromRoute] Guid customerPurchasedId)
     {
-        var result = await _mediator.Send(new GetCustomerPurchasedDailyTrainingResultsQuery { CustomerPurchasedId = customerPurchasedId });
-        return Ok(new BaseResponse<CustomerPurchasedDailyResultsResponseDto>(
+        var result = await _mediator.Send(new GetCustomerPurchasedTrainingResultsDetailsQuery { CustomerPurchasedId = customerPurchasedId });
+        return Ok(new BaseResponse<CustomerPurchasedTrainingResultsDetailResponseDto>(
             StatusCodes.Status200OK.ToString(),
             "Daily training results retrieved successfully",
             result));

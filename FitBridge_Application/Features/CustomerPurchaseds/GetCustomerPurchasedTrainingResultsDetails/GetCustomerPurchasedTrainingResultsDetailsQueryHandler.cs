@@ -10,12 +10,12 @@ using FitBridge_Domain.Exceptions;
 using MediatR;
 using Redis.OM.Searching.Query;
 
-namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedDailyTrainingResults
+namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedTrainingResultsDetails
 {
-    public class GetCustomerPurchasedDailyTrainingResultsQueryHandler(
-        IUnitOfWork unitOfWork) : IRequestHandler<GetCustomerPurchasedDailyTrainingResultsQuery, CustomerPurchasedDailyResultsResponseDto>
+    public class GetCustomerPurchasedTrainingResultsDetailsQueryHandler(
+        IUnitOfWork unitOfWork) : IRequestHandler<GetCustomerPurchasedTrainingResultsDetailsQuery, CustomerPurchasedTrainingResultsDetailResponseDto>
     {
-        public async Task<CustomerPurchasedDailyResultsResponseDto> Handle(GetCustomerPurchasedDailyTrainingResultsQuery request, CancellationToken cancellationToken)
+        public async Task<CustomerPurchasedTrainingResultsDetailResponseDto> Handle(GetCustomerPurchasedTrainingResultsDetailsQuery request, CancellationToken cancellationToken)
         {
             // group the bookings by muscle group
             // calculate the total sets, total weight lifted, total time spent for each muscle group
@@ -80,7 +80,7 @@ namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased
                 };
             }).ToList();
 
-            return new CustomerPurchasedDailyResultsResponseDto
+            return new CustomerPurchasedTrainingResultsDetailResponseDto
             {
                 MuscleGroupActivities = muscleGroupActivities
             };

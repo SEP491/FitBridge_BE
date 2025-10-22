@@ -2,7 +2,7 @@
 
 namespace FitBridge_Application.Dtos.CustomerPurchaseds
 {
-    public class CustomerPurchasedDailyResultsResponseDto
+    public class CustomerPurchasedTrainingResultsDetailResponseDto
     {
         public List<MuscleGroupActivityDto> MuscleGroupActivities { get; set; } = new();
     }
