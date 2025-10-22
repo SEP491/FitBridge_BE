@@ -52,8 +52,8 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
         CalculateAverageMetrics(completedSessions,
             completedSets,
             workoutStats,
-            out double averageSessionTimeSeconds,
-            out double averageWeightLifted,
+            out double averageSessionTimePerSession,
+            out double averageWeightLiftedPerSession,
             out double averageSetsPerSession);
 
         // Calculate highest performance (session with most weight lifted)
@@ -89,9 +89,10 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
             ActivityCompletionRate = allActivitySets.Count > 0
                 ? Math.Round((double)completedSets / allActivitySets.Count * 100, 2)
                 : 0,
-            AverageSessionTimeSeconds = averageSessionTimeSeconds,
-            AverageWeightLifted = averageWeightLifted,
+            AverageSessionTimePerSession = averageSessionTimePerSession,
+            AverageWeightLiftedPerSession = averageWeightLiftedPerSession,
             AverageSetsPerSession = averageSetsPerSession,
+            AverageRepsPerSession = averageRepsPerSession,
             HighestPerformance = highestPerformance,
             MostTrainedMuscleGroup = mostTrainedMuscleGroup,
             LeastTrainedMuscleGroup = leastTrainedMuscleGroup,
@@ -105,8 +106,9 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
         return new MuscleGroupInsightDto
         {
             MuscleGroup = leastTrained.MuscleGroup,
-            TotalSets = leastTrained.SetsCompleted,
+            SetsCompleted = leastTrained.SetsCompleted,
             TotalWeight = leastTrained.TotalWeight,
+            TotalTime = leastTrained.TotalTime,
             SetsCount = leastTrained.SetsCount
         };
     }
@@ -116,8 +118,9 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
         return new MuscleGroupInsightDto
         {
             MuscleGroup = mostTrained.MuscleGroup,
-            TotalSets = mostTrained.SetsCompleted,
+            SetsCompleted = mostTrained.SetsCompleted,
             TotalWeight = mostTrained.TotalWeight,
+            TotalTime = mostTrained.TotalTime,
             SetsCount = mostTrained.SetsCount
         };
     }
@@ -132,6 +135,9 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
                 SetsCount = g.SelectMany(a => a.ActivitySets).Count(),
                 SetsCompleted = g.SelectMany(a => a.ActivitySets)
                     .Count(s => s.IsCompleted),
+                TotalTime = g.SelectMany(a => a.ActivitySets)
+                    .Where(s => s.IsCompleted && s.PracticeTime.HasValue)
+                    .Sum(s => s.PracticeTime!.Value),
                 TotalWeight = g.SelectMany(a => a.ActivitySets)
                     .Where(s => s.IsCompleted && s.WeightLifted.HasValue)
                     .Sum(s => s.WeightLifted!.Value),
@@ -170,22 +176,30 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
         }
     }
 
-    private static void CalculateAverageMetrics(int completedSessions,
+    private static void CalculateAverageMetrics(
+        int completedSessions,
         int completedSets,
         WorkoutStatisticsDto workoutStats,
-        out double averageSessionTimeSeconds, out double averageWeightLifted, out double averageSetsPerSession)
+        out double averageSessionTimePerSession,
+        out double averageWeightLiftedPerSession,
+        out double averageSetsPerSession,
+        out double averageRepsPerSession)
     {
-        averageSessionTimeSeconds = completedSessions > 0
-            ? workoutStats.TotalPracticeTimeSeconds / completedSessions
+        averageSessionTimePerSession = completedSessions > 0
+            ? Math.Round(workoutStats.TotalPracticeTimeSeconds / completedSessions, 1)
             : 0;
 
-        averageWeightLifted = completedSessions > 0
+        averageWeightLiftedPerSession = completedSessions > 0
             ? Math.Round(workoutStats.TotalWeightLifted / completedSessions, 1)
             : 0;
 
         averageSetsPerSession = completedSessions > 0
             ? Math.Round((double)completedSets / completedSessions, 1)
             : 0;
+
+        averageRepsPerSession = completedSessions > 0
+           ? Math.Round((double)workoutStats.TotalRepsCompleted / completedSessions, 1)
+           : 0;
     }
 
     private static WorkoutStatisticsDto CalculateWorkoutStatistics(List<SessionActivity> allActivities, List<ActivitySet> allActivitySets)

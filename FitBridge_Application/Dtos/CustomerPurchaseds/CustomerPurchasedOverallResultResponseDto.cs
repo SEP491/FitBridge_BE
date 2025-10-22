@@ -32,11 +32,13 @@ public class CustomerPurchasedOverallResultResponseDto
     public double ActivityCompletionRate { get; set; }
 
     // Average metrics
-    public double AverageSessionTimeSeconds { get; set; }
+    public double AverageSessionTimePerSession { get; set; }
 
-    public double AverageWeightLifted { get; set; }
+    public double AverageWeightLiftedPerSession { get; set; }
 
     public double AverageSetsPerSession { get; set; }
+
+    public double AverageRepsPerSession { get; set; }
 
     // Peak performance
     public HighestPerformanceDto? HighestPerformance { get; set; }
