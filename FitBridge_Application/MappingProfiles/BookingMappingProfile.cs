@@ -37,7 +37,8 @@ public class BookingMappingProfile : Profile
         .ForMember(dest => dest.Note, opt => opt.MapFrom(src => src.Note))
         .ForMember(dest => dest.NutritionTip, opt => opt.MapFrom(src => src.NutritionTip))
         .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName))
-        .ForMember(dest => dest.CustomerAvatarUrl, opt => opt.MapFrom(src => src.Customer.AvatarUrl));
+        .ForMember(dest => dest.CustomerAvatarUrl, opt => opt.MapFrom(src => src.Customer.AvatarUrl))
+        .ForMember(dest => dest.PackageName, opt => opt.MapFrom(src => src.CustomerPurchased.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Name));
 
         CreateMap<BookingRequest, CreateRequestBookingResponseDto>()
         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
