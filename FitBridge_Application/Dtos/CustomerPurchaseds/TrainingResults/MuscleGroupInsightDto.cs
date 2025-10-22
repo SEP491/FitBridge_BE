@@ -9,6 +9,7 @@ public class MuscleGroupInsightDto
     public int SetsCompleted { get; set; }
 
     public double TotalWeight { get; set; }
+    public int TotalReps { get; set; }
 
     public int SetsCount { get; set; }
 }
