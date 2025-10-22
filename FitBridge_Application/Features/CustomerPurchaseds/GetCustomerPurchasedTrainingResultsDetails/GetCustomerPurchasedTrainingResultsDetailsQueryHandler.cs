@@ -56,11 +56,13 @@ namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased
                 CalculateAverageMetrics(
                     completedSessions,
                     totalSetsCompleted,
+                    totalReps,
                     totalWeightLifted,
                     totalTimeSpentSeconds,
                     out double averageSetsPerSession,
-                    out double averageWeightLifted,
-                    out double averageSessionTimeSeconds);
+                    out double averageWeightLiftedPerSession,
+                    out double averageSessionTimePerSession,
+                    out double averageRepsPerSession);
 
                 List<DailyTrainingResultsDto> dailyTrainingResultsDtos = new List<DailyTrainingResultsDto>();
 
@@ -74,8 +76,9 @@ namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased
                     SetsCount = allActivitySets.Count,
                     SetsCompleted = totalSetsCompleted,
                     AverageSetsPerSession = averageSetsPerSession,
-                    AverageWeightLifted = averageWeightLifted,
-                    AverageSessionTimeSeconds = averageSessionTimeSeconds,
+                    AverageWeightLiftedPerSession = averageWeightLiftedPerSession,
+                    AverageSessionTimeSeconds = averageSessionTimePerSession,
+                    AverageRepsPerSession = averageRepsPerSession,
                     DailyResults = dailyTrainingResultsDtos
                 };
             }).ToList();
@@ -120,17 +123,21 @@ namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchased
             }
         }
 
-        private static void CalculateAverageMetrics(int completedSessions,
+        private static void CalculateAverageMetrics(
+            int completedSessions,
             int totalSetsCompleted,
+            int totalReps,
             double totalWeightLifted,
             double totalTimeSpentSeconds,
             out double averageSetsPerSession,
-            out double averageWeightLifted,
-            out double averageSessionTimeSeconds)
+            out double averageWeightLiftedPerSession,
+            out double averageSessionTimePerSession,
+            out double averageRepsPerSession)
         {
-            averageSetsPerSession = completedSessions > 0 ? (double)totalSetsCompleted / completedSessions : 0;
-            averageWeightLifted = completedSessions > 0 ? (double)totalWeightLifted / completedSessions : 0;
-            averageSessionTimeSeconds = completedSessions > 0 ? (double)totalTimeSpentSeconds / completedSessions : 0;
+            averageSetsPerSession = completedSessions > 0 ? Math.Round((double)totalSetsCompleted / completedSessions, 1) : 0;
+            averageWeightLiftedPerSession = completedSessions > 0 ? Math.Round((double)totalWeightLifted / completedSessions, 1) : 0;
+            averageSessionTimePerSession = completedSessions > 0 ? Math.Round((double)totalTimeSpentSeconds / completedSessions, 1) : 0;
+            averageRepsPerSession = completedSessions > 0 ? Math.Round((double)totalReps / completedSessions, 1) : 0;
         }
 
         private static void SummarizeSessionActivitiesByMuscleGroup(
