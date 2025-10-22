@@ -15,10 +15,6 @@ public class DeleteSessionActivityCommandHandler(IUnitOfWork _unitOfWork) : IReq
         {
             throw new NotFoundException("Session activity not found");
         }
-        if(sessionActivity.ActivitySets.Count > 0)
-        {
-            throw new BusinessException("Cannot delete session activity with activity sets. Please clear the activity sets first.");
-        }
         _unitOfWork.Repository<SessionActivity>().Delete(sessionActivity);
         await _unitOfWork.CommitAsync();
         return true;
