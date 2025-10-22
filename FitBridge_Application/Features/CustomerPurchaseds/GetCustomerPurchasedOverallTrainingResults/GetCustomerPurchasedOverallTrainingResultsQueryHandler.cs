@@ -54,7 +54,8 @@ public class GetCustomerPurchasedOverallTrainingResultsQueryHandler(
             workoutStats,
             out double averageSessionTimePerSession,
             out double averageWeightLiftedPerSession,
-            out double averageSetsPerSession);
+            out double averageSetsPerSession,
+            out double averageRepsPerSession);
 
         // Calculate highest performance (session with most weight lifted)
         CalculateBestPerformance(out HighestPerformanceDto? highestPerformance, completedBookings);
