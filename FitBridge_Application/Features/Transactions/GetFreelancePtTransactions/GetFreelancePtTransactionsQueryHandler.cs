@@ -22,7 +22,7 @@ namespace FitBridge_Application.Features.Transactions.GetFreelancePtTransactions
         {
             var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
                     ?? throw new NotFoundException(nameof(Transaction));
-            var spec = new GetTransactionByPtIdSpec(request.Parameters, accountId);
+            var spec = new GetTransactionByPtIdSpec(request.Parameters, accountId, includeWithdrawRequest: true);
             var transactions = await unitOfWork.Repository<Transaction>()
                 .GetAllWithSpecificationProjectedAsync<GetTransactionsDto>(spec, mapper.ConfigurationProvider);
             var totalCount = await unitOfWork.Repository<Transaction>()
