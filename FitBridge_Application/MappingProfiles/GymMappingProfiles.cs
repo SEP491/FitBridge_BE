@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FitBridge_Application.Dtos.Accounts.Search;
 using FitBridge_Application.Dtos.Gym;
 using FitBridge_Domain.Entities.Accounts;
 using FitBridge_Domain.Entities.Gyms;
@@ -42,6 +43,14 @@ namespace FitBridge_Application.MappingProfiles
                     src => src.UserDetail!.Weight))
                 .ForMember(dest => dest.Experience, opt => opt.MapFrom(
                     src => src.UserDetail!.Experience));
+
+            CreateMap<ApplicationUser, GetAllGymsForSearchDto>()
+                .ForMember(dest => dest.Dob, opt => opt.MapFrom(
+                    src => new DateOnly(src.Dob.Year, src.Dob.Month, src.Dob.Day)))
+                .ForMember(dest => dest.GymImages, opt => opt.MapFrom(
+                    src => src.GymImages.Select(gi => new GymImageDto { Url = gi }).ToList()))
+                .ForMember(dest => dest.RepresentName, opt => opt.MapFrom(
+                    src => src.FullName));
         }
     }
 }
