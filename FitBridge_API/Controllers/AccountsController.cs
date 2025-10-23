@@ -23,6 +23,9 @@ using FitBridge_Application.Specifications.CustomerPurchaseds.GetFreelancePtCust
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using FitBridge_Application.Specifications.Accounts.GetAccountForSearching;
+using FitBridge_Application.Features.Accounts.SearchAccounts;
+using FitBridge_Application.Dtos.Accounts.Search;
 
 namespace FitBridge_API.Controllers;
 
@@ -134,5 +137,17 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
                 StatusCodes.Status200OK.ToString(),
                 "Get freelance PT customers success",
                 pagedResult));
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchAccounts([FromQuery] GetAccountForSearchingParams parameters)
+    {
+        var response = await _mediator.Send(new SearchAccountQuery { Params = parameters });
+        var result = new
+        {
+            FreelancePts = ResultWithPagination(response.FreelancePts.Items, response.FreelancePts.Total, parameters.Page, parameters.Size),
+            Gyms = ResultWithPagination(response.Gyms.Items, response.Gyms.Total, parameters.Page, parameters.Size)
+        };
+        return Ok(new BaseResponse<object>(StatusCodes.Status200OK.ToString(), "Accounts searched successfully", result));
     }
 }
