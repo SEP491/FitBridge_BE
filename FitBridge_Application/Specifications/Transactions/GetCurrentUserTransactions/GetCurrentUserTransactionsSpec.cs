@@ -2,12 +2,12 @@
 using FitBridge_Application.Dtos.Transactions;
 using FitBridge_Domain.Entities.Orders;
 
-namespace FitBridge_Application.Specifications.Transactions.GetTransactionByPtId
+namespace FitBridge_Application.Specifications.Transactions.GetCurrentUserTransactions
 {
-    public class GetTransactionByPtIdSpec : BaseSpecification<Transaction>
+    public class GetCurrentUserTransactionsSpec : BaseSpecification<Transaction>
     {
-        public GetTransactionByPtIdSpec(
-            GetTransactionByPtIdParam parameters,
+        public GetCurrentUserTransactionsSpec(
+            GetCurrentUserTransactionsParam parameters,
             Guid ptId, bool includeWithdrawRequest = false, bool includeOrder = false) : base(x =>
             x.IsEnabled && x.WithdrawalRequest.AccountId == ptId)
         {
