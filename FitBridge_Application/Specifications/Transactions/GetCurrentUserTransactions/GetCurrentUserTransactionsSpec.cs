@@ -8,8 +8,11 @@ namespace FitBridge_Application.Specifications.Transactions.GetCurrentUserTransa
     {
         public GetCurrentUserTransactionsSpec(
             GetCurrentUserTransactionsParam parameters,
-            Guid ptId, bool includeWithdrawRequest = false, bool includeOrder = false) : base(x =>
-            x.IsEnabled && x.WithdrawalRequest.AccountId == ptId)
+            Guid ptId,
+            bool includeWithdrawRequest = false,
+            bool includeOrder = false) : base(x =>
+            x.IsEnabled
+            && (!includeWithdrawRequest || (includeWithdrawRequest && x.WithdrawalRequest.AccountId == ptId)))
         {
             switch (StringCapitalizationConverter.ToUpperFirstChar(parameters.SortBy))
             {
