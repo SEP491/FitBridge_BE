@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace FitBridge_Application.Features.Transactions.GetCurrentUserTransactions
 {
-    internal class GetCurrentUserTransactionsHandler(
+    internal class GetCurrentUserTransactionsQueryHandler(
         IUserUtil userUtil,
         IHttpContextAccessor httpContextAccessor,
         IUnitOfWork unitOfWork,
@@ -23,7 +23,7 @@ namespace FitBridge_Application.Features.Transactions.GetCurrentUserTransactions
             var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
                     ?? throw new NotFoundException(nameof(ApplicationUser));
 
-            var spec = new GetCurrentUserTransactionsSpec(request.Parameters, accountId, includeWithdrawRequest: true);
+            var spec = new GetCurrentUserTransactionsSpec(request.Parameters, accountId);
             var transactions = await unitOfWork.Repository<Transaction>()
                 .GetAllWithSpecificationProjectedAsync<GetTransactionsDto>(spec, mapper.ConfigurationProvider);
             var totalCount = await unitOfWork.Repository<Transaction>()
