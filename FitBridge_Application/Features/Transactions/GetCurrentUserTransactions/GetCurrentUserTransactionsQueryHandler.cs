@@ -23,7 +23,10 @@ namespace FitBridge_Application.Features.Transactions.GetCurrentUserTransactions
             var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
                     ?? throw new NotFoundException(nameof(ApplicationUser));
 
-            var spec = new GetCurrentUserTransactionsSpec(request.Parameters, accountId);
+            var userRole = userUtil.GetUserRole(httpContextAccessor.HttpContext)
+                ?? throw new NotFoundException("User role not found");
+
+            var spec = new GetCurrentUserTransactionsSpec(request.Parameters, accountId, userRole);
             var transactions = await unitOfWork.Repository<Transaction>()
                 .GetAllWithSpecificationProjectedAsync<GetTransactionsDto>(spec, mapper.ConfigurationProvider);
             var totalCount = await unitOfWork.Repository<Transaction>()

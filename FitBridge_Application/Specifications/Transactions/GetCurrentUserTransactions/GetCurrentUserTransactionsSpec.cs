@@ -1,4 +1,5 @@
-﻿using FitBridge_Application.Commons.Utils;
+﻿using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Commons.Utils;
 using FitBridge_Application.Dtos.Transactions;
 using FitBridge_Domain.Entities.Orders;
 
@@ -8,11 +9,14 @@ namespace FitBridge_Application.Specifications.Transactions.GetCurrentUserTransa
     {
         public GetCurrentUserTransactionsSpec(
             GetCurrentUserTransactionsParam parameters,
-            Guid ptId,
-            bool includeWithdrawRequest = false,
+            Guid userId,
+            string userRole,
             bool includeOrder = false) : base(x =>
             x.IsEnabled
-            && (!includeWithdrawRequest || (includeWithdrawRequest && x.WithdrawalRequest.AccountId == ptId)))
+            && ((userRole == ProjectConstant.UserRoles.GymOwner
+                && x.Order.OrderItems.Any(oi => oi.GymCourse != null && oi.GymCourse.GymOwnerId == userId))
+                || (userRole == ProjectConstant.UserRoles.FreelancePT
+                    && x.Order.OrderItems.Any(oi => oi.FreelancePTPackage != null && oi.FreelancePTPackage.PtId == userId))))
         {
             switch (StringCapitalizationConverter.ToUpperFirstChar(parameters.SortBy))
             {
@@ -52,10 +56,6 @@ namespace FitBridge_Application.Specifications.Transactions.GetCurrentUserTransa
                 parameters.Page = -1;
             }
 
-            if (includeWithdrawRequest)
-            {
-                AddInclude(x => x.WithdrawalRequest!);
-            }
             if (includeOrder)
             {
                 AddInclude(x => x.Order!);
