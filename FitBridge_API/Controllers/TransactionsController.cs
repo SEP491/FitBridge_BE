@@ -16,9 +16,8 @@ namespace FitBridge_API.Controllers
     public class TransactionsController(IMediator mediator) : _BaseApiController
     {
         /// <summary>
-        /// Retrieves a paginated list of transactions for a specific freelance PT.
+        /// Retrieves a paginated list of transactions for the current logged in freelance Pt.
         /// </summary>
-        /// <param name="ptId">The unique identifier of the freelance PT.</param>
         /// <param name="parameters">Query parameters for filtering and pagination, including:
         /// <list type="bullet">
         /// <item>
@@ -40,9 +39,10 @@ namespace FitBridge_API.Controllers
         /// </list>
         /// </param>
         /// <returns>A paginated list of transactions for the specified freelance PT.</returns>
-        [HttpGet("freelance-pt/{ptId}")]
+        [HttpGet("freelance-pt")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetTransactionsDto>>))]
-        public async Task<ActionResult<Pagination<GetTransactionsDto>>> GetFreelancePtTransactions([FromQuery] GetTransactionByPtIdParam parameters)
+        public async Task<ActionResult<Pagination<GetTransactionsDto>>> GetFreelancePtTransactions(
+            [FromQuery] GetTransactionByPtIdParam parameters)
         {
             var response = await mediator.Send(new GetFreelancePtTransactionsQuery(parameters));
 
