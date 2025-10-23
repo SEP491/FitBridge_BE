@@ -1,8 +1,9 @@
 using FitBridge_API.Helpers.RequestHelpers;
+using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos.Transactions;
-using FitBridge_Application.Features.Transactions.GetFreelancePtTransactions;
+using FitBridge_Application.Features.Transactions.GetCurrentUserTransactions;
 using FitBridge_Application.Features.Transactions.GetTransactionDetail;
-using FitBridge_Application.Specifications.Transactions.GetTransactionByPtId;
+using FitBridge_Application.Specifications.Transactions.GetCurrentUserTransactions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,9 +17,8 @@ namespace FitBridge_API.Controllers
     public class TransactionsController(IMediator mediator) : _BaseApiController
     {
         /// <summary>
-        /// Retrieves a paginated list of transactions for a specific freelance PT.
+        /// Retrieves a paginated list of transactions for the current logged in user.
         /// </summary>
-        /// <param name="ptId">The unique identifier of the freelance PT.</param>
         /// <param name="parameters">Query parameters for filtering and pagination, including:
         /// <list type="bullet">
         /// <item>
@@ -39,12 +39,14 @@ namespace FitBridge_API.Controllers
         /// </item>
         /// </list>
         /// </param>
-        /// <returns>A paginated list of transactions for the specified freelance PT.</returns>
-        [HttpGet("freelance-pt/{ptId}")]
+        /// <returns>A paginated list of transactions for the current user.</returns>
+        [HttpGet("current-user")]
+        [Authorize(Roles = ProjectConstant.UserRoles.GymOwner + "," + ProjectConstant.UserRoles.FreelancePT)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetTransactionsDto>>))]
-        public async Task<ActionResult<Pagination<GetTransactionsDto>>> GetFreelancePtTransactions([FromQuery] GetTransactionByPtIdParam parameters)
+        public async Task<ActionResult<Pagination<GetTransactionsDto>>> GetCurrentUserTransactions(
+            [FromQuery] GetCurrentUserTransactionsParam parameters)
         {
-            var response = await mediator.Send(new GetFreelancePtTransactionsQuery(parameters));
+            var response = await mediator.Send(new GetCurrentUserTransactionsQuery(parameters));
 
             var pagedResult = new Pagination<GetTransactionsDto>(
                 response.Items,
@@ -55,7 +57,7 @@ namespace FitBridge_API.Controllers
             return Ok(
                 new BaseResponse<Pagination<GetTransactionsDto>>(
                     StatusCodes.Status200OK.ToString(),
-                    "Get freelance PT transactions success",
+                    "Get current user transactions success",
                     pagedResult));
         }
 
