@@ -6,8 +6,7 @@ using MediatR;
 
 namespace FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedFreelancePt;
 
-public class GetCustomerPurchasedFreelancePtQuery : IRequest<CustomerPurchasedForMyPackageDto>
+public class GetCustomerPurchasedPackage : IRequest<CustomerPurchasedForMyPackageDto>
 {
     public GetCustomerPurchasedParams Params { get; set; }
-
 }

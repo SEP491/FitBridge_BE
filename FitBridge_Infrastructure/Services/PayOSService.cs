@@ -236,17 +236,25 @@ public class PayOSService : IPayOSService
             {
                 return await _transactionService.ExtendCourse(verifiedWebhookData.orderCode);
             }
+            
             if (transaction.TransactionType == TransactionType.AssignPt)
             {
                 return await _transactionService.PurchasePt(verifiedWebhookData.orderCode);
             }
-            if(transaction.TransactionType == TransactionType.FreelancePTPackage)
+            
+            if (transaction.TransactionType == TransactionType.FreelancePTPackage)
             {
                 return await _transactionService.PurchaseFreelancePTPackage(verifiedWebhookData.orderCode);
             }
-            if(transaction.TransactionType == TransactionType.GymCourse)
+            
+            if (transaction.TransactionType == TransactionType.GymCourse)
             {
                 return await _transactionService.PurchaseGymCourse(verifiedWebhookData.orderCode);
+            }
+
+            if(transaction.TransactionType == TransactionType.ExtendFreelancePTPackage)
+            {
+                return await _transactionService.ExtendFreelancePTPackage(verifiedWebhookData.orderCode);
             }
 
             return false;

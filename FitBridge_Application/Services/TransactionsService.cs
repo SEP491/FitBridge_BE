@@ -54,7 +54,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
         customerPurchasedToExtend.AvailableSessions += orderItemToExtend.Quantity * numOfSession;
         customerPurchasedToExtend.ExpirationDate = customerPurchasedToExtend.ExpirationDate.AddDays(orderItemToExtend.GymCourse.Duration * orderItemToExtend.Quantity);
-        transactionToExtend.Order.Status = OrderStatus.Arrived;
+        transactionToExtend.Order.Status = OrderStatus.Finished;
         var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItemToExtend.GymCourse.GymOwnerId);
         if (walletToUpdate == null)
         {
@@ -109,7 +109,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         customerPurchasedToAssignPt.AvailableSessions = numOfSession.Value;
         orderItemToAssignPt.GymPtId = gymCoursePTToAssign.PTId;
 
-        transactionEntity.Order.Status = OrderStatus.Arrived;
+        transactionEntity.Order.Status = OrderStatus.Finished;
 
         await _unitOfWork.CommitAsync();
         return true;
@@ -178,7 +178,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
         else
         {
-            OrderEntity.Status = OrderStatus.Arrived;
+            OrderEntity.Status = OrderStatus.Finished;
         }
         OrderEntity.Transactions.FirstOrDefault(t => t.OrderCode == orderCode).ProfitAmount = await CalculateSystemProfit(OrderEntity);
 
@@ -235,8 +235,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         var merchantPtProfit = Math.Round(subTotalOrderItemPrice - commissionAmount, 0, MidpointRounding.AwayFromZero);
         if (coupon != null) // If there is a voucher, recalculate the profit
         {
-            var voucherOwnerRoles = await _applicationUserService.GetUserRoleAsync(coupon.Creator);
-            if (voucherOwnerRoles == ProjectConstant.UserRoles.FreelancePT)
+            if (coupon.Type != CouponType.System) // If voucher is system, the discount amount is deducted from system profit
             {
                 var discountAmount = subTotalOrderItemPrice * (decimal)(coupon.DiscountPercent / 100) > coupon.MaxDiscount ? coupon.MaxDiscount : subTotalOrderItemPrice * (decimal)(coupon.DiscountPercent / 100);
                 merchantPtProfit = merchantPtProfit - discountAmount;
@@ -261,7 +260,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
         else
         {
-            OrderEntity.Status = OrderStatus.Arrived;
+            OrderEntity.Status = OrderStatus.Finished;
         }
         if (OrderEntity.Coupon != null)
         {
@@ -312,6 +311,47 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                 });
             }
         }
+        return true;
+    }
+
+    public async Task<bool> ExtendFreelancePTPackage(long orderCode)
+    {
+        var transactionToExtend = await _unitOfWork.Repository<Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
+        if (transactionToExtend == null)
+        {
+            throw new NotFoundException("Transaction not found with order code " + orderCode);
+        }
+        if (transactionToExtend.Order.Coupon != null)
+        {
+            transactionToExtend.Order.Coupon.Quantity--;
+            transactionToExtend.Order.Coupon.NumberOfUsedCoupon++;
+        }
+        transactionToExtend.ProfitAmount = await CalculateSystemProfit(transactionToExtend.Order);
+        var orderItemToExtend = transactionToExtend.Order.OrderItems.First();
+        var customerPurchasedToExtend = transactionToExtend.Order.CustomerPurchasedToExtend;
+        orderItemToExtend.CustomerPurchasedId = customerPurchasedToExtend.Id;
+
+        var numOfSession = orderItemToExtend.FreelancePTPackage.NumOfSessions;
+        customerPurchasedToExtend.AvailableSessions += orderItemToExtend.Quantity * numOfSession;
+        customerPurchasedToExtend.ExpirationDate = customerPurchasedToExtend.ExpirationDate.AddDays(orderItemToExtend.FreelancePTPackage.DurationInDays * orderItemToExtend.Quantity);
+        transactionToExtend.Order.Status = OrderStatus.Finished;
+        var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItemToExtend.FreelancePTPackage.PtId);
+        if (walletToUpdate == null)
+        {
+            throw new NotFoundException("Wallet not found");
+        }
+        var profit = await CalculateMerchantProfit(orderItemToExtend, transactionToExtend.Order.Coupon);
+        walletToUpdate.PendingBalance += profit;
+        _logger.LogInformation($"Wallet {walletToUpdate.Id} updated with new pending balance {walletToUpdate.PendingBalance} after adding profit {profit}");
+
+        _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
+        await _unitOfWork.CommitAsync();
+
+        await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
+        {
+            OrderItemId = orderItemToExtend.Id,
+            ProfitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30)
+        });
         return true;
     }
 }

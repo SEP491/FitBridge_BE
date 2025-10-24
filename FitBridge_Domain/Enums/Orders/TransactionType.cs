@@ -12,6 +12,7 @@
         ServiceOrder,
         AssignPt,
         ExtendCourse,
+        ExtendFreelancePTPackage,
         DistributeProfit
     }
 }

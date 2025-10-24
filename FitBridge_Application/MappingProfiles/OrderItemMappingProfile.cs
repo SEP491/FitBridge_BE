@@ -10,5 +10,6 @@ public class OrderItemMappingProfile : Profile
     public OrderItemMappingProfile()
     {
         CreateMap<OrderItemDto, OrderItem>();
+        CreateMap<OrderItem, OrderItemDto>();
     }
 }

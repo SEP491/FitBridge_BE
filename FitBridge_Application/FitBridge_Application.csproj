@@ -36,5 +36,6 @@
 	  <Folder Include="Features\Reports\ResolveReport\" />
 	  <Folder Include="Features\Reports\ProcessReport\" />
 	  <Folder Include="Features\Reports\GetCustomerReports\" />
+	  <Folder Include="Features\Tests\" />
 	</ItemGroup>
 </Project>

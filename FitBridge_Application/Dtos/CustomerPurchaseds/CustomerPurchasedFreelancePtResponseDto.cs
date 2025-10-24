@@ -15,6 +15,9 @@ public class CustomerPurchasedFreelancePtResponseDto
     public DateOnly ExpirationDate { get; set; }
 
     public Guid? FreelancePTPackageId { get; set; }
+    public Guid? PtId { get; set; }
+    public string? PtName { get; set; }
+    public string? PtImageUrl { get; set; }
 
     public DateTime PurchaseDate { get; set; }
 }

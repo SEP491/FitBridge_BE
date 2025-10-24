@@ -39,7 +39,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         {
             throw new NotFoundException("User not found");
         }
-        await GetAndValidateOrderItems(request.Request.OrderItems, userId.Value, request.Request.CouponId);
+        await GetAndValidateOrderItems(request.Request.OrderItems, userId.Value, request.Request.CouponId, request.Request.CustomerPurchasedIdToExtend);
         var SubTotalPrice = CalculateSubTotalPrice(request.Request.OrderItems);
         request.Request.SubTotalPrice = SubTotalPrice;
         request.Request.AccountId = userId;
@@ -70,6 +70,14 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         {
             transactionType = TransactionType.ServiceOrder;
         }
+        if(request.Request.OrderItems.Any(x => x.FreelancePTPackageId != null) && request.Request.CustomerPurchasedIdToExtend != null)
+        {
+            transactionType = TransactionType.ExtendFreelancePTPackage;
+        }
+        if(request.Request.OrderItems.Any(x => x.GymCourseId != null) && request.Request.CustomerPurchasedIdToExtend != null)
+        {
+            transactionType = TransactionType.ExtendCourse;
+        }
 
         var newTransaction = new Transaction
         {
@@ -89,9 +97,10 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         var order = _mapper.Map<Order>(request);
         order.SubTotalPrice = request.SubTotalPrice;
         order.TotalAmount = request.TotalAmountPrice;
-        order.Status = OrderStatus.PaymentProcessing;
+        order.Status = OrderStatus.Created;
         order.CheckoutUrl = checkoutUrl;
         order.CouponId = request.CouponId ?? null;
+        order.CustomerPurchasedIdToExtend = request.CustomerPurchasedIdToExtend ?? null;
         _unitOfWork.Repository<Order>().Insert(order);
         return order.Id;
     }
@@ -140,7 +149,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         }
     }
 
-    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid userId, Guid? couponId)
+    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid userId, Guid? couponId, Guid? customerPurchasedIdToExtend)
     {
         if (couponId != null)
         {
@@ -149,9 +158,9 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             {
                 throw new NotFoundException("Coupon not found");
             }
-            if(coupon.Type == CouponType.FreelancePT && OrderItems.Count > 1)
+            if(coupon.Type != CouponType.System && OrderItems.Count > 1)
             {
-                throw new NotFoundException("This coupon type freelance PT only can be used for pt " + coupon.CreatorId);
+                throw new NotFoundException("This coupon type only can be used for system or gym owner");
             }
         }
 
@@ -181,7 +190,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 }
 
                 var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByGymIdSpec(gymCoursePT.GymOwnerId, userId));
-                if (userPackage != null)
+                if (userPackage != null && customerPurchasedIdToExtend == null)
                 {
                     throw new PackageExistException($"Package of this gym still not expired, customer purchased id: {userPackage.Id}, package expiration date: {userPackage.ExpirationDate} please extend the package");
                 }
@@ -196,7 +205,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 }
                 item.Price = freelancePTPackage.Price;
                 var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByFreelancePtIdSpec(freelancePTPackage.PtId, userId));
-                if (userPackage != null)
+                if (userPackage != null && customerPurchasedIdToExtend == null)
                 {
                     throw new PackageExistException($"Package of this freelance PT still not expired, customer purchased id: {userPackage.Id}, package expiration date: {userPackage.ExpirationDate} please extend the package");
                 }

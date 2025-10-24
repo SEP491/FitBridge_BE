@@ -26,7 +26,7 @@ public class GetCustomerPurchasedQueryHandler(IUnitOfWork _unitOfWork, IMapper _
         var customerPurchaseds = await _unitOfWork.Repository<CustomerPurchased>().GetAllWithSpecificationProjectedAsync<CustomerPurchasedResponseDto>(new GetCustomerPurchasedByCustomerIdSpec(userId.Value, request.Params), _mapper.ConfigurationProvider);
 
         var totalItems = await _unitOfWork.Repository<CustomerPurchased>().CountAsync(new GetCustomerPurchasedByCustomerIdSpec(userId.Value, request.Params));
-        
+
         return new PagingResultDto<CustomerPurchasedResponseDto>(totalItems, customerPurchaseds);
-    }
+    }    
 }
