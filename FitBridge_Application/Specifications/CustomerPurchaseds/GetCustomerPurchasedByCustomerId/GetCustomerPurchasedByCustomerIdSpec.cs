@@ -14,7 +14,7 @@ public class GetCustomerPurchasedByCustomerIdSpec : BaseSpecification<CustomerPu
             x.CustomerId == accountId && x.IsEnabled
             && x.OrderItems.Any(x => isGymCourse ? x.GymCourseId != null : x.FreelancePTPackageId != null)
             && (!parameters.IsOngoingOnly ||
-            (parameters.IsOngoingOnly && x.ExpirationDate > DateOnly.FromDateTime(DateTime.Now)))
+            (parameters.IsOngoingOnly && x.ExpirationDate > DateOnly.FromDateTime(DateTime.UtcNow)))
         )
     {
         AddInclude(x => x.OrderItems);

@@ -8,7 +8,6 @@ using FitBridge_Application.Services;
 using FitBridge_Application.Specifications.Accounts;
 using FitBridge_Application.Specifications.Coupons;
 using FitBridge_Application.Specifications.Coupons.GetCouponById;
-using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByGymId;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedById;
 using FitBridge_Application.Specifications.FreelancePtPackages.GetFreelancePtPackageById;
 using FitBridge_Application.Specifications.GymCourses.GetGymCourseById;
@@ -88,7 +87,7 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
         var order = _mapper.Map<Order>(request);
         order.SubTotalPrice = request.SubTotalPrice;
         order.TotalAmount = request.TotalAmountPrice;
-        order.Status = OrderStatus.PaymentProcessing;
+        order.Status = OrderStatus.Created;
         order.CheckoutUrl = checkoutUrl;
         order.CouponId = request.CouponId ?? null;
         _unitOfWork.Repository<Order>().Insert(order);

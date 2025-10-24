@@ -10,4 +10,5 @@ public interface ITransactionService
     Task<bool> DistributeProfit(Guid orderItemId);
     Task<bool> PurchaseFreelancePTPackage(long orderCode);
     Task<bool> PurchaseGymCourse(long orderCode);
+    Task<bool> ExtendFreelancePTPackage(long orderCode);
 }

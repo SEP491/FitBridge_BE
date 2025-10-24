@@ -37,7 +37,7 @@ public class CreateOrderCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork,
         var order = _mapper.Map<Order>(request);
         order.TotalAmount = totalPrice;
         order.SubTotalPrice = subTotalPrice;
-        order.Status = OrderStatus.PaymentProcessing;
+        order.Status = OrderStatus.Created;
         _unitOfWork.Repository<Order>().Insert(order);
         await _unitOfWork.CommitAsync();
         return order.Id.ToString();

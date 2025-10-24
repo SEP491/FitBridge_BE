@@ -74,7 +74,7 @@ public async Task<PaymentResponseDto> Handle(PurchasePtCommand request, Cancella
         var subTotalPrice = request.SubTotalPrice;
         var order = _mapper.Map<Order>(request);
         order.SubTotalPrice = subTotalPrice;
-        order.Status = OrderStatus.PaymentProcessing;
+        order.Status = OrderStatus.Created;
         order.CheckoutUrl = checkoutUrl;
         order.GymCoursePTIdToAssign = gymCoursePTId;
         _unitOfWork.Repository<Order>().Insert(order);

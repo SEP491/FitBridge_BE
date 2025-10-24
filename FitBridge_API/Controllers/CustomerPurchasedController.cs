@@ -35,13 +35,21 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<CustomerPurchasedResponseDto>>(StatusCodes.Status200OK.ToString(), "Get customer purchased course success", pagination));
     }
-
-    [HttpGet("customer-package/freelance-pt")]
-    public async Task<IActionResult> GetCustomerPurchasedFreelancePt([FromQuery] GetCustomerPurchasedParams parameters)
+    /// <summary>
+    /// Use for customer to view list of their purchased packages both FreelancePtPackage and GymCourse
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    [HttpGet("customer-package")]
+    public async Task<IActionResult> GetCustomerPurchasedPackage([FromQuery] GetCustomerPurchasedParams parameters)
     {
-        var response = await _mediator.Send(new GetCustomerPurchasedFreelancePtQuery { Params = parameters });
-        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
-        return Ok(new BaseResponse<Pagination<CustomerPurchasedFreelancePtResponseDto>>(StatusCodes.Status200OK.ToString(), "Get customer purchased freelance pt success", pagination));
+        var response = await _mediator.Send(new GetCustomerPurchasedPackage { Params = parameters });
+        var result = new
+        {
+            FreelancePtPackage = ResultWithPagination(response.freelancePtPackages.Items, response.freelancePtPackages.Total, parameters.Page, parameters.Size),
+            GymCourse = ResultWithPagination(response.gymCourses.Items, response.gymCourses.Total, parameters.Page, parameters.Size),
+        };
+        return Ok(new BaseResponse<object>(StatusCodes.Status200OK.ToString(), "Get customer purchased freelance pt success", result));
     }
 
     /// <summary>
