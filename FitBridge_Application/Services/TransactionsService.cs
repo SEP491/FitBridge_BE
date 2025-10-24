@@ -75,12 +75,13 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         });
         return true;
     }
+
     public async Task<decimal> CalculateSystemProfit(Order order)
     {
         var systemProfit = order.SubTotalPrice * ProjectConstant.CommissionRate;
         if (order.Coupon != null)
         {
-            if (order.Coupon.Type == CouponType.FreelancePT)
+            if (order.Coupon.Type == CouponType.FreelancePT || order.Coupon.Type == CouponType.GymOwner)
             {
                 systemProfit = order.TotalAmount * ProjectConstant.CommissionRate;
             }
@@ -215,7 +216,6 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             var profit = await CalculateMerchantProfit(orderItem, OrderEntity.Coupon);
             walletToUpdate.PendingBalance += profit;
 
-
             _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
             await _unitOfWork.CommitAsync();
 
@@ -243,7 +243,6 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
 
         return Math.Round(merchantPtProfit, 0, MidpointRounding.AwayFromZero);
-
     }
 
     public async Task<bool> PurchaseGymCourse(long orderCode)

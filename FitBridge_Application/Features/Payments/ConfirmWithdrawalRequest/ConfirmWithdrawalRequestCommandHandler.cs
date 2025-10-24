@@ -25,7 +25,7 @@ namespace FitBridge_Application.Features.Payments.ConfirmWithdrawalRequest
 
             if (withdrawalRequest.Status != WithdrawalRequestStatus.Pending)
             {
-                throw new InvalidDataException($"Cannot confirm withdrawal request with status: " +
+                throw new DataValidationFailedException($"Cannot confirm withdrawal request with status: " +
                     $"{withdrawalRequest.Status}. Only pending requests can be confirmed.");
             }
 

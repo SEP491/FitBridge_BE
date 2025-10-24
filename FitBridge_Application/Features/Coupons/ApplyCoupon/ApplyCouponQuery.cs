@@ -8,7 +8,7 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
     {
         public string CouponCode { get; set; }
 
-        public bool IsFreelancePtCoupon { get; set; }
+        public string ProductType { get; set; }
 
         public List<Guid> ItemsId { get; set; } = new();
 

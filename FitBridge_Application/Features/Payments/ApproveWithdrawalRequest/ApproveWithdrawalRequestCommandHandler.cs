@@ -29,7 +29,7 @@ namespace FitBridge_Application.Features.Payments.ApproveWithdrawalRequest
 
             if (withdrawalRequest.Status != WithdrawalRequestStatus.AdminApproved)
             {
-                throw new InvalidDataException($"Cannot approve withdrawal request with status: " +
+                throw new DataValidationFailedException($"Cannot approve withdrawal request with status: " +
                     $"{withdrawalRequest.Status}. Only admin-approved requests can be user-approved.");
             }
 

@@ -1,11 +1,16 @@
 ﻿using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos.Coupons;
+using FitBridge_Application.Features.Payments.ApproveWithdrawalRequest;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Specifications.Coupons.GetCouponToApply;
 using FitBridge_Application.Specifications.FreelancePtPackages.GetFreelancePTPackagesByIds;
+using FitBridge_Application.Specifications.GymCourses.GetGymCourseByIds;
 using FitBridge_Application.Specifications.Orders.GetOrderByCouponAndUserId;
+using FitBridge_Application.Specifications.ProductDetails.GetProductDetailsByIds;
+using FitBridge_Domain.Entities;
+using FitBridge_Domain.Entities.Ecommerce;
 using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.Orders;
@@ -17,7 +22,6 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
 {
     internal class ApplyCouponQueryHandler(
         IUnitOfWork unitOfWork,
-        IApplicationUserService applicationUserService,
         IHttpContextAccessor httpContextAccessor,
         IUserUtil userUtil) : IRequestHandler<ApplyCouponQuery, ApplyCouponDto>
     {
@@ -28,14 +32,7 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
             var coupon = await unitOfWork.Repository<Coupon>().GetBySpecificationAsync(couponSpec)
                 ?? throw new NotFoundException(nameof(Coupon));
 
-            var creatorRole = await applicationUserService.GetUserRoleAsync(coupon.Creator);
-            if (request.IsFreelancePtCoupon && creatorRole.Equals(ProjectConstant.UserRoles.Admin)
-                || !request.IsFreelancePtCoupon && creatorRole.Equals(ProjectConstant.UserRoles.FreelancePT))
-            {
-                throw new CouponNotApplicableException(coupon.CouponCode);
-            }
-
-            if (coupon.Quantity - 1 <= 0)
+            if (coupon.Quantity - coupon.NumberOfUsedCoupon <= 0)
             {
                 throw new OutOfStocksException(nameof(Coupon));
             }
@@ -53,7 +50,12 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
                 throw new CouponAlreadyAppliedException(coupon.CouponCode);
             }
 
-            await ValidateFreelancePtCoupon(request.ItemsId, coupon.CreatorId);
+            var productCreatorId = await ValidateProductSimilarityAsync(request.ItemsId, request.ProductType);
+
+            if (coupon.CreatorId != productCreatorId)
+            {
+                throw new DataValidationFailedException("This coupon can only be applied to products of the same creator");
+            }
 
             var dto = new ApplyCouponDto
             {
@@ -71,21 +73,51 @@ namespace FitBridge_Application.Features.Coupons.ApplyCoupon
             return totalPrice - discountAmount;
         }
 
-        private async Task ValidateFreelancePtCoupon(List<Guid> itemsId, Guid couponCreatorId)
+        private async Task<Guid?> ValidateProductSimilarityAsync(List<Guid> itemsId, string productType)
         {
-            if (itemsId.Count > 0)
+            // all products should be of the same type, so if the fetched products count mismatched
+            // with itemsId count, then at least one product does not match the rest
+            switch (productType)
             {
-                throw new InvalidDataException("No items provided for freelance PT coupon validation");
-            }
+                case nameof(GymCourse):
+                    {
+                        var gymCoursesCount = await unitOfWork.Repository<GymCourse>()
+                            .CountAsync(new GetGymCourseByIdsSpec(itemsId));
 
-            var packages = await unitOfWork.Repository<FreelancePTPackage>()
-                .GetAllWithSpecificationAsync(new GetFreelancePTPackagesByIdsSpec(itemsId));
+                        if (gymCoursesCount > 0 && gymCoursesCount != itemsId.Count)
+                        {
+                            throw new DataValidationFailedException("This coupon can only be applied to products of the same type or creator does");
+                        }
+                        var creatorId = (await unitOfWork.Repository<GymCourse>()
+                            .GetByIdAsync(itemsId.First())).GymOwnerId;
+                        return creatorId;
+                    }
 
-            var invalidPackages = packages.Where(p => p.PtId != couponCreatorId).ToList();
+                case nameof(FreelancePTPackage):
+                    {
+                        var packagesCount = await unitOfWork.Repository<FreelancePTPackage>()
+                            .CountAsync(new GetFreelancePTPackagesByIdsSpec(itemsId));
 
-            if (invalidPackages.Count > 0)
-            {
-                throw new InvalidDataException("This coupon can only be applied to packages from the personal trainer who created it");
+                        if (packagesCount > 0 && packagesCount != itemsId.Count)
+                        {
+                            throw new DataValidationFailedException("This coupon can only be applied to products of the same type");
+                        }
+                        var creatorId = (await unitOfWork.Repository<FreelancePTPackage>()
+                            .GetByIdAsync(itemsId.First())).PtId;
+                        return creatorId;
+                    }
+                case nameof(Product):
+                    var productDetailsCount = await unitOfWork.Repository<ProductDetail>()
+                        .CountAsync(new GetProductDetailsByIdsSpec(itemsId));
+
+                    if (productDetailsCount > 0 && productDetailsCount != itemsId.Count)
+                    {
+                        throw new DataValidationFailedException("This coupon can only be applied to products of the same type");
+                    }
+                    return null;
+
+                default:
+                    throw new DataValidationFailedException("Invalid product type");
             }
         }
     }

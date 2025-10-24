@@ -30,16 +30,16 @@ public class RegisterSlotCommandHandler(IUnitOfWork _unitOfWork, IUserUtil _user
 
         if (gymPt.GymOwnerId != slot.GymOwnerId)
         {
-            throw new InvalidDataException("Gym PT is not in the same gym as the slot");
+            throw new DataValidationFailedException("Gym PT is not in the same gym as the slot");
         }
-        
+
         var isSlotRegistered = await _unitOfWork.Repository<PTGymSlot>().GetBySpecificationAsync(new GetGymSlotPtBySlotIdAndPtIdSpec(request.SlotId, userId.Value, request.RegisterDate));
 
         if (isSlotRegistered != null)
         {
             throw new DuplicateException("Slot already registered for this date");
         }
-        
+
         var ptGymSlot = new PTGymSlot
         {
             PTId = userId.Value,
@@ -47,7 +47,7 @@ public class RegisterSlotCommandHandler(IUnitOfWork _unitOfWork, IUserUtil _user
             Status = PTGymSlotStatus.Activated,
             RegisterDate = request.RegisterDate
         };
-        
+
         _unitOfWork.Repository<PTGymSlot>().Insert(ptGymSlot);
         await _unitOfWork.CommitAsync();
         return true;
