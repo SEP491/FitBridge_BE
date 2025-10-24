@@ -47,7 +47,7 @@ public class CustomerPurchasedMappingProfile : Profile
             .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId))
             .ForMember(dest => dest.PtId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage != null ? src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.PtId : Guid.Empty))
             .ForMember(dest => dest.PtName, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage != null ? src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Pt.FullName : string.Empty))
-            .ForMember(dest => dest.PtImageUrl, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage != null ? src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Pt.AvatarUrl : string.Empty));
+            .ForMember(dest => dest.PtImageUrl, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage != null ? src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Pt.AvatarUrl : string.Empty))
             .ForMember(dest => dest.PurchaseDate, opt => opt.MapFrom(src => src.CreatedAt))
             .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId));
 

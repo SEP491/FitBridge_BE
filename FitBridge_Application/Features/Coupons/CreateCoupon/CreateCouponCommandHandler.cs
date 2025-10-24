@@ -30,9 +30,7 @@ namespace FitBridge_Application.Features.Coupons.CreateCoupon
             var creator = await applicationUserService.GetByIdAsync(creatorId) ?? throw new NotFoundException(nameof(ApplicationUser));
 
             var creatorRole = await applicationUserService.GetUserRoleAsync(creator);
-
-            var couponType = creatorRole.Equals(ProjectConstant.UserRoles.FreelancePT) ? CouponType.FreelancePT
-                : CouponType.System;
+            var couponType = ExtractCouponType(creatorRole);
 
             var newCoupon = new Coupon
             {
@@ -66,6 +64,17 @@ namespace FitBridge_Application.Features.Coupons.CreateCoupon
             }
 
             return mapper.Map<CreateNewCouponDto>(newCoupon);
+        }
+
+        private static CouponType ExtractCouponType(string creatorRole)
+        {
+            return creatorRole switch
+            {
+                ProjectConstant.UserRoles.GymOwner => CouponType.GymOwner,
+                ProjectConstant.UserRoles.Admin => CouponType.System,
+                ProjectConstant.UserRoles.FreelancePT => CouponType.FreelancePT,
+                _ => throw new DataValidationFailedException("Unknown creator role for coupon"),
+            };
         }
 
         private async Task<IReadOnlyList<Coupon>> GetOverlappedCoupons(DateOnly expirationDate)

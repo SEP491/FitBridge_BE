@@ -4,6 +4,8 @@
     {
         FreelancePT,
 
-        System
+        System,
+
+        GymOwner
     }
 }

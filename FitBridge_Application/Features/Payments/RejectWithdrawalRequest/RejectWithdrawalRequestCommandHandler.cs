@@ -36,7 +36,7 @@ namespace FitBridge_Application.Features.Payments.RejectWithdrawalRequest
 
             if (withdrawalRequest.Status != WithdrawalRequestStatus.Pending)
             {
-                throw new InvalidDataException($"Cannot reject withdrawal request with status: " +
+                throw new DataValidationFailedException($"Cannot reject withdrawal request with status: " +
                     $"{withdrawalRequest.Status}. Only pending requests can be rejected.");
             }
 
