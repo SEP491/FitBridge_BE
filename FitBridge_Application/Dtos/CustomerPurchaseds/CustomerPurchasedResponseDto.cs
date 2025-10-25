@@ -15,8 +15,8 @@ public class CustomerPurchasedResponseDto
     public DateOnly ExpirationDate { get; set; }
     public bool CanAssignPT { get; set; }
     public decimal PTAssignmentPrice { get; set; }
-
-    // PT Information (if assigned)
-    public ICollection<GymCoursePtDto>? PtList { get; set; }
     public Guid? GymCourseId { get; set; }
+    public Guid? PtId { get; set; }
+    public string? PtName { get; set; }
+    public string? PtImageUrl { get; set; }
 }

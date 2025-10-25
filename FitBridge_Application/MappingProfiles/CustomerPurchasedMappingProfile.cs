@@ -34,7 +34,9 @@ public class CustomerPurchasedMappingProfile : Profile
             .ForMember(dest => dest.ExpirationDate, opt => opt.MapFrom(src => src.ExpirationDate))
             .ForMember(dest => dest.CanAssignPT, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymPtId == null))
             .ForMember(dest => dest.PTAssignmentPrice, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourse.PtPrice))
-                .ForMember(dest => dest.PtList, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourse.GymCoursePTs))
+            .ForMember(dest => dest.PtId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymPtId))
+            .ForMember(dest => dest.PtName, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymPt.FullName))
+            .ForMember(dest => dest.PtImageUrl, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymPt.AvatarUrl))
             .ForMember(dest => dest.GymCourseId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().GymCourseId))
             ;
 
