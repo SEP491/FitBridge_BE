@@ -30,8 +30,6 @@ public class SendAccountInformationEmailJob(IEmailService _emailService, ILogger
                 Email = emailData.Email,
                 FullName = emailData.FullName,
                 PhoneNumber = emailData.PhoneNumber,
-                Dob = emailData.Dob,
-                IsMale = emailData.IsMale,
                 GymName = emailData.GymName ?? "",
                 TaxCode = emailData.TaxCode ?? ""
             };

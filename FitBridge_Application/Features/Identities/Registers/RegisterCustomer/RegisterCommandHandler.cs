@@ -24,8 +24,6 @@ public class RegisterCommandHandler(IApplicationUserService _applicationUserServ
             Email = request.Email,
             PhoneNumber = request.PhoneNumber,
             FullName = request.FullName,
-            Dob = request.Dob,
-            IsMale = request.IsMale,
             Password = request.Password,
             EmailConfirmed = request.IsTestAccount,
         };
@@ -54,8 +52,6 @@ public class RegisterCommandHandler(IApplicationUserService _applicationUserServ
             Email = user.Email,
             FullName = user.FullName,
             PhoneNumber = user.PhoneNumber,
-            Dob = user.Dob,
-            IsMale = user.IsMale,
             ConfirmationLink = confirmationLink,
             EmailType = ProjectConstant.EmailTypes.RegistrationConfirmationEmail
         };
