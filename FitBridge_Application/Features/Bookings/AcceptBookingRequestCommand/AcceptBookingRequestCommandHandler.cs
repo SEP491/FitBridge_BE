@@ -42,6 +42,7 @@ public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper
         _unitOfWork.Repository<CustomerPurchased>().Update(customerPurchased);
         _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
         await _scheduleJobServices.ScheduleAutoCancelBookingJob(newBooking);
+        await _scheduleJobServices.CancelScheduleJob($"AutoRejectBookingRequest_{bookingRequest.Id}", "AutoRejectBookingRequest");
         await _unitOfWork.CommitAsync();
         return request.BookingRequestId;
     }

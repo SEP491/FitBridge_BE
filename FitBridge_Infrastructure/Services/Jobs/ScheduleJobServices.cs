@@ -28,8 +28,8 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .SetJobData(jobData)
         .Build();
 
-        // var triggerTime = profitJobScheduleDto.ProfitDistributionDate.ToDateTime(TimeOnly.MinValue);
-        var triggerTime = DateTime.Now.AddSeconds(20);
+        var triggerTime = profitJobScheduleDto.ProfitDistributionDate.ToDateTime(TimeOnly.MinValue);
+        // var triggerTime = DateTime.Now.AddSeconds(20);
         var trigger = TriggerBuilder.Create()
         .WithIdentity(triggerKey)
         .StartAt(triggerTime)
@@ -142,6 +142,51 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .Build();
         await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
         _logger.LogInformation($"Successfully scheduled auto reject booking request job for booking request {bookingRequest.Id} at {triggerTime}");
+        return true;
+    }
+
+    public async Task<TriggerState> GetJobStatus(string jobName, string jobGroup)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+        var jobKey = new JobKey(jobName, jobGroup);
+        var exists = await scheduler.CheckExists(jobKey);
+        if (!exists)
+        {
+            return TriggerState.None;
+        }
+        var triggers = await scheduler.GetTriggersOfJob(jobKey);
+        if (triggers.Count <= 0)
+        {
+            throw new NotFoundException($"Job {jobName} in {jobGroup} has no triggers");
+        }
+        var trigger = triggers.First();
+        var triggerState = await scheduler.GetTriggerState(trigger.Key);
+
+        _logger.LogInformation($"Job {jobName} in {jobGroup} is {triggerState}");
+
+        return triggerState;
+    }
+
+    public async Task<bool> RescheduleJob(string jobName, string jobGroup, DateTime triggerTime)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+        var jobKey = new JobKey(jobName, jobGroup);
+        var exists = await scheduler.CheckExists(jobKey);
+        if (!exists)
+        {
+            throw new NotFoundException($"Job {jobName} in {jobGroup} does not exist");
+        }
+        var triggerKey = new TriggerKey($"{jobName}_Trigger", jobGroup);
+        var checkTriggerExists = await scheduler.CheckExists(triggerKey);
+        if (!checkTriggerExists)
+        {
+            throw new NotFoundException($"Trigger {triggerKey} does not exist");
+        }
+        var newTrigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await scheduler.RescheduleJob(triggerKey, newTrigger);
         return true;
     }
 }

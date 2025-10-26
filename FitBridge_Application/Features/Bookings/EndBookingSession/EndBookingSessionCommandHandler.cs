@@ -6,9 +6,11 @@ using FitBridge_Domain.Exceptions;
 using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Dtos.Jobs;
+using Microsoft.Extensions.Logging;
 namespace FitBridge_Application.Features.Bookings.EndBookingSession;
 
-public class EndBookingSessionCommandHandler(IUnitOfWork _unitOfWork, IScheduleJobServices _scheduleJobServices) : IRequestHandler<EndBookingSessionCommand, DateTime>
+public class EndBookingSessionCommandHandler(IUnitOfWork _unitOfWork, IScheduleJobServices _scheduleJobServices, ITransactionService _transactionService,
+ILogger<EndBookingSessionCommandHandler> _logger) : IRequestHandler<EndBookingSessionCommand, DateTime>
 {
     public async Task<DateTime> Handle(EndBookingSessionCommand request, CancellationToken cancellationToken)
     {
@@ -31,6 +33,11 @@ public class EndBookingSessionCommandHandler(IUnitOfWork _unitOfWork, IScheduleJ
         _unitOfWork.Repository<Booking>().Update(booking);
         await _unitOfWork.CommitAsync();
         await _scheduleJobServices.CancelScheduleJob($"FinishedBookingSession_{request.BookingId}", "FinishedBookingSession");
+        var distributePendingProfitResult = await _transactionService.DistributePendingProfit(booking.CustomerPurchasedId);
+        if (!distributePendingProfitResult)
+        {
+            _logger.LogError($"Failed to distribute pending profit for customer purchased {booking.CustomerPurchasedId}");
+        }
         return booking.SessionEndTime.Value;
     }
 

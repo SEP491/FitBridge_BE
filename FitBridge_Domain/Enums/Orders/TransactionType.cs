@@ -13,6 +13,6 @@
         AssignPt,
         ExtendCourse,
         ExtendFreelancePTPackage,
-        DistributeProfit
+        DistributeProfit,
     }
 }

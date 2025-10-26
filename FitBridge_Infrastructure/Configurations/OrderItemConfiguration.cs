@@ -17,7 +17,8 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.Property(e => e.Price).IsRequired(true);
         builder.Property(e => e.OrderId).IsRequired(true);
         builder.Property(e => e.ProductDetailId).IsRequired(false);
-
+        builder.Property(e => e.ProfitDistributePlannedDate).IsRequired(false);
+        builder.Property(e => e.ProfitDistributeActualDate).IsRequired(false);
         builder.HasOne(e => e.Order).WithMany(e => e.OrderItems).HasForeignKey(e => e.OrderId);
         builder.HasOne(e => e.ServiceInformation).WithMany(e => e.OrderItems).HasForeignKey(e => e.ServiceInformationId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(e => e.ProductDetail).WithMany(e => e.OrderItems).HasForeignKey(e => e.ProductDetailId).OnDelete(DeleteBehavior.Restrict);
