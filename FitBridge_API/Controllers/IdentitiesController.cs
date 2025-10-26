@@ -15,6 +15,8 @@ using FitBridge_Application.Features.Identities.Token;
 using FitBridge_Application.Features.Identities.Registers.RegisterGymPT;
 using System.Security.Claims;
 using FitBridge_Application.Features.Identities.Registers.RegisterCustomer;
+using FitBridge_Application.Features.Accounts.UpdateLoginInfo;
+using FitBridge_Application.Features.Accounts.UpdatePassword;
 
 namespace FitBridge_API.Controllers;
 
@@ -113,4 +115,24 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
             return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), ex.Message, ex.InnerException?.Message));
         }
     }
+    /// <summary>
+    /// Update email and phone number of the authenticated user
+    /// </summary>
+    /// <param name="command">The command containing the new email and phone number.</param>
+    /// <returns>A boolean indicating whether the login info was updated successfully.</returns>
+    [HttpPut("update-login-info")]
+    public async Task<IActionResult> UpdateLoginInfo([FromBody] UpdateLoginInfoCommand command)
+    {
+
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Login info updated successfully", result));
+    }
+
+    [HttpPut("update-password")]
+    public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Password updated successfully", result));
+    }
+
 }

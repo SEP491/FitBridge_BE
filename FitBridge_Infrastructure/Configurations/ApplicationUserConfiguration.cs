@@ -33,5 +33,8 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         .WithMany(e => e.GymPTs)
         .HasForeignKey(e => e.GymOwnerId)
         .OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(e => e.Email).IsUnique();
+        builder.HasIndex(e => e.PhoneNumber).IsUnique();
+        builder.HasIndex(e => e.TaxCode).IsUnique();
     }
 }

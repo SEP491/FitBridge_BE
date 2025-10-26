@@ -155,5 +155,57 @@ namespace FitBridge_Infrastructure.Services
         {
             return await userManager.IsInRoleAsync(user, role);
         }
+
+        public async Task<bool> UpdateLoginInfoAsync(ApplicationUser user, string? email, string? phoneNumber)
+        {
+
+            if (email != null)
+            {
+                var existingUserByEmail = await userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email && u.Id != user.Id);
+                if (existingUserByEmail != null)
+                {
+                    throw new DuplicateUserException($"A user with the email {email} already exists.");
+                }
+                var updateEmailResult = await userManager.SetEmailAsync(user, email);
+                if (!updateEmailResult.Succeeded)
+                {
+                    throw new UpdateFailedException($"Failed to update email: {string.Join(", ", updateEmailResult.Errors.Select(e => e.Description))}");
+                }
+                var updateUserNameResult = await userManager.SetUserNameAsync(user, email);
+                if (!updateUserNameResult.Succeeded)
+                {
+                    throw new UpdateFailedException($"Failed to update user name: {string.Join(", ", updateUserNameResult.Errors.Select(e => e.Description))}");
+                }
+                var confirmEmailResult = await userManager.ConfirmEmailAsync(user, await userManager.GenerateEmailConfirmationTokenAsync(user));
+                if (!confirmEmailResult.Succeeded)
+                {
+                    throw new UpdateFailedException($"Failed to confirm email: {string.Join(", ", confirmEmailResult.Errors.Select(e => e.Description))}");
+                }
+            }
+            if (phoneNumber != null)
+            {
+                var existingUserByPhoneNumber = await userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber && u.Id != user.Id);
+                if (existingUserByPhoneNumber != null)
+                {
+                    throw new DuplicateUserException($"A user with the phone number {phoneNumber} already exists.");
+                }
+                var updatePhoneNumberResult = await userManager.SetPhoneNumberAsync(user, phoneNumber);
+                if(!updatePhoneNumberResult.Succeeded)
+                {
+                    throw new UpdateFailedException($"Failed to update phone number: {string.Join(", ", updatePhoneNumberResult.Errors.Select(e => e.Description))}");
+                }
+            }
+            return true;
+        }
+
+        public async Task<bool> UpdatePasswordAsync(ApplicationUser user, string currentPassword, string newPassword)
+        {
+            var result = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            if (!result.Succeeded)
+            {
+                throw new UpdateFailedException($"Failed to update password: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+            return true;
+        }
     }
 }

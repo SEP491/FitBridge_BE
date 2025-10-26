@@ -4,6 +4,7 @@ public static class ProjectConstant
 {
     public const string defaultAvatar = "https://img.icons8.com/?size=100&id=tZuAOUGm9AuS&format=png&color=000000";
     public const int ProfitDistributionDays = 30;
+    public const int MaximumAvatarSize = 4;
 
     public static class UserRoles
     {
