@@ -26,6 +26,9 @@ using Microsoft.AspNetCore.Mvc;
 using FitBridge_Application.Specifications.Accounts.GetAccountForSearching;
 using FitBridge_Application.Features.Accounts.SearchAccounts;
 using FitBridge_Application.Dtos.Accounts.Search;
+using FitBridge_Application.Features.Accounts.UpdateProfiles;
+using FitBridge_Application.Dtos.Accounts.Profiles;
+using FitBridge_Application.Features.Accounts.UpdateAvatar;
 
 namespace FitBridge_API.Controllers;
 
@@ -149,5 +152,26 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
             Gyms = ResultWithPagination(response.Gyms.Items, response.Gyms.Total, parameters.Page, parameters.Size)
         };
         return Ok(new BaseResponse<object>(StatusCodes.Status200OK.ToString(), "Accounts searched successfully", result));
+    }
+
+    /// <summary>
+    /// Update the authenticated user's profile information.
+    /// </summary>
+    /// <param name="accountId">The ID of the account to update.</param>
+    /// <param name="taxCode">The tax code of the account to update, it is unique.</param>
+    /// <param name="command">The command containing the updated profile information.</param>
+    /// <returns>The updated profile information.</returns>
+    [HttpPut("update-profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileCommand command)
+    {
+        var response = await _mediator.Send(command);
+        return Ok(new BaseResponse<UpdateProfileResponseDto>(StatusCodes.Status200OK.ToString(), "Profile updated successfully", response));
+    }
+
+    [HttpPut("update-avatar")]
+    public async Task<IActionResult> UpdateAvatar([FromForm] UpdateAvatarCommand command)
+    {
+        var response = await _mediator.Send(command);
+        return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "Avatar updated successfully", response));
     }
 }

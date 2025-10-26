@@ -3,6 +3,8 @@ using AutoMapper;
 using FitBridge_Application.Dtos.Accounts;
 using FitBridge_Application.Dtos.Accounts.FreelancePts;
 using FitBridge_Application.Dtos.Accounts.HotResearch;
+using FitBridge_Application.Dtos.Accounts.Profiles;
+using FitBridge_Application.Features.Accounts.UpdateProfiles;
 using FitBridge_Domain.Entities.Identity;
 
 namespace FitBridge_Application.MappingProfiles;
@@ -35,5 +37,9 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.GymName, opt => opt.MapFrom(src => src.GymName));
 
         CreateMap<ApplicationUser, GetCustomersDto>();
+
+        CreateMap<UpdateProfileCommand, ApplicationUser>();
+
+        CreateMap<ApplicationUser, UpdateProfileResponseDto>();
     }
 }

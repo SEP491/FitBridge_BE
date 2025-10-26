@@ -19,7 +19,7 @@ namespace FitBridge_Domain.Entities.Identity
         public DateTime Dob { get; set; }
         public string Password { get; set; }
         public string? GymName { get; set; }
-        public string TaxCode { get; set; }
+        public string? TaxCode { get; set; }
         public double? Longitude { get; set; }
         public double? Latitude { get; set; }
         public bool hotResearch { get; set; }

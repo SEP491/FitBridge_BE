@@ -111,6 +111,10 @@ namespace FitBridge_Application.Interfaces.Services
         Task<List<string>> GetUserRolesAsync(ApplicationUser user);
         Task<bool> IsInRoleAsync(ApplicationUser user, string role);
 
+        Task<bool> UpdateLoginInfoAsync(ApplicationUser user, string? email, string? phoneNumber);
+
+        Task<bool> UpdatePasswordAsync(ApplicationUser user, string currentPassword, string newPassword);
+
         #endregion Core methods
     }
 }
