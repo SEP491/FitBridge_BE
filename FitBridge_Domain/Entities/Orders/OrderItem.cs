@@ -24,11 +24,14 @@ public class OrderItem : BaseEntity
     public Guid? GymCourseId { get; set; }
     public Guid? ServiceInformationId { get; set; }
     public Guid? FreelancePTPackageId { get; set; }
+    public DateOnly? ProfitDistributePlannedDate { get; set; }
+    public DateOnly? ProfitDistributeActualDate { get; set; }
     public ServiceInformation? ServiceInformation { get; set; }
     public ProductDetail? ProductDetail { get; set; }
     public GymCourse? GymCourse { get; set; }
     public CustomerPurchased? CustomerPurchased { get; set; }
     public ApplicationUser? GymPt { get; set; }
     public FreelancePTPackage? FreelancePTPackage { get; set; }
+    public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     public ICollection<ReportCases> ReportCases { get; set; } = new List<ReportCases>();
 }

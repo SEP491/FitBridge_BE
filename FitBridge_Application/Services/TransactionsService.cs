@@ -15,6 +15,7 @@ using FitBridge_Application.Specifications.Orders;
 using Quartz;
 using FitBridge_Application.Dtos.Jobs;
 using FitBridge_Application.Dtos.Payments;
+using FitBridge_Domain.Enums.Trainings;
 
 namespace FitBridge_Application.Services;
 
@@ -54,6 +55,8 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
         customerPurchasedToExtend.AvailableSessions += orderItemToExtend.Quantity * numOfSession;
         customerPurchasedToExtend.ExpirationDate = customerPurchasedToExtend.ExpirationDate.AddDays(orderItemToExtend.GymCourse.Duration * orderItemToExtend.Quantity);
+        var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(ProjectConstant.ProfitDistributionDays); // Profit distribute planned date is the day after the expiration date
+        orderItemToExtend.ProfitDistributePlannedDate = profitDistributionDate;
         transactionToExtend.Order.Status = OrderStatus.Finished;
         var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItemToExtend.GymCourse.GymOwnerId);
         if (walletToUpdate == null)
@@ -71,7 +74,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
         {
             OrderItemId = orderItemToExtend.Id,
-            ProfitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30)
+            ProfitDistributionDate = profitDistributionDate
         });
         return true;
     }
@@ -130,6 +133,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         {
             Amount = profit,
             OrderId = orderItem.OrderId,
+            OrderItemId = orderItemId,
             TransactionType = TransactionType.DistributeProfit,
             Status = TransactionStatus.Success,
             Description = $"Profit distribution for completed course - OrderItem: {orderItemId}",
@@ -154,7 +158,9 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         _logger.LogInformation($"Wallet {wallet.Id} updated with available balance {wallet.AvailableBalance} plus {profit} and pending balance {wallet.PendingBalance} minus {profit}");
         wallet.AvailableBalance += profit;
         wallet.PendingBalance -= profit;
-
+        orderItem.ProfitDistributeActualDate = DateOnly.FromDateTime(DateTime.UtcNow); // Profit distribute actual date is the current date
+        orderItem.UpdatedAt = DateTime.UtcNow;
+        _unitOfWork.Repository<OrderItem>().Update(orderItem);
         _unitOfWork.Repository<Wallet>().Update(wallet);
         await _unitOfWork.CommitAsync();
         return true;
@@ -200,7 +206,8 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
             numOfSession = orderItem.FreelancePTPackage.NumOfSessions;
             expirationDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(orderItem.FreelancePTPackage.DurationInDays * orderItem.Quantity);
-            profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(orderItem.FreelancePTPackage.DurationInDays * orderItem.Quantity);
+            profitDistributionDate = expirationDate.AddDays(1); // Profit distribute planned date is the day after the expiration date
+            orderItem.ProfitDistributePlannedDate = profitDistributionDate;
 
             orderItem.CustomerPurchased = new CustomerPurchased
             {
@@ -274,7 +281,8 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             {
                 var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
                 var numOfSession = 0;
-                var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30);
+                var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(ProjectConstant.ProfitDistributionDays);
+                orderItem.ProfitDistributePlannedDate = profitDistributionDate;
                 if (orderItem.GymCourseId != null && orderItem.GymPtId != null)
                 {
                     var gymCoursePT = await _unitOfWork.Repository<GymCoursePT>().GetBySpecificationAsync(new GetGymCoursePtByGymCourseIdAndPtIdSpec(orderItem.GymCourseId.Value, orderItem.GymPtId.Value));
@@ -333,6 +341,11 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         var numOfSession = orderItemToExtend.FreelancePTPackage.NumOfSessions;
         customerPurchasedToExtend.AvailableSessions += orderItemToExtend.Quantity * numOfSession;
         customerPurchasedToExtend.ExpirationDate = customerPurchasedToExtend.ExpirationDate.AddDays(orderItemToExtend.FreelancePTPackage.DurationInDays * orderItemToExtend.Quantity);
+
+        var profitDistributePlannedDate = customerPurchasedToExtend.ExpirationDate.AddDays(1); // Profit distribute planned date is the day after the expiration date
+
+        orderItemToExtend.ProfitDistributePlannedDate = profitDistributePlannedDate;
+
         transactionToExtend.Order.Status = OrderStatus.Finished;
         var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItemToExtend.FreelancePTPackage.PtId);
         if (walletToUpdate == null)
@@ -345,12 +358,63 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
         _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
         await _unitOfWork.CommitAsync();
-
         await _scheduleJobServices.ScheduleProfitDistributionJob(new ProfitJobScheduleDto
         {
             OrderItemId = orderItemToExtend.Id,
-            ProfitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30)
+            ProfitDistributionDate = profitDistributePlannedDate
         });
+        return true;
+    }
+
+    public async Task<bool> DistributePendingProfit(Guid CustomerPurchasedId)
+    {
+        var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>().GetByIdAsync(CustomerPurchasedId, false, new List<string> { "OrderItems", "OrderItems.Order", "OrderItems.Order.Coupon", "Bookings", "OrderItems.FreelancePTPackage" });
+        if (customerPurchased == null)
+        {
+            throw new NotFoundException("Customer purchased not found");
+        }
+        var finishedBookings = customerPurchased.Bookings.Count(b => b.SessionStatus == SessionStatus.Finished);
+        var orderItemsList = customerPurchased.OrderItems.OrderBy(o => o.CreatedAt).ToList();
+        // Track how many sessions have been "allocated" to previous order items
+        var allocatedSessionsForDistribute = 0;
+        foreach (var orderItem in orderItemsList)
+        {
+            var numOfSessionForDistribute = (int)Math.Ceiling(orderItem.Quantity * orderItem.FreelancePTPackage.NumOfSessions / 2.0); //Customer have to finished more than half of the sessions that they have purchased in this order item to distribute profit
+            allocatedSessionsForDistribute += numOfSessionForDistribute;
+
+            if (finishedBookings >= allocatedSessionsForDistribute
+            && orderItem.ProfitDistributeActualDate == null)
+            {
+                var distributeDate = DateOnly.FromDateTime(DateTime.UtcNow.Date).AddDays(1);
+                var jobStatus = await _scheduleJobServices.GetJobStatus($"ProfitDistribution_{orderItem.Id}", "ProfitDistribution");
+                _logger.LogInformation($"Profit distribution job for order item {orderItem.Id} state is {jobStatus}");
+                if (jobStatus == TriggerState.Paused)
+                {
+                    _logger.LogInformation($"Profit distribution job for order item {orderItem.Id} is already paused");
+                    continue;
+                }
+                if (jobStatus == TriggerState.Normal)
+                {
+                    _logger.LogInformation($"Profit distribution job state is {jobStatus}");
+                    // var rescheduleJob = await _scheduleJobServices.RescheduleJob($"ProfitDistribution_{orderItem.Id}", "ProfitDistribution", distributeDate.ToDateTime(TimeOnly.MinValue)); //Reschedule the job if it is not paused
+                    var rescheduleJob = await _scheduleJobServices.RescheduleJob($"ProfitDistribution_{orderItem.Id}", "ProfitDistribution", DateTime.UtcNow);
+                    if (!rescheduleJob)
+                    {
+                        _logger.LogError($"Failed to reschedule profit distribution job for order item {orderItem.Id}");
+                        continue;
+                    }
+                    orderItem.ProfitDistributePlannedDate = distributeDate;
+                    orderItem.UpdatedAt = DateTime.UtcNow;
+                    _unitOfWork.Repository<OrderItem>().Update(orderItem);
+                    _logger.LogInformation($"Successfully rescheduled profit distribution job for order item {orderItem.Id} at {distributeDate}");
+
+                }
+            }
+        }
+        _logger.LogInformation("Number of finished booking:" + finishedBookings);
+        _logger.LogInformation("Number of allocated session:" + allocatedSessionsForDistribute);
+        await _unitOfWork.CommitAsync();
+
         return true;
     }
 }

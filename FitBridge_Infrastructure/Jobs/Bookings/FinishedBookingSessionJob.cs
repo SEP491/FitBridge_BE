@@ -5,10 +5,11 @@ using FitBridge_Domain.Enums.Trainings;
 using FitBridge_Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Quartz;
+using FitBridge_Application.Interfaces.Services;
 
 namespace FitBridge_Infrastructure.Jobs.Bookings;
 
-public class FinishedBookingSessionJob(ILogger<FinishedBookingSessionJob> _logger, IUnitOfWork _unitOfWork) : IJob
+public class FinishedBookingSessionJob(ILogger<FinishedBookingSessionJob> _logger, IUnitOfWork _unitOfWork, ITransactionService _transactionService) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
@@ -25,6 +26,7 @@ public class FinishedBookingSessionJob(ILogger<FinishedBookingSessionJob> _logge
         booking.SessionEndTime = DateTime.UtcNow;
         booking.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Repository<Booking>().Update(booking);
+        var distributePendingProfitResult = await _transactionService.DistributePendingProfit(booking.CustomerPurchasedId);
         await _unitOfWork.CommitAsync();
     }
 }
