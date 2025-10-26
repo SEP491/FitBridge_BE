@@ -12,7 +12,5 @@ public class RegisterCommand : IRequest<RegisterResponseDto>
 
     public string Password { get; set; }
     public string FullName { get; set; }
-    public DateTime Dob { get; set; }
-    public bool IsMale { get; set; }
     public bool IsTestAccount { get; set; } = false;
 }
