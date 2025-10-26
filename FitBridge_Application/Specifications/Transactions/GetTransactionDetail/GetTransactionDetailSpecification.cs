@@ -7,7 +7,7 @@ namespace FitBridge_Application.Specifications.Transactions.GetTransactionDetail
     public class GetTransactionDetailSpecification : BaseSpecification<Transaction>
     {
         public GetTransactionDetailSpecification(Guid transactionId) : base(x => x.IsEnabled &&
-            x.Id == transactionId && x.TransactionType == TransactionType.Withdraw)
+            x.Id == transactionId)
         {
             AddInclude(x => x.PaymentMethod);
             AddInclude(x => x.WithdrawalRequest);
