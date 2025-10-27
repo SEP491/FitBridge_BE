@@ -4,10 +4,13 @@ using FitBridge_API.Helpers;
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Gym;
+using FitBridge_Application.Features.Gyms.GetAllGymCustomer;
 using FitBridge_Application.Features.Gyms.GetAllGyms;
 using FitBridge_Application.Features.Gyms.GetGymDetails;
+using FitBridge_Application.Features.Gyms.GetGymOwnerCustomerById;
 using FitBridge_Application.Features.Gyms.GetGymPtsByCourse;
 using FitBridge_Application.Features.Gyms.GetGymPtsByGymId;
+using FitBridge_Application.Specifications.Gym.GetAllGymOwnerCustomer;
 using FitBridge_Application.Specifications.Gym.GetAllGyms;
 using FitBridge_Application.Specifications.Gym.GetGymPtsByCourse;
 using FitBridge_Application.Specifications.Gym.GetGymPtsByGymId;
@@ -122,6 +125,32 @@ namespace FitBridge_API.Controllers
                     StatusCodes.Status200OK.ToString(),
                     "Get gym pts success",
                     pagedResult));
+        }
+        /// <summary>
+        /// Retrieves a paginated list of gym owner customers.
+        /// </summary>
+        /// <param name="getAllGymOwnerCustomerParams"></param>
+        /// <returns></returns>
+        [HttpGet("owner/customers")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetAllGymOwnerCustomer>>))]
+        public async Task<ActionResult<Pagination<GetAllGymOwnerCustomer>>> GetAllGymOwnerCustomers([FromQuery] GetAllGymOwnerCustomerParams getAllGymOwnerCustomerParams)
+        {
+            var query = new GetAllGymOwnerCustomerQuery(getAllGymOwnerCustomerParams);
+            var response = await mediator.Send(query);
+            var pagination = ResultWithPagination(response.Items, response.Total, getAllGymOwnerCustomerParams.Page, getAllGymOwnerCustomerParams.Size);
+            return Ok(new BaseResponse<Pagination<GetAllGymOwnerCustomer>>(StatusCodes.Status200OK.ToString(), "Get all gym owner customers success", pagination));
+        }
+        /// <summary>
+        /// Retrieves a gym owner customer by id.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("owner/customers/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<GetGymOwnerCustomerDetail>))]
+        public async Task<ActionResult<GetGymOwnerCustomerDetail>> GetGymOwnerCustomerById([FromRoute] Guid id)
+        {
+            var response = await mediator.Send(new GetGymOwnerCustomerByIdQuery { Id = id });
+            return Ok(new BaseResponse<GetGymOwnerCustomerDetail>(StatusCodes.Status200OK.ToString(), "Get gym owner customer by id success", response));
         }
     }
 }
