@@ -13,10 +13,13 @@ namespace FitBridge_Application.Specifications.Transactions.GetCurrentUserTransa
             string userRole,
             bool includeOrder = false) : base(x =>
             x.IsEnabled
-            && ((userRole == ProjectConstant.UserRoles.GymOwner
-                && x.Order.OrderItems.Any(oi => oi.GymCourse != null && oi.GymCourse.GymOwnerId == userId))
+            && (userRole == ProjectConstant.UserRoles.Admin
+                || (userRole == ProjectConstant.UserRoles.GymOwner
+                    && x.Order.OrderItems.Any(oi => oi.GymCourse != null && oi.GymCourse.GymOwnerId == userId))
                 || (userRole == ProjectConstant.UserRoles.FreelancePT
-                    && x.Order.OrderItems.Any(oi => oi.FreelancePTPackage != null && oi.FreelancePTPackage.PtId == userId))))
+                    && x.Order.OrderItems.Any(oi => oi.FreelancePTPackage != null && oi.FreelancePTPackage.PtId == userId))
+                || (userRole == ProjectConstant.UserRoles.Customer
+                    && x.Order != null && x.Order.AccountId == userId)))
         {
             switch (StringCapitalizationConverter.ToUpperFirstChar(parameters.SortBy))
             {
