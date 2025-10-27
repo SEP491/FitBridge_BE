@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\Reports\CreateReports\**" />
+    <EmbeddedResource Remove="Features\Reports\CreateReports\**" />
+    <None Remove="Features\Reports\CreateReports\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FitBridge_Domain\FitBridge_Domain.csproj" />
   </ItemGroup>
 	<ItemGroup>
@@ -30,12 +36,7 @@
 		<PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="Features\Reports\CreateReports\" />
-	  <Folder Include="Features\Reports\GetAllReports\" />
-	  <Folder Include="Features\Reports\GetReportById\" />
-	  <Folder Include="Features\Reports\ResolveReport\" />
-	  <Folder Include="Features\Reports\ProcessReport\" />
-	  <Folder Include="Features\Reports\GetCustomerReports\" />
 	  <Folder Include="Features\Tests\" />
+	  <Folder Include="Specifications\Products\" />
 	</ItemGroup>
 </Project>
