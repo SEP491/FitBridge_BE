@@ -38,5 +38,6 @@
 	<ItemGroup>
 	  <Folder Include="Features\Tests\" />
 	  <Folder Include="Specifications\Products\" />
+	  <Folder Include="Specifications\Transactions\GetCustomerTransactions\" />
 	</ItemGroup>
 </Project>

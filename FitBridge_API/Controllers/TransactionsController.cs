@@ -11,13 +11,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace FitBridge_API.Controllers
 {
     /// <summary>
-    /// Controller for managing transactions, including retrieval of transactions for freelance PTs.
+    /// Controller for managing transactions, including retrieval of transactions for all user types.
     /// </summary>
     [Authorize]
     public class TransactionsController(IMediator mediator) : _BaseApiController
     {
         /// <summary>
-        /// Retrieves a paginated list of transactions for the current logged in user.
+        /// Retrieves a paginated list of transactions for the current logged in user (Gym Owner or Freelance PT).
         /// </summary>
         /// <param name="parameters">Query parameters for filtering and pagination, including:
         /// <list type="bullet">
@@ -41,7 +41,7 @@ namespace FitBridge_API.Controllers
         /// </param>
         /// <returns>A paginated list of transactions for the current user.</returns>
         [HttpGet("current-user")]
-        [Authorize(Roles = ProjectConstant.UserRoles.GymOwner + "," + ProjectConstant.UserRoles.FreelancePT)]
+        [Authorize(Roles = ProjectConstant.UserRoles.GymOwner + "," + ProjectConstant.UserRoles.FreelancePT + "," + ProjectConstant.UserRoles.Customer + "," + ProjectConstant.UserRoles.Admin)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetTransactionsDto>>))]
         public async Task<ActionResult<Pagination<GetTransactionsDto>>> GetCurrentUserTransactions(
             [FromQuery] GetCurrentUserTransactionsParam parameters)

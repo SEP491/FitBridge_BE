@@ -40,6 +40,16 @@ public class BookingMappingProfile : Profile
         .ForMember(dest => dest.CustomerAvatarUrl, opt => opt.MapFrom(src => src.Customer.AvatarUrl))
         .ForMember(dest => dest.PackageName, opt => opt.MapFrom(src => src.CustomerPurchased.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Name));
 
+        CreateProjection<Booking, GetBookingHistoryResponseDto>()
+        .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.PTGymSlot != null && src.PTGymSlot.GymSlot != null ? src.PTGymSlot.GymSlot.StartTime : src.PtFreelanceStartTime))
+        .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.PTGymSlot != null && src.PTGymSlot.GymSlot != null ? src.PTGymSlot.GymSlot.EndTime : src.PtFreelanceEndTime))
+        .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.FullName : null))
+        .ForMember(dest => dest.CustomerAvatarUrl, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.AvatarUrl : null))
+        .ForMember(dest => dest.PtName, opt => opt.MapFrom(src => src.Pt != null ? src.Pt.FullName : (src.PTGymSlot != null && src.PTGymSlot.PT != null ? src.PTGymSlot.PT.FullName : null)))
+        .ForMember(dest => dest.PtAvatarUrl, opt => opt.MapFrom(src => src.Pt != null ? src.Pt.AvatarUrl : (src.PTGymSlot != null && src.PTGymSlot.PT != null ? src.PTGymSlot.PT.AvatarUrl : null)))
+        .ForMember(dest => dest.GymSlotName, opt => opt.MapFrom(src => src.PTGymSlot != null && src.PTGymSlot.GymSlot != null ? src.PTGymSlot.GymSlot.Name : null))
+        .ForMember(dest => dest.PackageName, opt => opt.MapFrom(src => src.CustomerPurchased != null && src.CustomerPurchased.OrderItems.Any() ? src.CustomerPurchased.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Name : null));
+
         CreateMap<BookingRequest, CreateRequestBookingResponseDto>()
         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
         .ForMember(dest => dest.BookingDate, opt => opt.MapFrom(src => src.BookingDate))

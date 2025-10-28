@@ -8,9 +8,9 @@ using FitBridge_Application.Features.Bookings.CancelGymPtBooking;
 using FitBridge_Application.Specifications.Bookings.GetCustomerBookings;
 using FitBridge_Application.Features.Bookings.GetCustomerBooking;
 using FitBridge_Application.Dtos.Bookings;
+using FitBridge_Application.Dtos.GymSlots;
 using FitBridge_Application.Specifications.Bookings.GetGymSlotForBooking;
 using FitBridge_Application.Features.Bookings.GetGymSlotForBooking;
-using FitBridge_Application.Dtos.GymSlots;
 using FitBridge_Application.Specifications.Bookings.GetFreelancePtSchedule;
 using FitBridge_Application.Features.Bookings.GetFreelancePtSchedule;
 using FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
@@ -23,11 +23,82 @@ using FitBridge_Application.Features.Bookings.GetTrainingResult;
 using FitBridge_Application.Features.Bookings.CreateBooking;
 using FitBridge_Application.Features.Bookings.StartBookingSession;
 using FitBridge_Application.Features.Bookings.EndBookingSession;
+using FitBridge_Application.Features.Bookings.GetBookingHistory;
+using FitBridge_Application.Specifications.Bookings.GetBookingHistory;
 
 namespace FitBridge_API.Controllers;
 
 public class BookingsController(IMediator _mediator) : _BaseApiController
 {
+    /// <summary>
+    /// Retrieves the booking history for the current logged-in user (Customer, Gym PT, or Freelance PT).
+    /// </summary>
+    /// <param name="parameters">Query parameters for filtering and pagination, including:
+    /// <list type="bullet">
+    /// <item>
+    /// <term>StartDate</term>
+    /// <description>Filter bookings from this date onwards (optional).</description>
+    /// </item>
+    /// <item>
+    /// <term>EndDate</term>
+    /// <description>Filter bookings up to this date (optional).</description>
+    /// </item>
+    /// <item>
+    /// <term>Status</term>
+    /// <description>Filter by booking status (Booked, InProgress, Finished, Cancelled) (optional).</description>
+    /// </item>
+    /// <item>
+    /// <term>SearchTerm</term>
+    /// <description>Search in booking name or notes (optional).</description>
+    /// </item>
+    /// <item>
+    /// <term>Page</term>
+    /// <description>The page number to retrieve (default: 1).</description>
+    /// </item>
+    /// <item>
+    /// <term>Size</term>
+    /// <description>The number of items per page (default: 10, max: 20).</description>
+    /// </item>
+    /// <item>
+    /// <term>SortBy</term>
+    /// <description>The field to sort by (BookingDate, Status, CreatedAt).</description>
+    /// </item>
+    /// <item>
+    /// <term>SortOrder</term>
+    /// <description>The sort direction (asc or desc).</description>
+    /// </item>
+    /// </list>
+    /// </param>
+    /// <returns>A paginated list of booking history for the current user.</returns>
+    /// <remarks>
+    /// The response includes different information based on user role:
+    /// - For Customers: Shows PT name, avatar, and gym slot information
+    /// - For Freelance PTs: Shows customer name, avatar, and package information
+    /// - For Gym PTs: Shows customer name, avatar, and gym slot information
+    ///
+    /// Sample request:
+    ///
+    ///     GET /api/v1/bookings/history?startDate=2025-01-01&amp;endDate=2025-12-31&amp;status=Finished&amp;page=1&amp;size=10
+    ///
+    /// </remarks>
+    /// <response code="200">Booking history retrieved successfully</response>
+    /// <response code="401">User not authenticated</response>
+    [HttpGet("history")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Customer + "," + ProjectConstant.UserRoles.GymPT + "," + ProjectConstant.UserRoles.FreelancePT)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetBookingHistoryResponseDto>>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<Pagination<GetBookingHistoryResponseDto>>> GetBookingHistory(
+        [FromQuery] GetBookingHistoryParams parameters)
+    {
+        var result = await _mediator.Send(new GetBookingHistoryQuery { Params = parameters });
+        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+
+        return Ok(new BaseResponse<Pagination<GetBookingHistoryResponseDto>>(
+            StatusCodes.Status200OK.ToString(),
+            "Booking history retrieved successfully",
+            pagination));
+    }
+
     [HttpPost("cancel-booking")]
     [Authorize(Roles = ProjectConstant.UserRoles.Customer + "," + ProjectConstant.UserRoles.GymPT + "," + ProjectConstant.UserRoles.FreelancePT)]
     public async Task<IActionResult> CancelBooking([FromBody] CancelGymPtBookingCommand command)
@@ -102,7 +173,7 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
     ///
     ///     POST /api/v1/bookings/accept-booking-request
     ///     {
-    ///         "bookingRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    ///       "bookingRequestId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
     ///     }
     ///
     /// Used by Freelance PT or Customer to accept a booking request created by the other party.
