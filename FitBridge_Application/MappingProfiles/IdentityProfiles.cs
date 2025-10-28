@@ -19,7 +19,9 @@ public class IdentityProfiles : Profile
             .ForMember(dest => dest.IsMale, opt => opt.MapFrom(src => src.CreateNewPT.IsMale))
             .ForMember(dest => dest.GoalTrainings, opt => opt.MapFrom(src => src.CreateNewPT.GoalTrainings.Select(gt => new GoalTraining { Name = gt }).ToList()))
             .ForMember(dest => dest.EmailConfirmed, opt => opt.MapFrom(src => true))
-            .ForMember(dest => dest.GymOwnerId, opt => opt.MapFrom(src => Guid.Parse(src.GymOwnerId ?? Guid.Empty.ToString())));
+            .ForMember(dest => dest.GymOwnerId, opt => opt.MapFrom(src => Guid.Parse(src.GymOwnerId ?? Guid.Empty.ToString())))
+            .ForMember(dest => dest.Latitude, opt => opt.MapFrom(src => src.Latitude ?? null))
+            .ForMember(dest => dest.Longitude, opt => opt.MapFrom(src => src.Longitude ?? null));
 
         CreateMap<RegisterGymPtCommand, CreateNewPTResponse>()
             .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
