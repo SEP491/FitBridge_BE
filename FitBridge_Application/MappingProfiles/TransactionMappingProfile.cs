@@ -9,7 +9,8 @@ namespace FitBridge_Application.MappingProfiles
         public TransactionMappingProfile()
         {
             CreateMap<Transaction, GetTransactionsDto>();
-            CreateMap<Transaction, GetTransactionDetailDto>();
+            CreateMap<Transaction, GetTransactionDetailDto>()
+                .ForMember(x => x.PaymentMethod, opt => opt.MapFrom(y => y.PaymentMethod.MethodType));
             CreateMap<PaymentMethod, PaymentMethodDto>();
             CreateMap<WithdrawalRequest, WithdrawalRequestDto>();
         }

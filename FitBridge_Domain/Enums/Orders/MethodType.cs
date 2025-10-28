@@ -2,9 +2,12 @@
 {
     public enum MethodType
     {
-        PayOs,
+        PayOS,
+
         VnPay,
+
         COD,
+
         System
     }
 }

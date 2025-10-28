@@ -15,10 +15,11 @@ namespace FitBridge_Application.Features.Transactions.GetTransactionDetail
         public async Task<GetTransactionDetailDto> Handle(GetTransactionDetailQuery request, CancellationToken cancellationToken)
         {
             var spec = new GetTransactionDetailSpecification(request.TransactionId);
-            var transaction = await unitOfWork.Repository<Transaction>().GetBySpecificationAsync(spec)
+            var transaction = await unitOfWork.Repository<Transaction>()
+                .GetBySpecificationProjectedAsync<GetTransactionDetailDto>(spec, mapper.ConfigurationProvider)
                 ?? throw new NotFoundException(nameof(Transaction), request.TransactionId);
 
-            return mapper.Map<GetTransactionDetailDto>(transaction);
+            return transaction;
         }
     }
 }
