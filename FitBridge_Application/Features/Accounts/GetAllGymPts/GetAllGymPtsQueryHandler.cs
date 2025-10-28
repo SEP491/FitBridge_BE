@@ -26,7 +26,7 @@ namespace FitBridge_Application.Features.Accounts.GetAllGymPts
             var spec = new GetAllGymPtsSpec(
                 gymPtsRaw.Select(x => x.Id).ToList(),
                 accountId,
-                request.Params);
+                queryParams: request.Params);
             var result = await applicationUserService.GetAllUserWithSpecProjectedAsync<GetAllGymPtsResponseDto>(
                 spec,
                 mapper.ConfigurationProvider);

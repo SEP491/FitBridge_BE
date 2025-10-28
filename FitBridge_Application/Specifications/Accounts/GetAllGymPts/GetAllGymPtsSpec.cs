@@ -8,8 +8,11 @@ namespace FitBridge_Application.Specifications.Accounts.GetAllGymPts
         public GetAllGymPtsSpec(
             List<Guid> userIds,
             Guid gymOwnerId,
+            bool isIncludeBanned = false,
             GetAllGymPtsParams? queryParams = null) : base(x =>
-            userIds.Contains(x.Id)
+            x.IsEnabled
+            && (isIncludeBanned || x.IsActive)
+            && userIds.Contains(x.Id)
             && x.GymOwnerId == gymOwnerId)
         {
             AddInclude(x => x.UserDetail);

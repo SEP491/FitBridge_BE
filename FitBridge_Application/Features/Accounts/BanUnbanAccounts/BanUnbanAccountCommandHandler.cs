@@ -35,13 +35,18 @@ namespace FitBridge_Application.Features.Accounts.BanUnbanAccounts
 
         private async Task BanUnbanAccounts(List<Guid> userIdBanList, bool isBan)
         {
-            var spec = new GetUsersByIdsSpec(userIdBanList);
+            var spec = new GetUsersByIdsSpec(userIdBanList, isIncludeBanned: true);
             var users = await applicationUserService.GetAllUsersWithSpecAsync(spec, asNoTracking: false);
+
+            if (users.Count == 0)
+            {
+                throw new NotFoundException(nameof(ApplicationUser));
+            }
 
             List<Task> updateTasks = [];
             foreach (var user in users)
             {
-                user.IsActive = isBan;
+                user.IsActive = !isBan;
                 updateTasks.Add(applicationUserService.UpdateAsync(user));
             }
 
@@ -50,13 +55,18 @@ namespace FitBridge_Application.Features.Accounts.BanUnbanAccounts
 
         private async Task BanUnbanGymPts(List<Guid> userIdBanList, bool isBan, Guid gymOwnerId)
         {
-            var spec = new GetAllGymPtsSpec(userIdBanList, gymOwnerId);
+            var spec = new GetAllGymPtsSpec(userIdBanList, gymOwnerId, isIncludeBanned: true);
             var users = await applicationUserService.GetAllUsersWithSpecAsync(spec, asNoTracking: false);
+
+            if (users.Count == 0)
+            {
+                throw new NotFoundException(nameof(ApplicationUser));
+            }
 
             List<Task> updateTasks = [];
             foreach (var user in users)
             {
-                user.IsActive = isBan;
+                user.IsActive = !isBan;
                 updateTasks.Add(applicationUserService.UpdateAsync(user));
             }
 
