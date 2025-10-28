@@ -75,7 +75,7 @@ public class EmailService : IEmailService
         var job = JobBuilder.Create<SendAccountInformationEmailJob>()
             .WithIdentity($"send-email-{emailData.UserId}", "email-jobs")
             .UsingJobData("emailData", jobData)
-            .UsingJobData("currentRetry", 0)
+            .UsingJobData("currentRetry", 0.ToString())
             .Build();
         var trigger = TriggerBuilder.Create()
         .WithIdentity($"send-email-trigger-{emailData.UserId}", "email-jobs")
