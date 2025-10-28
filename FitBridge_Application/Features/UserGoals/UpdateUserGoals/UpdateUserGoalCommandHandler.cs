@@ -27,6 +27,7 @@ public class UpdateUserGoalCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapp
         userGoal.TargetShoulder = request.TargetShoulder ?? userGoal.TargetShoulder;
         userGoal.TargetHeight = request.TargetHeight ?? userGoal.TargetHeight;
         userGoal.TargetWeight = request.TargetWeight ?? userGoal.TargetWeight;
+
         userGoal.StartBiceps = request.StartBiceps ?? userGoal.StartBiceps;
         userGoal.StartForeArm = request.StartForeArm ?? userGoal.StartForeArm;
         userGoal.StartThigh = request.StartThigh ?? userGoal.StartThigh;
@@ -37,8 +38,20 @@ public class UpdateUserGoalCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapp
         userGoal.StartShoulder = request.StartShoulder ?? userGoal.StartShoulder;
         userGoal.StartHeight = request.StartHeight ?? userGoal.StartHeight;
         userGoal.StartWeight = request.StartWeight ?? userGoal.StartWeight;
+
+        userGoal.FinalBiceps = request.CurrentBiceps ?? userGoal.FinalBiceps;
+        userGoal.FinalForeArm = request.CurrentForeArm ?? userGoal.FinalForeArm;
+        userGoal.FinalThigh = request.CurrentThigh ?? userGoal.FinalThigh;
+        userGoal.FinalCalf = request.CurrentCalf ?? userGoal.FinalCalf;
+        userGoal.FinalChest = request.CurrentChest ?? userGoal.FinalChest;
+        userGoal.FinalWaist = request.CurrentWaist ?? userGoal.FinalWaist;
+        userGoal.FinalHip = request.CurrentHip ?? userGoal.FinalHip;
+        userGoal.FinalShoulder = request.CurrentShoulder ?? userGoal.FinalShoulder;
+        userGoal.FinalHeight = request.CurrentHeight ?? userGoal.FinalHeight;
+        userGoal.FinalWeight = request.CurrentWeight ?? userGoal.FinalWeight;
         userGoal.ImageUrl = request.ImageUrl ?? userGoal.ImageUrl;
         userGoal.FinalImageUrl = request.FinalImageUrl ?? userGoal.FinalImageUrl;
+        
         _unitOfWork.Repository<UserGoal>().Update(userGoal);
         await _unitOfWork.CommitAsync();
         return _mapper.Map<UserGoal, UserGoalsDto>(userGoal);

@@ -31,5 +31,4 @@ public class CreateUserGoalCommand : IRequest<UserGoalsDto>
     public double? StartWeight { get; set; }
 
     public string? ImageUrl { get; set; }
-    public string? FinalImageUrl { get; set; }
 }

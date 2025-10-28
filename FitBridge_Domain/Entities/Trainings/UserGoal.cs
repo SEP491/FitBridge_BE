@@ -37,6 +37,8 @@ public class UserGoal : BaseEntity
     public double? FinalWaist { get; set; }
     public double? FinalHip { get; set; }
     public double? FinalShoulder { get; set; }
+    public double? FinalHeight { get; set; }
+    public double? FinalWeight { get; set; }
 
     public string? ImageUrl { get; set; }
     public string? FinalImageUrl { get; set; }
