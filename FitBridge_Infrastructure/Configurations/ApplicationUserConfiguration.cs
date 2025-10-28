@@ -29,6 +29,8 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(e => e.GymOwnerId).IsRequired(false);
         builder.Property(e => e.PtMaxCourse).HasDefaultValue(3);
         builder.Property(e => e.MinimumSlot).HasDefaultValue(1);
+        builder.Property(e => e.IsActive).HasDefaultValue(true);
+        builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.HasOne(e => e.GymOwner)
         .WithMany(e => e.GymPTs)
         .HasForeignKey(e => e.GymOwnerId)
