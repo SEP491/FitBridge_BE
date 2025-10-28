@@ -21,9 +21,10 @@ public class UserGoalsController(IMediator _mediator) : _BaseApiController
         return Ok(new BaseResponse<UserGoalsDto>(StatusCodes.Status200OK.ToString(), "User goal created successfully", result));
     }
 
-    [HttpPut]
-    public async Task<IActionResult> UpdateUserGoal([FromBody] UpdateUserGoalCommand command)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateUserGoal([FromBody] UpdateUserGoalCommand command, [FromRoute] Guid id)
     {
+        command.Id = id;
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<UserGoalsDto>(StatusCodes.Status200OK.ToString(), "User goal updated successfully", result));
     }

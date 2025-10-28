@@ -2,6 +2,7 @@ using System;
 using Appwrite;
 using Appwrite.Models;
 using Appwrite.Services;
+using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Configurations;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Domain.Exceptions;
@@ -14,8 +15,15 @@ public class UploadService(IOptions<AppWriteSettings> _appWriteSettings, Storage
 {
     public async Task<string> UploadFileAsync(IFormFile file)
     {
-        if (file == null || file.Length == 0)
-            throw new ArgumentException("No file uploaded.");
+
+        if (file == null || file.Length == 0) {
+            throw new BusinessException("No file uploaded.");
+        }
+        
+        if (file.Length > ProjectConstant.MaximumAvatarSize * 1024 * 1024)
+        {
+            throw new BusinessException($"File size is too large, maximum size is {ProjectConstant.MaximumAvatarSize}MB");
+        }
 
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"};
         var fileExtension = Path.GetExtension(file.FileName).ToLower();

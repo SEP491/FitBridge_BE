@@ -26,6 +26,17 @@ public class UserGoalsDto
     public double? StartHeight { get; set; }
     public double? StartWeight { get; set; }
 
+    public double? CurrentBiceps { get; set; }
+    public double? CurrentForeArm { get; set; }
+    public double? CurrentThigh { get; set; }
+    public double? CurrentCalf { get; set; }
+    public double? CurrentChest { get; set; }
+    public double? CurrentWaist { get; set; }
+    public double? CurrentHip { get; set; }
+    public double? CurrentShoulder { get; set; }
+    public double? CurrentHeight { get; set; }
+    public double? CurrentWeight { get; set; }
+
     public string? ImageUrl { get; set; }
     public string? FinalImageUrl { get; set; }
 }

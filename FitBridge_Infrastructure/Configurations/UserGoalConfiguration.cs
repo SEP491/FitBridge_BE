@@ -39,7 +39,8 @@ public class UserGoalConfiguration : IEntityTypeConfiguration<UserGoal>
         builder.Property(e => e.FinalWaist).IsRequired(false);
         builder.Property(e => e.FinalHip).IsRequired(false);
         builder.Property(e => e.FinalShoulder).IsRequired(false);
-
+        builder.Property(e => e.FinalHeight).IsRequired(false);
+        builder.Property(e => e.FinalWeight).IsRequired(false);
         builder.Property(e => e.ImageUrl).IsRequired(false);
         builder.Property(e => e.CustomerPurchasedId).IsRequired(true);
 
