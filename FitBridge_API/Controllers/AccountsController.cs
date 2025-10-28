@@ -2,11 +2,16 @@ using System;
 using System.Runtime.CompilerServices;
 using FitBridge_API.Helpers;
 using FitBridge_API.Helpers.RequestHelpers;
+using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Accounts;
 using FitBridge_Application.Dtos.Accounts.FreelancePts;
 using FitBridge_Application.Dtos.Accounts.HotResearch;
+using FitBridge_Application.Dtos.GymPTs;
+using FitBridge_Application.Features.Accounts.BanUnbanAccounts;
+using FitBridge_Application.Features.Accounts.DeleteAccounts;
 using FitBridge_Application.Features.Accounts.GetAllFreelancePts;
+using FitBridge_Application.Features.Accounts.GetAllGymPts;
 using FitBridge_Application.Features.Accounts.GetFreelancePtById;
 using FitBridge_Application.Features.Accounts.GetHotResearchAccount;
 using FitBridge_Application.Features.Accounts.GetFreelancePtCustomers;
@@ -16,6 +21,7 @@ using FitBridge_Application.Features.CustomerPurchaseds.GetCustomerPurchasedFree
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Specifications.Accounts.GetAllFreelancePts;
+using FitBridge_Application.Specifications.Accounts.GetAllGymPts;
 using FitBridge_Application.Specifications.Accounts.GetHotResearchAccount;
 using FitBridge_Application.Specifications.Accounts.GetFreelancePtCustomers;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedByCustomerId;
@@ -62,12 +68,64 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     /// </summary>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    [HttpGet("freelance-pts")]
+  [HttpGet("freelance-pts")]
     public async Task<IActionResult> GetFreelancePTs([FromQuery] GetAllFreelancePTsParam parameters)
     {
-        var response = await _mediator.Send(new GetAllFreelancePTsQuery { Params = parameters });
+ var response = await _mediator.Send(new GetAllFreelancePTsQuery { Params = parameters });
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GetAllFreelancePTsResponseDto>>(StatusCodes.Status200OK.ToString(), "Freelance PTs retrieved successfully", pagination));
+    }
+
+    /// <summary>
+    /// Retrieves a paginated list of gym personal trainers.
+    /// </summary>
+    /// <param name="parameters">Query parameters for filtering and pagination, including:
+    /// <list type="bullet">
+    /// <item>
+    /// <term>Page</term>
+    /// <description>The page number to retrieve (default: 1).</description>
+    /// </item>
+    /// <item>
+/// <term>Size</term>
+    /// <description>The number of items per page (default: 10, max: 20).</description>
+    /// </item>
+    /// <item>
+    /// <term>SearchTerm</term>
+    /// <description>Optional search term to filter gym PTs by name.</description>
+    /// </item>
+    /// <item>
+    /// <term>SortBy</term>
+    /// <description>Field to sort by (e.g., FullName, Rating, Experience).</description>
+    /// </item>
+    /// <item>
+  /// <term>SortOrder</term>
+    /// <description>Sort direction (asc or desc).</description>
+    /// </item>
+    /// </list>
+    /// </param>
+    /// <returns>A paginated list of gym personal trainers with their details.</returns>
+    /// <remarks>
+    /// Returns gym PT information including:
+    /// - Basic info (name, avatar, bio, date of birth)
+    /// - Professional details (experience, goal trainings)
+ /// - Performance metrics (rating, total courses assigned)
+    /// - Gym association (gym owner ID, gym name)
+    /// 
+    /// Sample request:
+  ///
+    ///     GET /api/v1/accounts/gym-pts?page=1&amp;size=10&amp;sortBy=Rating&amp;sortOrder=desc
+    ///
+    /// </remarks>
+    /// <response code="200">Gym PTs retrieved successfully</response>
+    /// <response code="400">Invalid query parameters</response>
+    [HttpGet("gym-pts")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetAllGymPtsResponseDto>>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAllGymPTs([FromQuery] GetAllGymPtsParams parameters)
+    {
+        var response = await _mediator.Send(new GetAllGymPtsQuery { Params = parameters });
+        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GetAllGymPtsResponseDto>>(StatusCodes.Status200OK.ToString(), "Gym PTs retrieved successfully", pagination));
     }
 
     /// <summary>
@@ -173,5 +231,65 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     {
         var response = await _mediator.Send(command);
         return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "Avatar updated successfully", response));
+    }
+
+    /// <summary>
+    /// Ban or unban user accounts. 
+    /// Admin can ban/unban any accounts. Gym owners can only ban/unban their gym PTs.
+    /// </summary>
+    /// <param name="command">The command containing:
+    /// <list type="bullet">
+    /// <item>
+    /// <term>UserIdBanUnbanList</term>
+    /// <description>List of user IDs to ban/unban.</description>
+    /// </item>
+    /// <item>
+    /// <term>IsBan</term>
+    /// <description>True to ban (set IsActive = false), false to unban (set IsActive = true).</description>
+    /// </item>
+    /// </list>
+    /// </param>
+    /// <returns>Success response when accounts are banned/unbanned.</returns>
+    [HttpPut("ban-unban")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin + "," + ProjectConstant.UserRoles.GymOwner)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<object>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> BanUnbanAccounts([FromBody] BanUnbanAccountCommand command)
+    {
+        await _mediator.Send(command);
+        return Ok(new BaseResponse<object>(
+        StatusCodes.Status200OK.ToString(),
+        command.IsBan ? "Accounts banned successfully" : "Accounts unbanned successfully",
+        null));
+    }
+
+    /// <summary>
+    /// Soft delete user accounts by setting IsEnabled = false.
+    /// Admin can delete any accounts. Gym owners can only delete their gym PTs.
+    /// </summary>
+    /// <param name="command">The command containing:
+    /// <list type="bullet">
+    /// <item>
+    /// <term>UserIdDeleteList</term>
+    /// <description>List of user IDs to delete.</description>
+    /// </item>
+    /// </list>
+    /// </param>
+    /// <returns>Success response when accounts are deleted.</returns>
+    [HttpDelete("delete")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin + "," + ProjectConstant.UserRoles.GymOwner)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<object>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteAccounts([FromBody] DeleteAccountCommand command)
+    {
+        await _mediator.Send(command);
+        return Ok(new BaseResponse<object>(
+       StatusCodes.Status200OK.ToString(),
+          "Accounts deleted successfully",
+         null));
     }
 }
