@@ -5,6 +5,7 @@ using MediatR;
 using AutoMapper;
 using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Exceptions;
+using FitBridge_Domain.Entities.Gyms;
 
 namespace FitBridge_Application.Features.UserGoals.UpdateUserGoals;
 
@@ -12,7 +13,12 @@ public class UpdateUserGoalCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapp
 {
     public async Task<UserGoalsDto> Handle(UpdateUserGoalCommand request, CancellationToken cancellationToken)
     {
-        var userGoal = await _unitOfWork.Repository<UserGoal>().GetByIdAsync(request.Id);
+        var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>().GetByIdAsync(request.CustomerPurchasedId, false, new List<string> { "UserGoal" });
+        if (customerPurchased == null)
+        {
+            throw new NotFoundException("Customer purchased not found");
+        }
+        var userGoal = customerPurchased.UserGoal;
         if (userGoal == null)
         {
             throw new NotFoundException("User goal not found");
@@ -52,7 +58,6 @@ public class UpdateUserGoalCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapp
         userGoal.ImageUrl = request.ImageUrl ?? userGoal.ImageUrl;
         userGoal.FinalImageUrl = request.FinalImageUrl ?? userGoal.FinalImageUrl;
         
-        _unitOfWork.Repository<UserGoal>().Update(userGoal);
         await _unitOfWork.CommitAsync();
         return _mapper.Map<UserGoal, UserGoalsDto>(userGoal);
     }

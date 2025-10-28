@@ -8,7 +8,7 @@ namespace FitBridge_Application.Features.UserGoals.UpdateUserGoals;
 public class UpdateUserGoalCommand : IRequest<UserGoalsDto>
 {
     [JsonIgnore]
-    public Guid Id { get; set; }
+    public Guid CustomerPurchasedId { get; set; }
     public double? TargetBiceps { get; set; }
     public double? TargetForeArm { get; set; }
     public double? TargetThigh { get; set; }
