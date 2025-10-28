@@ -118,18 +118,6 @@ namespace FitBridge_Infrastructure.Extensions
 
                 var disableExpiredCouponsJobKey = new JobKey("DisableExpiredCouponsJob");
 
-                q.UsePersistentStore(store =>
-                {
-                    store.UseProperties = true;
-                    store.UsePostgres(postgres =>
-                    {
-                        ArgumentException.ThrowIfNullOrEmpty(configuration.GetConnectionString("FitbridgeDb"));
-                        postgres.ConnectionString = configuration.GetConnectionString("FitbridgeDb")!;
-                        postgres.TablePrefix = "public.qrtz_";
-                    });
-                    store.UseSystemTextJsonSerializer();
-                });
-
                 q.AddJob<DisableExpiredCouponsJob>(opts => opts.WithIdentity(disableExpiredCouponsJobKey));
                 q.AddTrigger(opts => opts
                     .ForJob(disableExpiredCouponsJobKey)
@@ -148,8 +136,8 @@ namespace FitBridge_Infrastructure.Extensions
                 {
                     store.UsePostgres(postgres =>
                     {
-                        postgres.ConnectionString = configuration.GetConnectionString("FitBridgeDb");
-                        postgres.TablePrefix = "qrtz_";
+                        postgres.ConnectionString = configuration.GetConnectionString("FitbridgeDb");
+                        postgres.TablePrefix = "public.qrtz_";
                     });
                     store.UseNewtonsoftJsonSerializer();
                     store.UseClustering();

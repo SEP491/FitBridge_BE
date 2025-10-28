@@ -15,7 +15,8 @@ public class RegisterGymPtCommand : IRequest<CreateNewPTResponse>
         public string Password { get; set; } = null!;
 
         public string Email { get; set; } = null!;
-
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public CreateNewGymPTRequest CreateNewPT { get; set; } = null!;
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
