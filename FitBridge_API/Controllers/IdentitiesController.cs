@@ -48,7 +48,7 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
     [HttpGet("confirm-email")]
     public async Task<IActionResult> ConfirmEmail(string token, string email)
     {
-        var user = await _applicationUserService.GetUserByEmailAsync(email);
+        var user = await _applicationUserService.GetUserByEmailAsync(email, false);
         if (user == null)
         {
             return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), "Invalid email address", user.Id.ToString()));
