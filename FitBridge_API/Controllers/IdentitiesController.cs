@@ -45,7 +45,7 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
     }
 
     [AllowAnonymous]
-    [HttpGet("confirm-email")]
+    [HttpPost("confirm-email")]
     public async Task<IActionResult> ConfirmEmail(string token, string email)
     {
         var user = await _applicationUserService.GetUserByEmailAsync(email, false);
