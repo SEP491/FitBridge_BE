@@ -12,10 +12,12 @@ namespace FitBridge_Application.Dtos.Transactions
 
         public string Description { get; set; }
 
+        public decimal? ProfitAmount { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
-        public PaymentMethodDto PaymentMethod { get; set; }
+        public string PaymentMethod { get; set; }
 
-        public WithdrawalRequestDto WithdrawalRequest { get; set; }
+        public WithdrawalRequestDto? WithdrawalRequest { get; set; }
     }
 }
