@@ -27,7 +27,7 @@ namespace FitBridge_Application.Interfaces.Services
         /// </summary>
         /// <param name="spec">The specification to filter users.</param>
         /// <returns>A read-only list of users that match the specification.</returns>
-        Task<IReadOnlyList<ApplicationUser>> GetAllUsersWithSpecAsync(ISpecification<ApplicationUser> spec);
+        Task<IReadOnlyList<ApplicationUser>> GetAllUsersWithSpecAsync(ISpecification<ApplicationUser> spec, bool asNoTracking = true);
 
         /// <summary>
         /// Retrieves a single user that matches a given specification asynchronously.
@@ -106,9 +106,11 @@ namespace FitBridge_Application.Interfaces.Services
         /// <param name="user">The user to generate the token for.</param>
         /// <returns>The generated token.</returns>
         Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user);
+
         Task<IdentityResult> ConfirmEmailAsync(ApplicationUser user, string token);
 
         Task<List<string>> GetUserRolesAsync(ApplicationUser user);
+
         Task<bool> IsInRoleAsync(ApplicationUser user, string role);
 
         Task<bool> UpdateLoginInfoAsync(ApplicationUser user, string? email, string? phoneNumber);

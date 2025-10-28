@@ -4,6 +4,7 @@ using FitBridge_Application.Dtos.Accounts;
 using FitBridge_Application.Dtos.Accounts.FreelancePts;
 using FitBridge_Application.Dtos.Accounts.HotResearch;
 using FitBridge_Application.Dtos.Accounts.Profiles;
+using FitBridge_Application.Dtos.GymPTs;
 using FitBridge_Application.Features.Accounts.UpdateProfiles;
 using FitBridge_Domain.Entities.Identity;
 
@@ -23,6 +24,13 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.ExperienceYears, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Experience : 0))
             .ForMember(dest => dest.Certifications, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Certificates : new List<string>()))
             .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Reviews.Count > 0 ? src.Reviews.Average(x => x.Rating) : 0));
+
+        CreateProjection<ApplicationUser, GetAllGymPtsResponseDto>()
+            .ForMember(dest => dest.Experience, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Experience : 0))
+            .ForMember(dest => dest.GoalTrainings, opt => opt.MapFrom(src => src.GoalTrainings.Select(x => x.Name).ToList()))
+            .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.GymReviews.Count > 0 ? src.GymReviews.Average(x => x.Rating) : 0))
+            .ForMember(dest => dest.TotalCoursesAssigned, opt => opt.MapFrom(src => src.GymCoursePTs.Count))
+            .ForMember(dest => dest.GymName, opt => opt.MapFrom(src => src.GymOwner != null ? src.GymOwner.GymName : null));
 
         CreateMap<ApplicationUser, GetFreelancePtByIdResponseDto>()
             .ForMember(dest => dest.FreelancePt, opt => opt.MapFrom(src => src))

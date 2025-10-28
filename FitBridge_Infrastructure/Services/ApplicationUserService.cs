@@ -25,9 +25,14 @@ namespace FitBridge_Infrastructure.Services
             return await userManager.GetUsersInRoleAsync(role);
         }
 
-        public async Task<IReadOnlyList<ApplicationUser>> GetAllUsersWithSpecAsync(ISpecification<ApplicationUser> spec)
+        public async Task<IReadOnlyList<ApplicationUser>> GetAllUsersWithSpecAsync(ISpecification<ApplicationUser> spec, bool asNoTracking = true)
         {
-            return await ApplySpecification(spec).AsNoTracking().ToListAsync();
+            var query = ApplySpecification(spec);
+            if (asNoTracking)
+            {
+                query = query.AsNoTracking();
+            }
+            return await query.ToListAsync();
         }
 
         public async Task<ApplicationUser?> GetUserWithSpecAsync(ISpecification<ApplicationUser> spec, bool asNoTracking = true)
@@ -158,7 +163,6 @@ namespace FitBridge_Infrastructure.Services
 
         public async Task<bool> UpdateLoginInfoAsync(ApplicationUser user, string? email, string? phoneNumber)
         {
-
             if (email != null)
             {
                 var existingUserByEmail = await userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == email && u.Id != user.Id);
@@ -190,7 +194,7 @@ namespace FitBridge_Infrastructure.Services
                     throw new DuplicateUserException($"A user with the phone number {phoneNumber} already exists.");
                 }
                 var updatePhoneNumberResult = await userManager.SetPhoneNumberAsync(user, phoneNumber);
-                if(!updatePhoneNumberResult.Succeeded)
+                if (!updatePhoneNumberResult.Succeeded)
                 {
                     throw new UpdateFailedException($"Failed to update phone number: {string.Join(", ", updatePhoneNumberResult.Errors.Select(e => e.Description))}");
                 }

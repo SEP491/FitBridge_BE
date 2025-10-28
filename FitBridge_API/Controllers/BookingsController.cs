@@ -13,6 +13,8 @@ using FitBridge_Application.Specifications.Bookings.GetGymSlotForBooking;
 using FitBridge_Application.Features.Bookings.GetGymSlotForBooking;
 using FitBridge_Application.Specifications.Bookings.GetFreelancePtSchedule;
 using FitBridge_Application.Features.Bookings.GetFreelancePtSchedule;
+using FitBridge_Application.Features.Bookings.GetGymPtSchedule;
+using FitBridge_Application.Specifications.Bookings.GetGymPtSchedule;
 using FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
 using FitBridge_Application.Features.Bookings.RequestEditBooking;
 using FitBridge_Application.Features.Bookings.AcceptEditBookingRequest;
@@ -161,6 +163,40 @@ public class BookingsController(IMediator _mediator) : _BaseApiController
         var result = await _mediator.Send(new GetFreelancePtScheduleQuery { Params = parameters });
         var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GetFreelancePtScheduleResponse>>(StatusCodes.Status200OK.ToString(), "Schedule retrieved successfully", pagination));
+    }
+
+    /// <summary>
+    /// Get gym PT's booking schedule for a specific date showing all bookings with customer details
+    /// </summary>
+    /// <param name="parameters">Query parameters including date and pagination</param>
+    /// <returns>Paginated list of gym PT bookings</returns>
+    /// <remarks>
+    /// Sample request:
+    ///
+    ///     GET /api/v1/bookings/gym-pt-schedule?date=2025-01-15&amp;page=1&amp;size=10
+    ///
+    /// Returns bookings for the authenticated gym PT including:
+    /// - Booking details (ID, name, date, time slot)
+    /// - Customer information (name, avatar)
+    /// - Course name
+    /// - Gym slot details
+    /// - Session status and notes
+    ///
+    /// Only accessible by gym PTs to view their daily schedule.
+    /// </remarks>
+    /// <response code="200">Schedule retrieved successfully</response>
+    /// <response code="401">User not authenticated</response>
+    /// <response code="404">PT not found</response>
+    [HttpGet("gym-pt-schedule")]
+    [Authorize(Roles = ProjectConstant.UserRoles.GymPT)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetGymPtScheduleResponse>>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetGymPtSchedule([FromQuery] GetGymPtScheduleParams parameters)
+    {
+        var result = await _mediator.Send(new GetGymPtScheduleQuery { Params = parameters });
+        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GetGymPtScheduleResponse>>(StatusCodes.Status200OK.ToString(), "Schedule retrieved successfully", pagination));
     }
 
     /// <summary>

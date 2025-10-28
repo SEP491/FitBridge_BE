@@ -68,14 +68,8 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
     public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginUserCommand command)
     {
         LoginResponseDTO response;
-        try
-        {
-            response = await _mediator.Send(command);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), ex.Message, null));
-        }
+        response = await _mediator.Send(command);
+        //return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), ex.Message, null));
         return Ok(new BaseResponse<LoginResponseDTO>(StatusCodes.Status200OK.ToString(), "Login successful", response));
     }
 
@@ -115,6 +109,7 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
             return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), ex.Message, ex.InnerException?.Message));
         }
     }
+
     /// <summary>
     /// Update email and phone number of the authenticated user
     /// </summary>
@@ -123,7 +118,6 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
     [HttpPut("update-login-info")]
     public async Task<IActionResult> UpdateLoginInfo([FromBody] UpdateLoginInfoCommand command)
     {
-
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Login info updated successfully", result));
     }
@@ -134,5 +128,4 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Password updated successfully", result));
     }
-
 }
