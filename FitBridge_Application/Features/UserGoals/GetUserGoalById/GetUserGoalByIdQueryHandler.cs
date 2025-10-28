@@ -5,6 +5,7 @@ using MediatR;
 using AutoMapper;
 using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Exceptions;
+using FitBridge_Domain.Entities.Gyms;
 
 namespace FitBridge_Application.Features.UserGoals.GetUserGoalById;
 
@@ -12,7 +13,12 @@ public class GetUserGoalByIdQueryHandler(IUnitOfWork _unitOfWork, IMapper _mappe
 {
     public async Task<UserGoalsDto> Handle(GetUserGoalByIdQuery request, CancellationToken cancellationToken)
     {
-        var userGoal = await _unitOfWork.Repository<UserGoal>().GetByIdAsync(request.Id);
+        var customerPurchased = await _unitOfWork.Repository<CustomerPurchased>().GetByIdAsync(request.CustomerPurchasedId, false, new List<string> { "UserGoal" });
+        if (customerPurchased == null)
+        {
+            throw new NotFoundException("Customer purchased not found");
+        }
+        var userGoal = customerPurchased.UserGoal;
         if (userGoal == null)
         {
             throw new NotFoundException("User goal not found");

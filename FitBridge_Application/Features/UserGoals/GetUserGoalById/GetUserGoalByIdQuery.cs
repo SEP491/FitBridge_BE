@@ -7,5 +7,5 @@ namespace FitBridge_Application.Features.UserGoals.GetUserGoalById;
 
 public class GetUserGoalByIdQuery : IRequest<UserGoalsDto>
 {
-    public Guid Id { get; set; }
+    public Guid CustomerPurchasedId { get; set; }
 }

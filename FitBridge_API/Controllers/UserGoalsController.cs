@@ -21,17 +21,24 @@ public class UserGoalsController(IMediator _mediator) : _BaseApiController
         return Ok(new BaseResponse<UserGoalsDto>(StatusCodes.Status200OK.ToString(), "User goal created successfully", result));
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUserGoal([FromBody] UpdateUserGoalCommand command, [FromRoute] Guid id)
+/// <summary>
+/// Update user goal
+/// </summary>
+/// <param name="command"></param>
+/// <param name="customerPurchasedId">Customer purchased id</param>
+/// <returns></returns>
+    [HttpPut("{customerPurchasedId}")]
+    public async Task<IActionResult> UpdateUserGoal([FromBody] UpdateUserGoalCommand command, [FromRoute] Guid customerPurchasedId)
     {
-        command.Id = id;
+        command.CustomerPurchasedId = customerPurchasedId;
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<UserGoalsDto>(StatusCodes.Status200OK.ToString(), "User goal updated successfully", result));
     }
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetUserGoalById([FromRoute] Guid id)
+
+    [HttpGet("{customerPurchasedId}")]
+    public async Task<IActionResult> GetUserGoalById([FromRoute] Guid customerPurchasedId)
     {
-        var result = await _mediator.Send(new GetUserGoalByIdQuery { Id = id });
+        var result = await _mediator.Send(new GetUserGoalByIdQuery { CustomerPurchasedId = customerPurchasedId });
         return Ok(new BaseResponse<UserGoalsDto>(StatusCodes.Status200OK.ToString(), "User goal retrieved successfully", result));
     }
 
