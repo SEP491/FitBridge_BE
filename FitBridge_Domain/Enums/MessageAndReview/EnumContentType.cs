@@ -14,6 +14,8 @@
 
         NewCoupon,
 
+        RefundedItem, // OrderItem refunded
+
         // Withdrawal request
         NewPaymentRequest,
 
