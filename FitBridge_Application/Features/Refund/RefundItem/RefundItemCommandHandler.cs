@@ -24,7 +24,7 @@ namespace FitBridge_Application.Features.Refund.RefundItem
         {
             var spec = new GetOrderItemByIdSpec(request.OrderItemId);
             var existingOrderItem = await unitOfWork.Repository<OrderItem>()
-                .GetBySpecificationAsync(spec) ?? throw new NotFoundException(nameof(OrderItem));
+                .GetBySpecificationAsync(spec, asNoTracking: false) ?? throw new NotFoundException(nameof(OrderItem));
 
             await accountService.ValidateIsBanned(existingOrderItem.Order.AccountId);
 
@@ -51,7 +51,13 @@ namespace FitBridge_Application.Features.Refund.RefundItem
                     .GetBySpecificationAsync(walletSpec, asNoTracking: false) ?? throw new NotFoundException(nameof(Wallet));
 
                 wallet.AvailableBalance -= refundAmount;
+                unitOfWork.Repository<Wallet>().Update(wallet);
             }
+
+            existingOrderItem.IsRefunded = true;
+
+            unitOfWork.Repository<OrderItem>().Update(existingOrderItem);
+            await unitOfWork.CommitAsync();
 
             await NotifyUser(
                 refundAmount,
