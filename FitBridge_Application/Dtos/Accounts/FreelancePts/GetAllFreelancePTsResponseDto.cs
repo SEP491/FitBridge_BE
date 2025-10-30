@@ -12,6 +12,8 @@ public class GetAllFreelancePTsResponseDto
     public double Rating { get; set; }
     public List<string> GoalTrainings { get; set; }
     public List<string> Certifications { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
     public decimal PriceFrom { get; set; }
     public int ExperienceYears { get; set; }
     public int TotalPurchased { get; set; }

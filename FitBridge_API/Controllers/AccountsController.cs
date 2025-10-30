@@ -68,7 +68,8 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     /// </summary>
     /// <param name="parameters"></param>
     /// <returns></returns>
-  [HttpGet("freelance-pts")]
+    [HttpGet("freelance-pts")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetFreelancePTs([FromQuery] GetAllFreelancePTsParam parameters)
     {
  var response = await _mediator.Send(new GetAllFreelancePTsQuery { Params = parameters });
@@ -134,6 +135,7 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     /// <param name="id"></param>
     /// <returns></returns>
     [HttpGet("freelance-pt/{id}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetFreelancePTById([FromRoute] Guid id)
     {
         var response = await _mediator.Send(new GetFreelancePTByIdQuery { Id = id });

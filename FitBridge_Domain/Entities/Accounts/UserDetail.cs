@@ -17,5 +17,7 @@ public class UserDetail : BaseEntity
     public double? Weight { get; set; }
     public List<string>? Certificates { get; set; }
     public int? Experience { get; set; }
+    public string? Bio { get; set; }
+
     public ApplicationUser User { get; set; }
 }
