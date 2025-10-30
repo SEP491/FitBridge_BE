@@ -2,5 +2,6 @@
 {
     public class GetFreelancePtCustomerParams : BaseParams
     {
+        public Guid? CustomerId { get; set; }
     }
 }
