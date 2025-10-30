@@ -71,16 +71,6 @@ public class UpdateUserGoalCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapp
         userGoal.StartHeight = request.StartHeight ?? userGoal.StartHeight;
         userGoal.StartWeight = request.StartWeight ?? userGoal.StartWeight;
 
-        userGoal.FinalBiceps = request.CurrentBiceps ?? userGoal.FinalBiceps;
-        userGoal.FinalForeArm = request.CurrentForeArm ?? userGoal.FinalForeArm;
-        userGoal.FinalThigh = request.CurrentThigh ?? userGoal.FinalThigh;
-        userGoal.FinalCalf = request.CurrentCalf ?? userGoal.FinalCalf;
-        userGoal.FinalChest = request.CurrentChest ?? userGoal.FinalChest;
-        userGoal.FinalWaist = request.CurrentWaist ?? userGoal.FinalWaist;
-        userGoal.FinalHip = request.CurrentHip ?? userGoal.FinalHip;
-        userGoal.FinalShoulder = request.CurrentShoulder ?? userGoal.FinalShoulder;
-        userGoal.FinalHeight = request.CurrentHeight ?? userGoal.FinalHeight;
-        userGoal.FinalWeight = request.CurrentWeight ?? userGoal.FinalWeight;
         userGoal.ImageUrl = request.ImageUrl ?? userGoal.ImageUrl;
         userGoal.FinalImageUrl = request.FinalImageUrl ?? userGoal.FinalImageUrl;
         

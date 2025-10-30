@@ -14,6 +14,7 @@ public class CustomerPurchased : BaseEntity
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public UserGoal? UserGoal { get; set; }
     public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+    public ICollection<BodyMeasurementRecord> BodyMeasurementRecords { get; set; } = new List<BodyMeasurementRecord>();
     public ICollection<Order> OrderThatExtend { get; set; } = new List<Order>();
     public ICollection<BookingRequest> BookingRequests { get; set; } = new List<BookingRequest>();
 }

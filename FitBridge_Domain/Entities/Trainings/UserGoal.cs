@@ -28,18 +28,6 @@ public class UserGoal : BaseEntity
     public double? StartShoulder { get; set; }
     public double? StartHeight { get; set; }
     public double? StartWeight { get; set; }
-
-    public double? FinalBiceps { get; set; }
-    public double? FinalForeArm { get; set; }
-    public double? FinalThigh { get; set; }
-    public double? FinalCalf { get; set; }
-    public double? FinalChest { get; set; }
-    public double? FinalWaist { get; set; }
-    public double? FinalHip { get; set; }
-    public double? FinalShoulder { get; set; }
-    public double? FinalHeight { get; set; }
-    public double? FinalWeight { get; set; }
-
     public string? ImageUrl { get; set; }
     public string? FinalImageUrl { get; set; }
     public Guid CustomerPurchasedId { get; set; }
