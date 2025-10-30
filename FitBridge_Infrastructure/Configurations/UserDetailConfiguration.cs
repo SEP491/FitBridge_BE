@@ -22,6 +22,7 @@ public class UserDetailConfiguration : IEntityTypeConfiguration<UserDetail>
         builder.Property(e => e.Weight).IsRequired(false);
         builder.Property(e => e.Certificates).IsRequired(false);
         builder.Property(e => e.Experience).IsRequired(false);
+        builder.Property(e => e.Bio).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);

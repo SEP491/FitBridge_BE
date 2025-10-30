@@ -32,7 +32,6 @@ namespace FitBridge_Domain.Entities.Identity
         public Guid? GymOwnerId { get; set; } //To know this gym pt belong to which gym owner
         public int PtMaxCourse { get; set; }
         public int MinimumSlot { get; set; } // Minimum slot register perweek, control by gym owner account
-        public string? Bio { get; set; }
         public DateTime LastSeen { get; set; }
         public bool IsActive { get; set; }
         public bool IsEnabled { get; set; }
