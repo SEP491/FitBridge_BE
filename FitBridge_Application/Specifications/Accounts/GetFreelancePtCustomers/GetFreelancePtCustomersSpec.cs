@@ -11,7 +11,7 @@ namespace FitBridge_Application.Specifications.Accounts.GetFreelancePtCustomers
             && (string.IsNullOrEmpty(parameters.SearchTerm) ||
             x.FullName.ToLower().Contains(parameters.SearchTerm.ToLower()) ||
             x.Email.ToLower().Contains(parameters.SearchTerm.ToLower()))
-        )
+            && (parameters.CustomerId == null || x.Id == parameters.CustomerId))
         {
             if (parameters.DoApplyPaging)
             {
