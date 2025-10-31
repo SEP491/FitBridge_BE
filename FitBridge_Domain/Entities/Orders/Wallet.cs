@@ -8,4 +8,5 @@ public class Wallet : BaseEntity
     public decimal PendingBalance { get; set; }
     public decimal AvailableBalance { get; set; }
     public ApplicationUser User { get; set; }
+    public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 }

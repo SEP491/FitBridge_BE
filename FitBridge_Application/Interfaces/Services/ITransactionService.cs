@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Application.Dtos.Jobs;
+using FitBridge_Domain.Entities.Orders;
 
 namespace FitBridge_Application.Interfaces.Services;
 
@@ -12,4 +13,6 @@ public interface ITransactionService
     Task<bool> PurchaseGymCourse(long orderCode);
     Task<bool> ExtendFreelancePTPackage(long orderCode);
     Task<bool> DistributePendingProfit(Guid CustomerPurchasedId);
+    Task<decimal> CalculateMerchantProfit(OrderItem orderItem, Coupon? coupon = null);
+    Task<decimal> CalculateSystemProfit(Order order);
 }

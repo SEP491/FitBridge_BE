@@ -25,6 +25,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         builder.HasOne(e => e.WithdrawalRequest).WithMany(e => e.Transactions).HasForeignKey(e => e.WithdrawalRequestId);
         builder.HasOne(e => e.Order).WithMany(e => e.Transactions).HasForeignKey(e => e.OrderId);
         builder.HasOne(e => e.OrderItem).WithMany(e => e.Transactions).HasForeignKey(e => e.OrderItemId);
+        builder.HasOne(e => e.Wallet).WithMany(e => e.Transactions).HasForeignKey(e => e.WalletId);
         builder.Property(e => e.TransactionType).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<TransactionType>(s));
     }
 }

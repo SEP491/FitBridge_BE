@@ -17,11 +17,12 @@ public class Transaction : BaseEntity
 
     public Guid? OrderId { get; set; }
     public decimal? ProfitAmount { get; set; }
+    public Guid? WalletId { get; set; }
 
     public PaymentMethod PaymentMethod { get; set; }
     public OrderItem? OrderItem { get; set; }
     public WithdrawalRequest? WithdrawalRequest { get; set; }
     public Order? Order { get; set; }
-
+    public Wallet? Wallet { get; set; }
     public TransactionType TransactionType { get; set; }
 }
