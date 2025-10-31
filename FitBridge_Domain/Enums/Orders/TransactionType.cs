@@ -14,5 +14,6 @@
         ExtendCourse,
         ExtendFreelancePTPackage,
         DistributeProfit,
+        PurchasePremiumService,
     }
 }

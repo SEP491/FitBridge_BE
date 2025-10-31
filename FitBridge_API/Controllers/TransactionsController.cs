@@ -1,8 +1,11 @@
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos.Transactions;
+using FitBridge_Application.Features.Transactions.GetAllGymOwnerTransaction;
 using FitBridge_Application.Features.Transactions.GetCurrentUserTransactions;
+using FitBridge_Application.Features.Transactions.GetGymOwnerTransactionById;
 using FitBridge_Application.Features.Transactions.GetTransactionDetail;
+using FitBridge_Application.Specifications.Transactions.GetAllGymOwnerTransaction;
 using FitBridge_Application.Specifications.Transactions.GetCurrentUserTransactions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -77,6 +80,29 @@ namespace FitBridge_API.Controllers
                     StatusCodes.Status200OK.ToString(),
                     "Get transaction detail success",
                     response));
+        }
+
+        [HttpGet("gym-owner")]
+        [Authorize(Roles = ProjectConstant.UserRoles.GymOwner)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetAllMerchantTransactionDto>>))]
+        public async Task<ActionResult<Pagination<GetAllMerchantTransactionDto>>> GetAllGymOwnerTransactions([FromQuery] GetAllGymOwnerTransactionParams parameters)
+        {
+            var query = new GetAllGymOwnerTransactionQuery
+            {
+                Parameters = parameters
+            };
+            var response = await mediator.Send(query);
+            var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+            return Ok(new BaseResponse<Pagination<GetAllMerchantTransactionDto>>(StatusCodes.Status200OK.ToString(), "Get all gym owner transactions success", pagination));
+        }
+        
+        [HttpGet("gym-owner/{transactionId}")]
+        [Authorize(Roles = ProjectConstant.UserRoles.GymOwner)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<MerchantTransactionDetailDto>))]
+        public async Task<ActionResult<MerchantTransactionDetailDto>> GetGymOwnerTransactionById([FromRoute] Guid transactionId)
+        {
+            var response = await mediator.Send(new GetGymOwnerTransactionByIdCommand { TransactionId = transactionId });
+            return Ok(new BaseResponse<MerchantTransactionDetailDto>(StatusCodes.Status200OK.ToString(), "Get gym owner transaction by id success", response));
         }
     }
 }

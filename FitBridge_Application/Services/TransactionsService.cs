@@ -132,6 +132,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         var DistributeProfTransaction = new Transaction
         {
             Amount = profit,
+            WalletId = orderItem.GymCourseId != null ? orderItem.GymCourse.GymOwnerId : orderItem.FreelancePTPackage.PtId,
             OrderId = orderItem.OrderId,
             OrderItemId = orderItemId,
             TransactionType = TransactionType.DistributeProfit,
@@ -235,7 +236,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         return true;
     }
 
-    private async Task<decimal> CalculateMerchantProfit(OrderItem orderItem, Coupon? coupon)
+    public async Task<decimal> CalculateMerchantProfit(OrderItem orderItem, Coupon? coupon)
     {
         var subTotalOrderItemPrice = orderItem.Price * orderItem.Quantity;
         var commissionAmount = subTotalOrderItemPrice * ProjectConstant.CommissionRate;
