@@ -6,8 +6,8 @@ namespace FitBridge_Application.Specifications.Accounts.GetFreelancePtCustomers
     public class GetFreelancePtCustomersSpec : BaseSpecification<ApplicationUser>
     {
         public GetFreelancePtCustomersSpec(Guid freelancePtId, GetFreelancePtCustomerParams parameters) : base(x =>
-            x.Orders.Any(x => x.OrderItems.Any(oi => oi.FreelancePTPackageId != null
-            && oi.FreelancePTPackage!.PtId == freelancePtId))
+            x.CustomerPurchased.Any(cp => cp.OrderItems.Any(oi => oi.FreelancePTPackageId != null
+                                                                && oi.FreelancePTPackage!.PtId == freelancePtId))
             && (string.IsNullOrEmpty(parameters.SearchTerm) ||
             x.FullName.ToLower().Contains(parameters.SearchTerm.ToLower()) ||
             x.Email.ToLower().Contains(parameters.SearchTerm.ToLower()))
