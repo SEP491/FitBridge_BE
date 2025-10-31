@@ -8,6 +8,7 @@ using FitBridge_Application.Services;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Exceptions;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 
 namespace FitBridge_Application.Extensions.Pipelines
@@ -19,18 +20,14 @@ namespace FitBridge_Application.Extensions.Pipelines
     {
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
-            if (request is LoginUserCommand
-                or RefreshTokenCommand
-                or RegisterAccountCommand
-                or AddUserDeviceTokenCommand
-                or PaymentCallbackWebhookCommand)
+            var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext);
+
+            if (accountId == null)
             {
                 return await next(cancellationToken);
             }
 
-            var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
-                    ?? throw new NotFoundException(nameof(ApplicationUser));
-            await accountService.ValidateIsBanned(accountId);
+            await accountService.ValidateIsBanned(accountId.Value);
             var response = await next(cancellationToken);
 
             return response;
