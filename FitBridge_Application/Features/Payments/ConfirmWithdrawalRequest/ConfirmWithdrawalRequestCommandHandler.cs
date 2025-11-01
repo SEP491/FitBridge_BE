@@ -4,6 +4,8 @@ using FitBridge_Application.Dtos.Templates;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services.Notifications;
 using FitBridge_Application.Interfaces.Utils;
+using FitBridge_Application.Specifications.Payments.GetWithdrawalRequestByUserIdSpec;
+using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Enums.MessageAndReview;
 using FitBridge_Domain.Enums.Orders;
@@ -15,71 +17,37 @@ namespace FitBridge_Application.Features.Payments.ConfirmWithdrawalRequest
 {
     internal class ConfirmWithdrawalRequestCommandHandler(
         IUnitOfWork unitOfWork,
-        INotificationService notificationService) : IRequestHandler<ConfirmWithdrawalRequestCommand>
+        IUserUtil userUtil,
+        IHttpContextAccessor httpContextAccessor) : IRequestHandler<ConfirmWithdrawalRequestCommand>
     {
         public async Task Handle(ConfirmWithdrawalRequestCommand request, CancellationToken cancellationToken)
         {
+            var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
+                ?? throw new NotFoundException(nameof(ApplicationUser));
+
+            var spec = new GetWithdrawalRequestByUserIdSpec(accountId);
+
             var withdrawalRequest = await unitOfWork.Repository<WithdrawalRequest>()
-                .GetByIdAsync(request.WithdrawalRequestId, asNoTracking: false)
+                .GetBySpecificationAsync(spec, asNoTracking: false)
                 ?? throw new NotFoundException(nameof(WithdrawalRequest));
 
-            if (withdrawalRequest.Status != WithdrawalRequestStatus.Pending)
+            if (withdrawalRequest.Status != WithdrawalRequestStatus.AdminApproved)
             {
                 throw new DataValidationFailedException($"Cannot confirm withdrawal request with status: " +
-                    $"{withdrawalRequest.Status}. Only pending requests can be confirmed.");
+                    $"{withdrawalRequest.Status}. Only admin-approved requests can be user-confirmed.");
             }
 
-            UpdateWithdrawalRequest(withdrawalRequest, request.ImageUrl);
-
-            await InsertTransactionAsync(withdrawalRequest);
+            UpdateWithdrawalRequestStatus(withdrawalRequest);
 
             await unitOfWork.CommitAsync();
-            await SendNotification(withdrawalRequest);
         }
 
-        private async Task InsertTransactionAsync(WithdrawalRequest withdrawalRequest)
+        private void UpdateWithdrawalRequestStatus(WithdrawalRequest withdrawalRequest)
         {
-            var transaction = new Transaction
-            {
-                Status = TransactionStatus.Success,
-                Amount = withdrawalRequest.Amount,
-                OrderCode = GenerateOrderCode(),
-                Description = $"Withdrawal request confirmed - Amount: {withdrawalRequest.Amount}",
-                TransactionType = TransactionType.Withdraw,
-                WithdrawalRequestId = withdrawalRequest.Id,
-                PaymentMethodId = await GetSystemPaymentMethodId.GetPaymentMethodId(MethodType.System, unitOfWork)
-            };
-
-            unitOfWork.Repository<Transaction>().Insert(transaction);
-        }
-
-        private async Task SendNotification(WithdrawalRequest withdrawalRequest)
-        {
-            var model = new WithdrawalRequestAdminApprovedModel
-            {
-                BodyAmount = withdrawalRequest.Amount,
-            };
-
-            var message = new NotificationMessage(
-                EnumContentType.WithdrawalRequestAdminApproved,
-                [withdrawalRequest.AccountId],
-                model);
-
-            await notificationService.NotifyUsers(message);
-        }
-
-        private void UpdateWithdrawalRequest(WithdrawalRequest withdrawalRequest, string imageUrl)
-        {
-            withdrawalRequest.Status = WithdrawalRequestStatus.AdminApproved;
-            withdrawalRequest.IsUserApproved = false;
-            withdrawalRequest.ImageUrl = imageUrl;
+            withdrawalRequest.Status = WithdrawalRequestStatus.Resolved;
             withdrawalRequest.UpdatedAt = DateTime.UtcNow;
+            withdrawalRequest.IsUserApproved = true;
             unitOfWork.Repository<WithdrawalRequest>().Update(withdrawalRequest);
-        }
-
-        private static long GenerateOrderCode()
-        {
-            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
     }
 }

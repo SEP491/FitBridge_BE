@@ -142,31 +142,59 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
     }
 
     /// <summary>
-    /// Confirms a withdrawal request by admin.
-    /// Updates the withdrawal request status to Success, deducts amount from user's wallet,
-    /// and creates a transaction record with the proof image URL,
-    /// Sends notification to the user upon confirmation.
+    /// Approves a withdrawal request by admin.
+    /// Updates the withdrawal request status to AdminApproved, creates a transaction record with the proof image URL,
+    /// and sends notification to the user upon approval.
     /// </summary>
-    /// <param name="withdrawalRequestId">The ID of the withdrawal request to confirm.</param>
-    /// <param name="command">The confirmation details including the proof image URL.</param>
-    /// <returns>Success response if the confirmation is successful.</returns>
-    /// <response code="200">Returns success if the withdrawal request is confirmed.</response>
+    /// <param name="withdrawalRequestId">The ID of the withdrawal request to approve.</param>
+    /// <param name="command">The approval details including the proof image URL.</param>
+    /// <returns>Success response if the approval is successful.</returns>
+    /// <response code="200">Returns success if the withdrawal request is approved.</response>
     /// <response code="400">If the request is not in pending status or validation fails.</response>
     /// <response code="401">If the user is not authenticated.</response>
     /// <response code="403">If the user is not an admin.</response>
-    /// <response code="404">If the withdrawal request or wallet is not found.</response>
-    [HttpPut("withdrawal-requests/{withdrawalRequestId}/confirm")]
+    /// <response code="404">If the withdrawal request is not found.</response>
+    [HttpPut("withdrawal-requests/{withdrawalRequestId}/approve")]
     [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<bool>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<EmptyResult>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ConfirmWithdrawalRequest(
+    public async Task<IActionResult> ApproveWithdrawalRequest(
         [FromRoute] Guid withdrawalRequestId,
-        [FromBody] ConfirmWithdrawalRequestCommand command)
+        [FromBody] ApproveWithdrawalRequestCommand command)
     {
         command.WithdrawalRequestId = withdrawalRequestId;
+        await _mediator.Send(command);
+        return Ok(new BaseResponse<EmptyResult>(
+            StatusCodes.Status200OK.ToString(),
+            "Withdrawal request approved successfully",
+            Empty));
+    }
+
+    /// <summary>
+    /// Confirms a withdrawal request by the user.
+    /// User can confirm their own withdrawal request that has been approved by admin.
+    /// This action marks the request as resolved.
+    /// </summary>
+    /// <param name="withdrawalRequestId">The ID of the withdrawal request to confirm.</param>
+    /// <returns>Success response if the confirmation is successful.</returns>
+    /// <response code="200">Returns success if the withdrawal request is confirmed by user.</response>
+    /// <response code="400">If the request is not in AdminApproved status.</response>
+    /// <response code="401">If the user is not authenticated.</response>
+    /// <response code="403">If the user is not authorized to confirm this request.</response>
+    /// <response code="404">If the withdrawal request is not found.</response>
+    [HttpPut("withdrawal-requests/{withdrawalRequestId}/confirm")]
+    [Authorize(Roles = ProjectConstant.UserRoles.FreelancePT + "," + ProjectConstant.UserRoles.GymOwner)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<EmptyResult>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConfirmWithdrawalRequest([FromRoute] Guid withdrawalRequestId)
+    {
+        var command = new ConfirmWithdrawalRequestCommand { WithdrawalRequestId = withdrawalRequestId };
         await _mediator.Send(command);
         return Ok(new BaseResponse<EmptyResult>(
             StatusCodes.Status200OK.ToString(),
@@ -204,35 +232,6 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
         return Ok(new BaseResponse<EmptyResult>(
             StatusCodes.Status200OK.ToString(),
             "Withdrawal request rejected successfully",
-            Empty));
-    }
-
-    /// <summary>
-    /// Approves a withdrawal request by the user.
-    /// User can approve their own withdrawal request that has been approved by admin.
-    /// This action marks the request as resolved.
-    /// </summary>
-    /// <param name="withdrawalRequestId">The ID of the withdrawal request to approve.</param>
-    /// <returns>Success response if the approval is successful.</returns>
-    /// <response code="200">Returns success if the withdrawal request is approved by user.</response>
-    /// <response code="400">If the request is not in AdminApproved status.</response>
-    /// <response code="401">If the user is not authenticated.</response>
-    /// <response code="403">If the user is not authorized to approve this request.</response>
-    /// <response code="404">If the withdrawal request is not found.</response>
-    [HttpPut("withdrawal-requests/{withdrawalRequestId}/approve")]
-    [Authorize(Roles = ProjectConstant.UserRoles.FreelancePT + "," + ProjectConstant.UserRoles.GymOwner)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<EmptyResult>))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ApproveWithdrawalRequest([FromRoute] Guid withdrawalRequestId)
-    {
-        var command = new ApproveWithdrawalRequestCommand { WithdrawalRequestId = withdrawalRequestId };
-        await _mediator.Send(command);
-        return Ok(new BaseResponse<EmptyResult>(
-            StatusCodes.Status200OK.ToString(),
-            "Withdrawal request approved successfully",
             Empty));
     }
 
