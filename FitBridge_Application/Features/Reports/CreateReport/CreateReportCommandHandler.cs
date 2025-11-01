@@ -1,23 +1,31 @@
-﻿using FitBridge_Application.Dtos.Reports;
+﻿using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Dtos.Notifications;
+using FitBridge_Application.Dtos.Reports;
+using FitBridge_Application.Dtos.Templates;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Interfaces.Services.Notifications;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Specifications.Orders.GetOrderItemById;
 using FitBridge_Application.Specifications.Reports.GetReportByOrderItemId;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Entities.Reports;
+using FitBridge_Domain.Enums.MessageAndReview;
 using FitBridge_Domain.Enums.Reports;
 using FitBridge_Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 
 namespace FitBridge_Application.Features.Reports.CreateReport
 {
     internal class CreateReportCommandHandler(
         IUnitOfWork unitOfWork,
         IUserUtil userUtil,
-        IHttpContextAccessor httpContextAccessor) : IRequestHandler<CreateReportCommand, CreateReportResponseDto>
+        IHttpContextAccessor httpContextAccessor,
+        IApplicationUserService applicationUserService,
+        INotificationService notificationService) : IRequestHandler<CreateReportCommand, CreateReportResponseDto>
     {
         public async Task<CreateReportResponseDto> Handle(CreateReportCommand request, CancellationToken cancellationToken)
         {
@@ -47,7 +55,8 @@ namespace FitBridge_Application.Features.Reports.CreateReport
             unitOfWork.Repository<ReportCases>().Insert(newReport);
             await unitOfWork.CommitAsync();
 
-            //todo: add notification to admin
+            await SendNotificationToAdmins(request.Title, reportType, newReport);
+
             return new CreateReportResponseDto
             {
                 ReportId = newReport.Id,
@@ -69,7 +78,8 @@ namespace FitBridge_Application.Features.Reports.CreateReport
                 isIncludeFreelancePackage: true,
                 isIncludeGymCourse: true);
             var orderItem = await unitOfWork.Repository<OrderItem>()
-                .GetBySpecificationAsync(spec);
+                .GetBySpecificationAsync(spec)
+                ?? throw new NotFoundException(nameof(OrderItem));
 
             if (orderItem.FreelancePTPackage != null)
             {
@@ -87,6 +97,29 @@ namespace FitBridge_Application.Features.Reports.CreateReport
             {
                 throw new DataValidationFailedException("Invalid report case type.");
             }
+        }
+
+        private async Task SendNotificationToAdmins(string reportTitle, ReportCaseType reportType, ReportCases newReport)
+        {
+            var admins = await applicationUserService.GetUsersByRoleAsync(
+                ProjectConstant.UserRoles.Admin);
+            var reporterName = userUtil.GetUserFullName(httpContextAccessor.HttpContext);
+
+            var model = new NewReportModel
+            {
+                TitleReporterName = reporterName ?? "Anonymous",
+                BodyReporterName = reporterName ?? "Anonymous",
+                BodyReportTitle = reportTitle,
+                BodyReportType = reportType.ToString()
+            };
+
+            var notificationMessage = new NotificationMessage(
+                EnumContentType.NewReport,
+                admins.Select(admin => admin.Id).ToList(),
+                model,
+                JsonSerializer.Serialize(new { newReport.Id }));
+
+            await notificationService.NotifyUsers(notificationMessage);
         }
     }
 }
