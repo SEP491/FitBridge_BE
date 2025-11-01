@@ -34,5 +34,10 @@
         RejectBookingRequest, // Customer/FreelancePT reject a booking request
 
         AcceptBookingRequest, // Customer/FreelancePT accept a booking request
+
+        // Reports
+        NewReport, // Customer creates a new report case
+
+        ReportStatusUpdated, // Admin updates report status
     }
 }
