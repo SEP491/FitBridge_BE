@@ -7,5 +7,7 @@ namespace FitBridge_Application.Features.Payments.ApproveWithdrawalRequest
     {
         [JsonIgnore]
         public Guid WithdrawalRequestId { get; set; }
+
+        public string ImageUrl { get; set; }
     }
 }

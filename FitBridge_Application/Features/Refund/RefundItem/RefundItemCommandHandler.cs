@@ -8,6 +8,7 @@ using FitBridge_Application.Specifications.Orders.GetOrderItemById;
 using FitBridge_Application.Specifications.Wallets.GetWalletByUserId;
 using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Enums.MessageAndReview;
+using FitBridge_Domain.Enums.Orders;
 using FitBridge_Domain.Exceptions;
 using MediatR;
 using Quartz;
@@ -16,7 +17,6 @@ namespace FitBridge_Application.Features.Refund.RefundItem
 {
     internal class RefundItemCommandHandler(
         IScheduleJobServices scheduleJobServices,
-        AccountService accountService,
         INotificationService notificationService,
         IUnitOfWork unitOfWork) : IRequestHandler<RefundItemCommand>
     {
@@ -25,8 +25,6 @@ namespace FitBridge_Application.Features.Refund.RefundItem
             var spec = new GetOrderItemByIdSpec(request.OrderItemId);
             var existingOrderItem = await unitOfWork.Repository<OrderItem>()
                 .GetBySpecificationAsync(spec, asNoTracking: false) ?? throw new NotFoundException(nameof(OrderItem));
-
-            await accountService.ValidateIsBanned(existingOrderItem.Order.AccountId);
 
             if (existingOrderItem.IsRefunded)
             {
@@ -38,34 +36,45 @@ namespace FitBridge_Application.Features.Refund.RefundItem
             var jobStatus = await scheduleJobServices.GetJobStatus(jobName, jobGroup);
             var jobExists = jobStatus != TriggerState.None;
 
-            var refundAmount = existingOrderItem.Price * existingOrderItem.Quantity;
-
             if (jobExists)
             {
                 await scheduleJobServices.CancelScheduleJob(jobName, jobGroup);
             }
             else
             {
-                var walletSpec = new GetWalletByUserIdSpec(existingOrderItem.Order.AccountId);
-                var wallet = await unitOfWork.Repository<Wallet>()
-                    .GetBySpecificationAsync(walletSpec, asNoTracking: false) ?? throw new NotFoundException(nameof(Wallet));
+                var refundAmount = GetRefundAmount(existingOrderItem);
+                await RefundUserWalletAsync(existingOrderItem, refundAmount);
 
-                wallet.AvailableBalance -= refundAmount;
-                unitOfWork.Repository<Wallet>().Update(wallet);
+                await NotifyUserAsync(
+                    refundAmount,
+                    existingOrderItem.Order.Account.FullName,
+                    existingOrderItem.Order.AccountId);
             }
+        }
+
+        private static decimal GetRefundAmount(OrderItem existingOrderItem)
+        {
+            var transaction = existingOrderItem.Transactions
+                .FirstOrDefault(t => t.Status == TransactionStatus.Success);
+            return transaction.Amount;
+        }
+
+        private async Task RefundUserWalletAsync(OrderItem existingOrderItem, decimal refundAmount)
+        {
+            var walletSpec = new GetWalletByUserIdSpec(existingOrderItem.Order.AccountId);
+            var wallet = await unitOfWork.Repository<Wallet>()
+                .GetBySpecificationAsync(walletSpec, asNoTracking: false) ?? throw new NotFoundException(nameof(Wallet));
+
+            wallet.AvailableBalance += refundAmount;
+            unitOfWork.Repository<Wallet>().Update(wallet);
 
             existingOrderItem.IsRefunded = true;
 
             unitOfWork.Repository<OrderItem>().Update(existingOrderItem);
             await unitOfWork.CommitAsync();
-
-            await NotifyUser(
-                refundAmount,
-                existingOrderItem.Order.Account.FullName,
-                existingOrderItem.Order.AccountId);
         }
 
-        private async Task NotifyUser(decimal refundAmount, string fullName, Guid userId)
+        private async Task NotifyUserAsync(decimal refundAmount, string fullName, Guid userId)
         {
             var model = new RefundedItemModel
             {
