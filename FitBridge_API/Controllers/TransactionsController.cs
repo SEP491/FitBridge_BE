@@ -2,10 +2,12 @@ using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos.Transactions;
 using FitBridge_Application.Features.Transactions.GetAllGymOwnerTransaction;
+using FitBridge_Application.Features.Transactions.GetAllTransactionAdmin;
 using FitBridge_Application.Features.Transactions.GetCurrentUserTransactions;
 using FitBridge_Application.Features.Transactions.GetGymOwnerTransactionById;
 using FitBridge_Application.Features.Transactions.GetTransactionDetail;
 using FitBridge_Application.Specifications.Transactions.GetAllGymOwnerTransaction;
+using FitBridge_Application.Specifications.Transactions.GetAllTransactionAdmin;
 using FitBridge_Application.Specifications.Transactions.GetCurrentUserTransactions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -81,7 +83,11 @@ namespace FitBridge_API.Controllers
                     "Get transaction detail success",
                     response));
         }
-
+        /// <summary>
+        /// Retrieves a paginated list of transactions for a gym owner. Profit amount is calculated based on the order item.
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
         [HttpGet("gym-owner")]
         [Authorize(Roles = ProjectConstant.UserRoles.GymOwner)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetAllMerchantTransactionDto>>))]
@@ -95,7 +101,12 @@ namespace FitBridge_API.Controllers
             var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
             return Ok(new BaseResponse<Pagination<GetAllMerchantTransactionDto>>(StatusCodes.Status200OK.ToString(), "Get all gym owner transactions success", pagination));
         }
-        
+
+        /// <summary>
+        /// Retrieves the details of a specific transaction by its ID for a gym owner.
+        /// </summary>
+        /// <param name="transactionId">The unique identifier of the transaction.</param>
+        /// <returns>The details of the specified transaction.</returns>
         [HttpGet("gym-owner/{transactionId}")]
         [Authorize(Roles = ProjectConstant.UserRoles.GymOwner)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<MerchantTransactionDetailDto>))]
@@ -103,6 +114,20 @@ namespace FitBridge_API.Controllers
         {
             var response = await mediator.Send(new GetGymOwnerTransactionByIdCommand { TransactionId = transactionId });
             return Ok(new BaseResponse<MerchantTransactionDetailDto>(StatusCodes.Status200OK.ToString(), "Get gym owner transaction by id success", response));
+        }
+        /// <summary>
+        /// Get all transactions for admin
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetAllTransactionAdminDto>>))]
+        public async Task<ActionResult> GetAllTransactionAdmin([FromQuery] GetAllTransactionAdminParams parameters)
+        {
+            var response = await mediator.Send(new GetAllTransactionAdminQuery { Parameters = parameters });
+            var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+            return Ok(new BaseResponse<Pagination<GetAllTransactionAdminDto>>(StatusCodes.Status200OK.ToString(), "Get all transaction admin success", pagination));
         }
     }
 }

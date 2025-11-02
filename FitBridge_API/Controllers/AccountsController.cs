@@ -35,6 +35,13 @@ using FitBridge_Application.Dtos.Accounts.Search;
 using FitBridge_Application.Features.Accounts.UpdateProfiles;
 using FitBridge_Application.Dtos.Accounts.Profiles;
 using FitBridge_Application.Features.Accounts.UpdateAvatar;
+using FitBridge_Application.Dtos.Gym;
+using FitBridge_Application.Specifications.Accounts.GetAllGymPtsForAdmin;
+using FitBridge_Application.Features.Accounts.GetAllGymPtsForAdmin;
+using FitBridge_Application.Features.Accounts.GetGymPTByIdForAdmin;
+using FitBridge_Application.Specifications.Accounts.GetAllGymOwnerForAdmin;
+using FitBridge_Application.Features.Accounts.GetAllGymOwnerForAdmin;
+using FitBridge_Application.Features.Accounts.GetGymOwnerByIdForAdmin;
 
 namespace FitBridge_API.Controllers;
 
@@ -72,7 +79,7 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     [AllowAnonymous]
     public async Task<IActionResult> GetFreelancePTs([FromQuery] GetAllFreelancePTsParam parameters)
     {
- var response = await _mediator.Send(new GetAllFreelancePTsQuery { Params = parameters });
+        var response = await _mediator.Send(new GetAllFreelancePTsQuery { Params = parameters });
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GetAllFreelancePTsResponseDto>>(StatusCodes.Status200OK.ToString(), "Freelance PTs retrieved successfully", pagination));
     }
@@ -87,7 +94,7 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     /// <description>The page number to retrieve (default: 1).</description>
     /// </item>
     /// <item>
-/// <term>Size</term>
+    /// <term>Size</term>
     /// <description>The number of items per page (default: 10, max: 20).</description>
     /// </item>
     /// <item>
@@ -99,7 +106,7 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     /// <description>Field to sort by (e.g., FullName, Rating, Experience).</description>
     /// </item>
     /// <item>
-  /// <term>SortOrder</term>
+    /// <term>SortOrder</term>
     /// <description>Sort direction (asc or desc).</description>
     /// </item>
     /// </list>
@@ -109,11 +116,11 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     /// Returns gym PT information including:
     /// - Basic info (name, avatar, bio, date of birth)
     /// - Professional details (experience, goal trainings)
- /// - Performance metrics (rating, total courses assigned)
+    /// - Performance metrics (rating, total courses assigned)
     /// - Gym association (gym owner ID, gym name)
     /// 
     /// Sample request:
-  ///
+    ///
     ///     GET /api/v1/accounts/gym-pts?page=1&amp;size=10&amp;sortBy=Rating&amp;sortOrder=desc
     ///
     /// </remarks>
@@ -293,5 +300,57 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
        StatusCodes.Status200OK.ToString(),
           "Accounts deleted successfully",
          null));
+    }
+
+    /// <summary>
+    /// Get all gym PTs for admin to view list of gym PTs and their gym owner
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    [HttpGet("admin/gym-pts")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<Pagination<GetAllGymPtsForAdminResponseDto>>))]
+    public async Task<IActionResult> GetAllGymPTsForAdmin([FromQuery] GetAllGymPtsForAdminParams parameters)
+    {
+        var response = await _mediator.Send(new GetAllGymPtsForAdminQuery { Params = parameters });
+        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GetAllGymPtsForAdminResponseDto>>(StatusCodes.Status200OK.ToString(), "Gym PTs retrieved successfully", pagination));
+    }
+
+    /// <summary>
+    /// Get gym PT detail for admin to view details information about gym PT and their gym owner
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpGet("admin/gym-pt/{id}")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<GetGymPtsDetailForAdminResponseDto>))]
+    public async Task<IActionResult> GetGymPTByIdForAdmin([FromRoute] Guid id)
+    {
+        var response = await _mediator.Send(new GetGymPTByIdForAdminQuery { Id = id });
+        return Ok(new BaseResponse<GetGymPtsDetailForAdminResponseDto>(StatusCodes.Status200OK.ToString(), "Gym PT retrieved successfully", response));
+    }
+
+    /// <summary>
+    /// Get all gym owners for admin to view list of gym owners and their gym PTs
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    [HttpGet("admin/gym-owners")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
+    public async Task<IActionResult> GetAllGymOwnersForAdmin([FromQuery] GetAllGymOwnerForAdminParams parameters)
+    {
+        var response = await _mediator.Send(new GetAllGymOwnerForAdminQuery { Params = parameters });
+        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GetAllGymOwnerForAdminDto>>(StatusCodes.Status200OK.ToString(), "Gym owners retrieved successfully", pagination));
+    }
+
+    [HttpGet("admin/gym-owner/{id}")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<GetGymOwnerDetailForAdminDto>))]
+    public async Task<IActionResult> GetGymOwnerByIdForAdmin([FromRoute] Guid id)
+    {
+        var response = await _mediator.Send(new GetGymOwnerByIdForAdminQuery { Id = id });
+        return Ok(new BaseResponse<GetGymOwnerDetailForAdminDto>(StatusCodes.Status200OK.ToString(), "Gym owner retrieved successfully", response));
     }
 }

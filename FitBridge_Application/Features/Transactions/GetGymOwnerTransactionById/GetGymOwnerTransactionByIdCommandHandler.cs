@@ -44,6 +44,10 @@ public class GetGymOwnerTransactionByIdCommandHandler(IUserUtil userUtil, IHttpC
                 merchantTransactionDetailDto.ProfitAmount = transaction.Amount;
                 merchantTransactionDetailDto.OrderItemId = transaction.OrderItemId ?? null;
             }
+            if(transaction.TransactionType == TransactionType.Withdraw)
+            {
+                merchantTransactionDetailDto.WithdrawalAmount = transaction.Amount;
+            }
         return merchantTransactionDetailDto;
     }
         public async Task<decimal> CalculateProfitAmount(Transaction transaction, Guid gymOwnerId)

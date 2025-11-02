@@ -14,6 +14,7 @@ public class MerchantTransactionDetailDto
     public TransactionType TransactionType { get; set; }
     public decimal? TotalPaidAmount { get; set; }
     public decimal? ProfitAmount { get; set; }
+    public decimal? WithdrawalAmount { get; set; }
     public long OrderCode { get; set; }
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
