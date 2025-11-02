@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FitBridge_Infrastructure.Services;
 
-public class AppleNotificationServerService(ILogger<AppleNotificationServerService> _logger, IAppleNotificationServerService _appleNotificationServerService) : IAppleNotificationServerService
+public class AppleNotificationServerService(ILogger<AppleNotificationServerService> _logger) : IAppleNotificationServerService
 {
     public async Task<bool> HandleAppleWebhookAsync(string webhookData)
     {

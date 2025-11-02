@@ -190,6 +190,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddHostedService<NotificationsBackgroundService>();
             services.AddScoped<IScheduleJobServices, ScheduleJobServices>();
             services.AddScoped<IUploadService, UploadService>();
+            services.AddScoped<IAppleNotificationServerService, AppleNotificationServerService>();
         }
     }
 }

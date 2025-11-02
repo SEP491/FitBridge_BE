@@ -2,6 +2,7 @@ using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos;
 using FitBridge_Application.Dtos.Payments;
+using FitBridge_Application.Features.Payments.AppleWebhook;
 using FitBridge_Application.Features.Payments.ApproveWithdrawalRequest;
 using FitBridge_Application.Features.Payments.CancelPaymentCommand;
 using FitBridge_Application.Features.Payments.ConfirmWithdrawalRequest;
@@ -55,6 +56,7 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
         var webhookData = await reader.ReadToEndAsync();
         var spec = new AppleWebhookCommand { WebhookData = webhookData };
         var result = await _mediator.Send(spec);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Apple webhook processed successfully", result));
     }
 
     [HttpGet("{id}")]
