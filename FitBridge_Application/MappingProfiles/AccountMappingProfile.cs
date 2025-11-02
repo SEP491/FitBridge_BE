@@ -1,6 +1,7 @@
 using System;
 using AutoMapper;
 using FitBridge_Application.Dtos.Accounts;
+using FitBridge_Application.Dtos.Accounts.Customers;
 using FitBridge_Application.Dtos.Accounts.FreelancePts;
 using FitBridge_Application.Dtos.Accounts.HotResearch;
 using FitBridge_Application.Dtos.Accounts.Profiles;
@@ -105,5 +106,15 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.GymDescription, opt => opt.MapFrom(src => src.GymDescription))
             .ForMember(dest => dest.MinimumSlot, opt => opt.MapFrom(src => src.MinimumSlot))
             .ForMember(dest => dest.GymImages, opt => opt.MapFrom(src => src.GymImages));
+
+        CreateProjection<ApplicationUser, GetAllCustomersForAdminDto>()
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+            .ForMember(dest => dest.IsMale, opt => opt.MapFrom(src => src.IsMale))
+            .ForMember(dest => dest.Dob, opt => opt.MapFrom(src => src.Dob))
+            .ForMember(dest => dest.Longitude, opt => opt.MapFrom(src => src.Longitude))
+            .ForMember(dest => dest.Latitude, opt => opt.MapFrom(src => src.Latitude))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
     }
 }

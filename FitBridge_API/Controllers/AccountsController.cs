@@ -42,6 +42,9 @@ using FitBridge_Application.Features.Accounts.GetGymPTByIdForAdmin;
 using FitBridge_Application.Specifications.Accounts.GetAllGymOwnerForAdmin;
 using FitBridge_Application.Features.Accounts.GetAllGymOwnerForAdmin;
 using FitBridge_Application.Features.Accounts.GetGymOwnerByIdForAdmin;
+using FitBridge_Application.Dtos.Accounts.Customers;
+using FitBridge_Application.Specifications.Accounts.GetAllCustomersForAdmin;
+using FitBridge_Application.Features.Accounts.GetAllCustomersForAdmin;
 
 namespace FitBridge_API.Controllers;
 
@@ -352,5 +355,19 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     {
         var response = await _mediator.Send(new GetGymOwnerByIdForAdminQuery { Id = id });
         return Ok(new BaseResponse<GetGymOwnerDetailForAdminDto>(StatusCodes.Status200OK.ToString(), "Gym owner retrieved successfully", response));
+    }
+
+    /// <summary>
+    /// Get all customers for admin to view list of customers and their purchases
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns>A paginated list of customers with their details.</returns>
+    [HttpGet("admin/customers")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
+    public async Task<IActionResult> GetAllCustomersForAdmin([FromQuery] GetAllCustomersForAdminParams parameters)
+    {
+        var response = await _mediator.Send(new GetAllCustomersForAdminQuery { Params = parameters });
+        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GetAllCustomersForAdminDto>>(StatusCodes.Status200OK.ToString(), "Customers retrieved successfully", pagination));
     }
 }
