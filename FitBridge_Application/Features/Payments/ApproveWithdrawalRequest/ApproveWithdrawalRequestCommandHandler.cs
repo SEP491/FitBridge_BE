@@ -30,14 +30,14 @@ namespace FitBridge_Application.Features.Payments.ApproveWithdrawalRequest
 
             UpdateWithdrawalRequest(withdrawalRequest);
 
-            await UpdateUserWallet(withdrawalRequest);
-            await InsertTransactionAsync(withdrawalRequest);
+            var updatedWallet = await UpdateUserWallet(withdrawalRequest);
+            await InsertTransactionAsync(withdrawalRequest, updatedWallet);
 
             await unitOfWork.CommitAsync();
             await SendNotification(withdrawalRequest);
         }
 
-        private async Task UpdateUserWallet(WithdrawalRequest withdrawalRequest)
+        private async Task<Wallet> UpdateUserWallet(WithdrawalRequest withdrawalRequest)
         {
             var spec = new GetWalletByUserIdSpec(withdrawalRequest.AccountId);
             var wallet = await unitOfWork.Repository<Wallet>()
@@ -47,9 +47,11 @@ namespace FitBridge_Application.Features.Payments.ApproveWithdrawalRequest
             wallet.AvailableBalance -= withdrawalRequest.Amount;
 
             unitOfWork.Repository<Wallet>().Update(wallet);
+
+            return wallet;
         }
 
-        private async Task InsertTransactionAsync(WithdrawalRequest withdrawalRequest)
+        private async Task InsertTransactionAsync(WithdrawalRequest withdrawalRequest, Wallet updatedWallet)
         {
             var transaction = new Transaction
             {
@@ -58,6 +60,7 @@ namespace FitBridge_Application.Features.Payments.ApproveWithdrawalRequest
                 OrderCode = GenerateOrderCode(),
                 Description = $"Withdrawal request approved - Amount: {withdrawalRequest.Amount}",
                 TransactionType = TransactionType.Withdraw,
+                WalletId = updatedWallet.Id,
                 WithdrawalRequestId = withdrawalRequest.Id,
                 PaymentMethodId = await GetSystemPaymentMethodId.GetPaymentMethodId(MethodType.System, unitOfWork)
             };
