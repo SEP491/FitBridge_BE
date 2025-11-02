@@ -47,6 +47,16 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
         return BadRequest(new BaseResponse<bool>(StatusCodes.Status400BadRequest.ToString(), "Failed to process webhook", result));
     }
 
+    [HttpPost("apple-webhook")]
+    [AllowAnonymous]
+    public async Task<IActionResult> AppleWebhook()
+    {
+        using var reader = new StreamReader(Request.Body);
+        var webhookData = await reader.ReadToEndAsync();
+        var spec = new AppleWebhookCommand { WebhookData = webhookData };
+        var result = await _mediator.Send(spec);
+    }
+
     [HttpGet("{id}")]
     [Authorize]
     public async Task<IActionResult> GetPaymentInfo(string id)
