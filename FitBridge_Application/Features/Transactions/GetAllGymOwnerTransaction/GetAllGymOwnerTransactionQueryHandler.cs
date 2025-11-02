@@ -43,6 +43,10 @@ public class GetAllGymOwnerTransactionQueryHandler(IUserUtil _userUtil, IHttpCon
             {
                 getAllMerchantTransactionDto.ProfitAmount = transaction.Amount;
             }   
+            if(transaction.TransactionType == TransactionType.Withdraw)
+            {
+                getAllMerchantTransactionDto.WithdrawalAmount = transaction.Amount;
+            }
             result.Add(getAllMerchantTransactionDto);
         }
         var totalCount = await _unitOfWork.Repository<Transaction>().CountAsync(spec);

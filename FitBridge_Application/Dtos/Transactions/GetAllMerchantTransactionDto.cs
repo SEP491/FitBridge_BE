@@ -9,6 +9,7 @@ public class GetAllMerchantTransactionDto
     public TransactionType TransactionType { get; set; }
     public decimal? TotalPaidAmount { get; set; }
     public decimal? ProfitAmount { get; set; }
+    public decimal? WithdrawalAmount { get; set; }
     public string? CustomerName { get; set; }
     public string? CustomerAvatarUrl { get; set; }
     public long OrderCode { get; set; }
