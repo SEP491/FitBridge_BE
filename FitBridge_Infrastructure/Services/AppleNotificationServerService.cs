@@ -30,6 +30,20 @@ public class AppleNotificationServerService(ILogger<AppleNotificationServerServi
             var jwsHeader = decodedSignedPayload.header;
             var asnDecodedPayload = decodedSignedPayload.body;
 
+            var decodedSignTransactionInfo = JsonSerializer.Deserialize<JwsTransactionDecoded>(asnDecodedPayload.Data.SignedTransactionInfo, options);
+            if (decodedSignTransactionInfo == null)
+            {
+                _logger.LogWarning("Invalid signed transaction info received");
+                return false;
+            }
+            var decodedSignRenewalInfo = new JwsRenewalInfoDecoded();
+            if (asnDecodedPayload.Data.SignedRenewalInfo != null)
+            {
+                decodedSignRenewalInfo = JsonSerializer.Deserialize<JwsRenewalInfoDecoded>(asnDecodedPayload.Data.SignedRenewalInfo, options);
+            }
+
+            var transactionId = decodedSignTransactionInfo.TransactionId;
+            var originalTransactionId = decodedSignTransactionInfo.OriginalTransactionId;
             return true;
         }
         catch (Exception ex)
@@ -47,12 +61,16 @@ public class AppleNotificationServerService(ILogger<AppleNotificationServerServi
     }
     public static (JwsHeader header, AsnDecodedPayload body) DecodeWithoutVerify(string signedPayload)
     {
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
         var parts = signedPayload.Split('.');
         var headerJson = Encoding.UTF8.GetString(Base64UrlDecode(parts[0]));
         var payloadJson = Encoding.UTF8.GetString(Base64UrlDecode(parts[1]));
 
-        var header = JsonSerializer.Deserialize<JwsHeader>(headerJson)!;
-        var body = JsonSerializer.Deserialize<AsnDecodedPayload>(payloadJson)!;
+        var header = JsonSerializer.Deserialize<JwsHeader>(headerJson, options)!;
+        var body = JsonSerializer.Deserialize<AsnDecodedPayload>(payloadJson, options)!;
         return (header, body);
     }
 }

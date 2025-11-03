@@ -257,6 +257,11 @@ public class PayOSService : IPayOSService
                 return await _transactionService.ExtendFreelancePTPackage(verifiedWebhookData.orderCode);
             }
 
+            if(transaction.TransactionType == TransactionType.PurchasePremiumService)
+            {
+                return await _transactionService.PurchasePremiumService(verifiedWebhookData.orderCode);
+            }
+
             return false;
         }
         catch (Exception ex)
