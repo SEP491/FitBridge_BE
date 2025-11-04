@@ -12,20 +12,21 @@ namespace FitBridge_Application.Features.Memberships.CreateMembership
     {
         public async Task<CreateMembershipDto> Handle(CreateMembershipCommand request, CancellationToken cancellationToken)
         {
-            var newService = new ServiceInformation
-            {
-                ServiceName = request.ServiceName,
-                ServiceCharge = request.ServiceCharge,
-                MaximumHotResearchSlot = request.MaximumHotResearchSlot,
-                AvailableHotResearchSlot = request.AvailableHotResearchSlot
-            };
+            // var newService = new ServiceInformation
+            // {
+            //     ServiceName = request.ServiceName,
+            //     ServiceCharge = request.ServiceCharge,
+            //     MaximumHotResearchSlot = request.MaximumHotResearchSlot,
+            //     AvailableHotResearchSlot = request.AvailableHotResearchSlot
+            // };
 
-            unitOfWork.Repository<ServiceInformation>().Insert(newService);
+            // unitOfWork.Repository<ServiceInformation>().Insert(newService);
 
-            await unitOfWork.CommitAsync();
+            // await unitOfWork.CommitAsync();
 
-            var dto = mapper.Map<CreateMembershipDto>(newService);
-            return dto;
+            // var dto = mapper.Map<CreateMembershipDto>(newService);
+            // return dto;
+            return new CreateMembershipDto();
         }
     }
 }

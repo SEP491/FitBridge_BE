@@ -9,7 +9,7 @@
         Withdraw,
         FreelancePTPackage,
 
-        ServiceOrder,
+        SubscriptionPlansOrder,
         AssignPt,
         ExtendCourse,
         ExtendFreelancePTPackage,

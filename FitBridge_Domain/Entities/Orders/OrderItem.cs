@@ -22,12 +22,12 @@ public class OrderItem : BaseEntity
 
     public Guid? ProductDetailId { get; set; }
     public Guid? GymCourseId { get; set; }
-    public Guid? ServiceInformationId { get; set; }
+    public Guid? SubscriptionPlansInformationId { get; set; }
     public Guid? FreelancePTPackageId { get; set; }
     public DateOnly? ProfitDistributePlannedDate { get; set; }
     public DateOnly? ProfitDistributeActualDate { get; set; }
     public bool IsRefunded { get; set; }
-    public ServiceInformation? ServiceInformation { get; set; }
+    public SubscriptionPlansInformation? SubscriptionPlansInformation { get; set; }
     public ProductDetail? ProductDetail { get; set; }
     public GymCourse? GymCourse { get; set; }
     public CustomerPurchased? CustomerPurchased { get; set; }

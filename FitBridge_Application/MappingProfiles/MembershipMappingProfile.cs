@@ -8,9 +8,9 @@ namespace FitBridge_Application.MappingProfiles
     {
         public MembershipMappingProfile()
         {
-            CreateMap<ServiceInformation, CreateMembershipDto>();
-            CreateMap<ServiceInformation, GetMembershipDto>();
-            CreateMap<ServiceInformation, UpdateMembershipDto>();
+            // CreateMap<ServiceInformation, CreateMembershipDto>();
+            // CreateMap<ServiceInformation, GetMembershipDto>();
+            // CreateMap<ServiceInformation, UpdateMembershipDto>();
         }
     }
 }
