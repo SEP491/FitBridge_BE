@@ -11,13 +11,13 @@ namespace FitBridge_Application.Features.Memberships.DeleteMembership
     {
         public async Task Handle(DeleteMembershipCommand request, CancellationToken cancellationToken)
         {
-            var spec = new GetMembershipByIdSpecification(request.MembershipId);
-            var membership = await unitOfWork.Repository<ServiceInformation>()
-                .GetBySpecificationAsync(spec, asNoTracking: false)
-                ?? throw new NotFoundException("Membership not found");
+            // var spec = new GetMembershipByIdSpecification(request.MembershipId);
+            // var membership = await unitOfWork.Repository<ServiceInformation>()
+            //     .GetBySpecificationAsync(spec, asNoTracking: false)
+            //     ?? throw new NotFoundException("Membership not found");
 
-            unitOfWork.Repository<ServiceInformation>().SoftDelete(membership);
-            await unitOfWork.CommitAsync();
+            // unitOfWork.Repository<ServiceInformation>().SoftDelete(membership);
+            // await unitOfWork.CommitAsync();
         }
     }
 }

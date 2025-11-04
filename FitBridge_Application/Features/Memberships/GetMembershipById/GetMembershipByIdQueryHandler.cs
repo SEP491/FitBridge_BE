@@ -14,17 +14,18 @@ namespace FitBridge_Application.Features.Memberships.GetMembershipById
     {
         public async Task<GetMembershipDto> Handle(GetMembershipByIdQuery request, CancellationToken cancellationToken)
         {
-            var spec = new GetMembershipByIdSpecification(request.MembershipId);
-            var membership = await unitOfWork.Repository<ServiceInformation>()
-                .GetBySpecificationAsync(spec);
+            // var spec = new GetMembershipByIdSpecification(request.MembershipId);
+            // var membership = await unitOfWork.Repository<ServiceInformation>()
+            //     .GetBySpecificationAsync(spec);
 
-            if (membership == null)
-            {
-                throw new NotFoundException("Membership not found");
-            }
+            // if (membership == null)
+            // {
+            //     throw new NotFoundException("Membership not found");
+            // }
 
-            var dto = mapper.Map<GetMembershipDto>(membership);
-            return dto;
+            // var dto = mapper.Map<GetMembershipDto>(membership);
+            // return dto;
+            return new GetMembershipDto();
         }
     }
 }

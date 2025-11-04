@@ -66,9 +66,9 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         {
             transactionType = TransactionType.GymCourse;
         }
-        if (request.Request.OrderItems.Any(x => x.ServiceInformationId != null))
+        if (request.Request.OrderItems.Any(x => x.SubscriptionPlansInformationId != null))
         {
-            transactionType = TransactionType.ServiceOrder;
+            transactionType = TransactionType.SubscriptionPlansOrder;
         }
         if(request.Request.OrderItems.Any(x => x.FreelancePTPackageId != null) && request.Request.CustomerPurchasedIdToExtend != null)
         {
@@ -128,14 +128,14 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 }
                 item.ProductName = gymCourse.Name;
             }
-            if (item.ServiceInformationId != null)
+            if (item.SubscriptionPlansInformationId != null)
             {
-                var serviceInformation = await _unitOfWork.Repository<ServiceInformation>().GetByIdAsync(item.ServiceInformationId.Value);
-                if (serviceInformation == null)
+                var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(item.SubscriptionPlansInformationId.Value);
+                if (subscriptionPlansInformation == null)
                 {
-                    throw new NotFoundException("Service information not found");
+                    throw new NotFoundException("Subscription plans information not found");
                 }
-                item.ProductName = serviceInformation.ServiceName;
+                item.ProductName = subscriptionPlansInformation.PlanName;
             }
             if (item.FreelancePTPackageId != null)
             {

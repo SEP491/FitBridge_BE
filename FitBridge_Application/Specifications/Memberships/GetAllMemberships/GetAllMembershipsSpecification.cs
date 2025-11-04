@@ -2,7 +2,7 @@ using FitBridge_Domain.Entities.ServicePackages;
 
 namespace FitBridge_Application.Specifications.Memberships.GetAllMemberships
 {
-    public class GetAllMembershipsSpecification : BaseSpecification<ServiceInformation>
+    public class GetAllMembershipsSpecification : BaseSpecification<SubscriptionPlansInformation>
     {
         public GetAllMembershipsSpecification(GetAllMembershipsParam param,
             bool isIncludeOrderItems = false) : base(x =>
