@@ -65,6 +65,7 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
             .ForMember(dest => dest.Experience, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Experience : 0))
             .ForMember(dest => dest.GymOwnerId, opt => opt.MapFrom(src => src.GymOwnerId != null ? src.GymOwnerId : null))
+            .ForMember(dest => dest.GymOwnerName, opt => opt.MapFrom(src => src.GymOwner != null ? src.GymOwner.GymName : null))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
         CreateMap<ApplicationUser, GetGymPtsDetailForAdminResponseDto>()
@@ -77,7 +78,8 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
             .ForMember(dest => dest.GymOwnerId, opt => opt.MapFrom(src => src.GymOwnerId != null ? src.GymOwnerId : null))
             .ForMember(dest => dest.GoalTrainings, opt => opt.MapFrom(src => src.GoalTrainings.Select(x => x.Name).ToList()))
-            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.GymOwnerName, opt => opt.MapFrom(src => src.GymOwner != null ? src.GymOwner.GymName : null));
 
         CreateProjection<ApplicationUser, GetAllGymOwnerForAdminDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
