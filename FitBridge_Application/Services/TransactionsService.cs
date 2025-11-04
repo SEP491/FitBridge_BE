@@ -17,6 +17,8 @@ using FitBridge_Application.Dtos.Jobs;
 using FitBridge_Application.Dtos.Payments;
 using FitBridge_Domain.Enums.Trainings;
 using Microsoft.VisualBasic;
+using FitBridge_Domain.Entities.ServicePackages;
+using FitBridge_Domain.Enums.SubscriptionPlans;
 
 namespace FitBridge_Application.Services;
 
@@ -28,7 +30,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
     {
         if (defaultProfitDistributionDays == 0)
         {
-            defaultProfitDistributionDays = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.ProfitDistributionDays);
+            defaultProfitDistributionDays = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.ProfitDistributionDays);
         }
         return defaultProfitDistributionDays;
     }
@@ -36,7 +38,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
     {
         if (defaultCommissionRate == 0)
         {
-            defaultCommissionRate = (decimal)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.CommissionRate);
+            defaultCommissionRate = (decimal)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.CommissionRate);
         }
         return defaultCommissionRate;
     }
@@ -441,14 +443,55 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
         return true;
     }
-    public async Task<bool> PurchasePremiumService(long orderCode)
+    public async Task<bool> PurchaseSubscriptionPlans(long orderCode)
     {
-        var transactionToPurchasePremiumService = await _unitOfWork.Repository<Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
-        if (transactionToPurchasePremiumService == null)
+        var transactionToPurchaseSubscriptionPlans = await _unitOfWork.Repository<Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
+        if (transactionToPurchaseSubscriptionPlans == null)
         {
             throw new NotFoundException("Transaction not found with order code " + orderCode);
         }
-        transactionToPurchasePremiumService.ProfitAmount = transactionToPurchasePremiumService.Amount;
+        var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(transactionToPurchaseSubscriptionPlans.Order!.OrderItems.First().SubscriptionPlansInformationId!.Value, includes: new List<string> { "FeatureKey" });
+        if(subscriptionPlansInformation == null)
+        {
+            throw new NotFoundException("Subscription plans information not found");
+        }
+        int? assignLimitUsage;
+        if (subscriptionPlansInformation.FeatureKey.FeatureName == ProjectConstant.FeatureKeyNames.HotResearch)
+        {
+            assignLimitUsage = null;
+            transactionToPurchaseSubscriptionPlans.Order.Account.hotResearch = true;
+        }
+        else
+        {
+            assignLimitUsage = subscriptionPlansInformation.LimitUsage;
+        }
+        transactionToPurchaseSubscriptionPlans.ProfitAmount = transactionToPurchaseSubscriptionPlans.Amount;
+
+        var startDate = DateTime.UtcNow;
+        var endDate = startDate.AddDays(subscriptionPlansInformation.Duration);
+
+        var newUserSubscription = new UserSubscription
+        {
+            UserId = transactionToPurchaseSubscriptionPlans.Order!.AccountId,
+            SubscriptionPlanId = transactionToPurchaseSubscriptionPlans.Order.OrderItems.First().SubscriptionPlansInformationId!.Value,
+            StartDate = startDate,
+            EndDate = endDate,
+            LimitUsage = assignLimitUsage,
+            CurrentUsage = 0,
+            Status = SubScriptionStatus.Active,
+        };
+        _unitOfWork.Repository<Transaction>().Update(transactionToPurchaseSubscriptionPlans);
+        _unitOfWork.Repository<UserSubscription>().Insert(newUserSubscription);
+        await _unitOfWork.CommitAsync();
+
+        var remindExpiredSubscriptionBeforeDays = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.RemindExpiredSubscriptionBeforeDays);
+
+        await _scheduleJobServices.ScheduleSendRemindExpiredSubscriptionNotiJob(newUserSubscription.Id, endDate.AddDays(-remindExpiredSubscriptionBeforeDays));
+
+        _logger.LogInformation($"Successfully scheduled send remind expired subscription notification job for user subscription {newUserSubscription.Id} at {endDate.AddDays(-remindExpiredSubscriptionBeforeDays)}");
+
+        await _scheduleJobServices.ScheduleExpireUserSubscriptionJob(newUserSubscription.Id, endDate);
+        _logger.LogInformation($"Successfully scheduled expire user subscription job for user subscription {newUserSubscription.Id} at {endDate.ToLocalTime}");
         return true;
     }
 }

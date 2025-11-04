@@ -3,7 +3,6 @@ namespace FitBridge_Application.Commons.Constants;
 public static class ProjectConstant
 {
     public const string defaultAvatar = "https://img.icons8.com/?size=100&id=tZuAOUGm9AuS&format=png&color=000000";
-    public const string ProfitDistributionDays = "ProfitDistributionDays";
     public const int MaximumAvatarSize = 4;
 
     public static class UserRoles
@@ -18,11 +17,22 @@ public static class ProjectConstant
 
         public const string Customer = "Customer";
     }
-    public const string CancelBookingBeforeHours = "CancelBookingBeforeHours";
 
-    public const string GymSlotDuration = "MinimumGymSlotDuration";
+    public static class FeatureKeyNames
+    {
+        public const string ChatbotAI = "ChatbotAI";
+        public const string HotResearch = "HotResearch";
+    }
 
-    public const string CommissionRate = "CommissionRate";
+    public static class SystemConfigurationKeys
+    {
+        public const string RemindExpiredSubscriptionBeforeDays = "DayToRemindExpireUserSubscription";
+        public const string CommissionRate = "CommissionRate";
+        public const string GymSlotDuration = "MinimumGymSlotDuration";
+        public const string CancelBookingBeforeHours = "CancelBookingBeforeHours";
+        public const string ProfitDistributionDays = "ProfitDistributionDays";
+
+    }
     public const int MaxRetries = 3;
     public static class EmailTypes
     {

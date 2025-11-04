@@ -12,7 +12,7 @@ public class GetOrderByOrderCodeSpecification : BaseSpecification<Order>
         AddInclude(o => o.OrderItems);
         AddInclude("OrderItems.FreelancePTPackage");
         AddInclude("OrderItems.GymCourse");
-        AddInclude("OrderItems.ServiceInformation");
+        AddInclude("OrderItems.SubscriptionPlansInformation");
         AddInclude("OrderItems.ProductDetail");
         AddInclude("OrderItems.GymCourse");
         AddInclude(o => o.Coupon);

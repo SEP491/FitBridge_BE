@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using FitBridge_Application.Features.Jobs.DistributeProfit;
 using FitBridge_API.Helpers.RequestHelpers;
+using FitBridge_Application.Features.Jobs.ExpiredSubscription;
 
 namespace FitBridge_API.Controllers;
 
@@ -18,5 +19,12 @@ public class JobsController(IMediator mediator) : _BaseApiController
     {
         var response = await mediator.Send(command);
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Profit distributed successfully", response));
+    }
+
+    [HttpPost("expire-user-subscription")]
+    public async Task<IActionResult> TriggerExpireUserSubscriptionJob([FromBody] TriggerExpireUserSubscriptionCommand command)
+    {
+        var result = await mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "User subscription expired successfully", result));
     }
 }
