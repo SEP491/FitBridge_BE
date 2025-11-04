@@ -6,5 +6,6 @@ public enum SubScriptionStatus
 {
     Active,
     Expired,
-    Cancelled
+    Cancelled,
+    Revoked
 }

@@ -192,6 +192,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<IUploadService, UploadService>();
             services.AddScoped<IAppleNotificationServerService, AppleNotificationServerService>();
             services.AddScoped<SystemConfigurationService>();
+            services.AddScoped<SubscriptionService>();
         }
     }
 }

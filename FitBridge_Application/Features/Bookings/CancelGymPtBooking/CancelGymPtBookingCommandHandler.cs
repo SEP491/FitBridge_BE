@@ -34,7 +34,7 @@ public class CancelGymPtBookingCommandHandler(IUnitOfWork _unitOfWork, SystemCon
         }
 
         var hoursUntilSession = sessionDateTime - DateTime.UtcNow;
-        var defaultCancelBookingBeforeHours = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.CancelBookingBeforeHours);
+        var defaultCancelBookingBeforeHours = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.CancelBookingBeforeHours);
         // Check cancellation policy and refund session if applicable
         if (hoursUntilSession.TotalHours > defaultCancelBookingBeforeHours)
         {

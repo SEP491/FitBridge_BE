@@ -22,6 +22,8 @@ using FitBridge_Domain.Enums.Orders;
 using FitBridge_Application.Specifications.Coupons;
 using FitBridge_Application.Specifications.Coupons.GetCouponById;
 using FitBridge_Application.Services;
+using FitBridge_Application.Specifications.UserSubscriptions.GetUserSubscriptionByUserId;
+using FitBridge_Application.Commons.Constants;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
@@ -208,6 +210,21 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 if (userPackage != null && customerPurchasedIdToExtend == null)
                 {
                     throw new PackageExistException($"Package of this freelance PT still not expired, customer purchased id: {userPackage.Id}, package expiration date: {userPackage.ExpirationDate} please extend the package");
+                }
+            }
+            if (item.SubscriptionPlansInformationId != null)
+            {
+                var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(item.SubscriptionPlansInformationId.Value);
+                if (subscriptionPlansInformation == null)
+                {
+                    throw new NotFoundException("Subscription plans information not found");
+                }
+                item.Price = subscriptionPlansInformation.PlanCharge;
+
+                var userSubscription = await _unitOfWork.Repository<UserSubscription>().GetBySpecificationAsync(new GetUserSubscriptionByUserIdSpec(userId, subscriptionPlansInformation.Id));
+                if (userSubscription != null)
+                {
+                    throw new DuplicateException($"User already has a subscription for this plan, subscription id: {userSubscription.Id}, subscription expiration date: {userSubscription.EndDate}");
                 }
             }
         }
