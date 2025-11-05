@@ -1,8 +1,9 @@
-﻿using FitBridge_Domain.Enums.Notifications;
+﻿using FitBridge_Domain.Enums.MessageAndReview;
+using FitBridge_Domain.Enums.Notifications;
 
 namespace FitBridge_Application.Dtos.Notifications
 {
-    public class NotificationDto(string additionalPayload)
+    public class NotificationDto(string additionalPayload, EnumContentType notificationCategory)
     {
         public Guid Id { get; set; }
 
@@ -13,6 +14,8 @@ namespace FitBridge_Application.Dtos.Notifications
         public long Timestamp { get; set; }
 
         public bool IsRead { get; set; }
+
+        public EnumContentType NotificationCategory { get; set; } = notificationCategory;
 
         public NotificationTypes NotificationType { get; set; }
 
