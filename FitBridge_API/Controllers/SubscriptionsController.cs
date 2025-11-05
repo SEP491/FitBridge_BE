@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FitBridge_Application.Dtos.Subscriptions;
 using FitBridge_Application.Features.Subscriptions.CancelSubscription;
+using FitBridge_Application.Features.Subscriptions.CheckMaximumHotResearchSubscription;
 
 namespace FitBridge_API.Controllers;
 
@@ -33,5 +34,12 @@ public class SubscriptionsController(IMediator mediator) : _BaseApiController
     {
         var result = await mediator.Send(new CancelSubscriptionCommand { userSubscriptionId = userSubscriptionId });
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Subscription cancelled successfully", result));
+    }
+
+    [HttpGet("check-hot-research-subscription")]
+    public async Task<IActionResult> CheckHotResearchSubscription()
+    {
+        var result = await mediator.Send(new CheckHotResearchSubscriptionQuery());
+        return Ok(new BaseResponse<CheckHotResearchDto>(StatusCodes.Status200OK.ToString(), "Maximum hot research subscription checked successfully", result));
     }
 }

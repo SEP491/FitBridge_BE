@@ -31,7 +31,7 @@ public static class ProjectConstant
         public const string GymSlotDuration = "MinimumGymSlotDuration";
         public const string CancelBookingBeforeHours = "CancelBookingBeforeHours";
         public const string ProfitDistributionDays = "ProfitDistributionDays";
-
+        public const string HotResearchSubscriptionLimit = "MaximumHotResearch";
     }
     public const int MaxRetries = 3;
     public static class EmailTypes
