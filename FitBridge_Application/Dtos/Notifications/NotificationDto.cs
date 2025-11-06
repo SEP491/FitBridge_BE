@@ -3,7 +3,7 @@ using FitBridge_Domain.Enums.Notifications;
 
 namespace FitBridge_Application.Dtos.Notifications
 {
-    public class NotificationDto(string additionalPayload, EnumContentType notificationCategory)
+    public class NotificationDto(string additionalPayload, string notificationCategory)
     {
         public Guid Id { get; set; }
 
@@ -15,7 +15,7 @@ namespace FitBridge_Application.Dtos.Notifications
 
         public bool IsRead { get; set; }
 
-        public EnumContentType NotificationCategory { get; set; } = notificationCategory;
+        public string NotificationCategory { get; set; } = notificationCategory;
 
         public NotificationTypes NotificationType { get; set; }
 

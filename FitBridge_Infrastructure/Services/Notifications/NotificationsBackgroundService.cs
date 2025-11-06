@@ -34,7 +34,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
                         var connectionExists = await notificationConnectionManager.IsConnectionExistsAsync(userId.ToString());
                         var dto = new NotificationDto(
                             notificationMessage.NotificationPayload,
-                            notificationMessage.NotificationTypes);
+                            notificationMessage.NotificationTypes.ToString());
                         if (connectionExists)
                         {
                             await ProcessAndSendInAppAsync(notificationMessage, userId, dto);
