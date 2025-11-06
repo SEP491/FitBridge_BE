@@ -15,10 +15,11 @@ using FitBridge_Application.Dtos.Bookings;
 using AutoMapper;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Services;
 
 namespace FitBridge_Application.Features.Bookings.CreateBooking;
 
-public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IMapper _mapper, IScheduleJobServices _scheduleJobServices) : IRequestHandler<CreateRequestBookingCommand, List<CreateRequestBookingResponseDto>>
+public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IMapper _mapper, IScheduleJobServices _scheduleJobServices, BookingService bookingService) : IRequestHandler<CreateRequestBookingCommand, List<CreateRequestBookingResponseDto>>
 {
     public async Task<List<CreateRequestBookingResponseDto>> Handle(CreateRequestBookingCommand request, CancellationToken cancellationToken)
     {
@@ -48,7 +49,7 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
             throw new NotEnoughSessionException($"Available sessions is not enough, current available sessions is: {customerPurchased.AvailableSessions}");
         }
         var maximumPracticeTime = customerPurchased.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.SessionDurationInMinutes;
-        await ValidateBookingRequest(request.RequestBookings, maximumPracticeTime);
+        await ValidateBookingRequest(request.RequestBookings, maximumPracticeTime, customerPurchased.CustomerId, ptId);
         var requestType = RequestType.CustomerCreate;
         if (role.Equals(ProjectConstant.UserRoles.FreelancePT))
         {
@@ -79,7 +80,7 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
         return response;
     }
 
-    public async Task<bool> ValidateBookingRequest(List<CreateRequestBookingDto> requestBookings, int maximumPracticeTime)
+    public async Task<bool> ValidateBookingRequest(List<CreateRequestBookingDto> requestBookings, int maximumPracticeTime, Guid customerId, Guid ptId)
     {
         // Validate date and basic rules
         foreach (var requestBooking in requestBookings)
@@ -97,9 +98,9 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
             {
                 throw new BusinessException($"Practice time must be less than {maximumPracticeTime} minutes");
             }
+            await bookingService.ValidateBookingRequestByDto(requestBooking, customerId, ptId);
         }
 
-        // Check for overlaps within the same request (in-memory - very fast)
         for (int i = 0; i < requestBookings.Count; i++)
         {
             for (int j = i + 1; j < requestBookings.Count; j++)
@@ -107,7 +108,6 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
                 var booking1 = requestBookings[i];
                 var booking2 = requestBookings[j];
 
-                // Only check if they're on the same date
                 if (booking1.BookingDate == booking2.BookingDate)
                 {
                     if (IsTimeSlotOverlapping(
