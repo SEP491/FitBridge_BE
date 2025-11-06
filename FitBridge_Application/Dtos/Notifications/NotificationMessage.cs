@@ -5,13 +5,15 @@ using System.Text.Json;
 namespace FitBridge_Application.Dtos.Notifications
 {
     public class NotificationMessage(EnumContentType notificationType,
-        List<Guid> userIds, IBaseTemplateModel model, string? payload = "{}")
+                                     List<Guid> userIds,
+                                     IBaseTemplateModel model,
+                                     string? payload = "{}")
     {
         public EnumContentType NotificationTypes { get; set; } = notificationType;
 
         public List<Guid> UserIds { get; set; } = userIds;
 
-        public string? NotificationPayload { get; set; } = payload;
+        public string NotificationPayload { get; set; } = payload;
 
         public NotificationDto? NotificationDto { get; set; } = null;
 

@@ -31,43 +31,55 @@ namespace FitBridge_Infrastructure.Services.Notifications
                 {
                     foreach (Guid userId in notificationMessage.UserIds)
                     {
-                        var isExists = await notificationConnectionManager.IsConnectionExistsAsync(userId.ToString());
-                        var dto = new NotificationDto(notificationMessage.NotificationPayload);
-                        if (isExists)
+                        var connectionExists = await notificationConnectionManager.IsConnectionExistsAsync(userId.ToString());
+                        var dto = new NotificationDto(
+                            notificationMessage.NotificationPayload,
+                            notificationMessage.NotificationTypes.ToString());
+                        if (connectionExists)
                         {
-                            dto.Title = notificationMessage.InAppNotificationTemplate!.TemplateTitle;
-                            dto.Body = notificationMessage.InAppNotificationTemplate.TemplateBody;
-
-                            logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
-
-                            var connectionIds = await notificationConnectionManager.GetConnectionsAsync(userId.ToString());
-
-                            foreach (var connectionId in connectionIds)
-                            {
-                                logger.LogInformation("Notified connectionId: {Id}", connectionId);
-                            }
-
-                            await hubContext.Clients.Clients(connectionIds.ToList()).NotificationReceived(dto);
-
-                            var handshakeContext = new HandshakeContext
-                            {
-                                Callback = HandleSendPushAsync,
-                                NotificationDto = dto,
-                                NotificationMessage = notificationMessage
-                            };
-
-                            notificationHandshakeManager.StartHandshake(userId.ToString(), handshakeContext);
+                            await ProcessAndSendInAppAsync(notificationMessage, userId, dto);
                         }
                         else
                         {
-                            dto.Title = notificationMessage.PushNotificationTemplate!.TemplateTitle;
-                            dto.Body = notificationMessage.PushNotificationTemplate.TemplateBody;
-                            logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
-                            await HandleSendPushAsync(dto, notificationMessage, userId.ToString());
+                            await ProcessAndSendPushAsync(notificationMessage, userId, dto);
                         }
                     }
                 }
             }
+        }
+
+        private async Task ProcessAndSendPushAsync(NotificationMessage notificationMessage, Guid userId, NotificationDto dto)
+        {
+            dto.Title = notificationMessage.PushNotificationTemplate!.TemplateTitle;
+            dto.Body = notificationMessage.PushNotificationTemplate.TemplateBody;
+            logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
+            await HandleSendPushAsync(dto, notificationMessage, userId.ToString());
+        }
+
+        private async Task ProcessAndSendInAppAsync(NotificationMessage notificationMessage, Guid userId, NotificationDto dto)
+        {
+            dto.Title = notificationMessage.InAppNotificationTemplate!.TemplateTitle;
+            dto.Body = notificationMessage.InAppNotificationTemplate.TemplateBody;
+
+            logger.LogInformation("Template title {Title}; Template body {Body}; User id: {Id}", dto.Title, dto.Body, userId.ToString());
+
+            var connectionIds = await notificationConnectionManager.GetConnectionsAsync(userId.ToString());
+
+            foreach (var connectionId in connectionIds)
+            {
+                logger.LogInformation("Notified connectionId: {Id}", connectionId);
+            }
+
+            await hubContext.Clients.Clients(connectionIds.ToList()).NotificationReceived(dto);
+
+            var handshakeContext = new HandshakeContext
+            {
+                Callback = HandleSendPushAsync,
+                NotificationDto = dto,
+                NotificationMessage = notificationMessage
+            };
+
+            notificationHandshakeManager.StartHandshake(userId.ToString(), handshakeContext);
         }
 
         private async Task<List<PushNotificationTokens>> GetDeviceTokens(Guid userId)
