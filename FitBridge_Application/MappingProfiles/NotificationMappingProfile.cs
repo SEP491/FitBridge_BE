@@ -11,6 +11,7 @@ namespace FitBridge_Application.MappingProfiles
         {
             CreateMap<Notification, NotificationDto>()
                 .ForMember(dest => dest.Timestamp, opt => opt.MapFrom(src => new DateTimeOffset(src.CreatedAt).ToUnixTimeMilliseconds()))
+                .ForMember(dest => dest.NotificationCategory, opt => opt.MapFrom(src => src.Template.ContentType.ToString()))
                 .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => src.ReadAt.HasValue));
         }
     }
