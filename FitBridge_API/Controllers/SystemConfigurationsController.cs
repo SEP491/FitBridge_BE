@@ -39,4 +39,13 @@ public class SystemConfigurationsController(IMediator _mediator) : _BaseApiContr
         var result = await _mediator.Send(new GetAllSystemConfigurationsQuery());
         return Ok(new BaseResponse<List<SystemConfigurationDto>>(StatusCodes.Status200OK.ToString(), "System configurations retrieved successfully", result));
     }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateSystemConfiguration([FromRoute] Guid id, [FromBody] UpdateSystemConfigurationCommand command)
+    {
+        command.Id = id;
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "System configuration updated successfully", result));
+    }
 }
