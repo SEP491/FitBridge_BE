@@ -10,6 +10,7 @@ namespace FitBridge_Application.Specifications.Notifications.GetNotificationsByU
             bool onlyUnread = false) : base(x =>
             x.IsEnabled && x.UserId == userId && ((onlyUnread && x.ReadAt == null) || !onlyUnread))
         {
+            AddInclude(x => x.Template);
             if (parameters != null && parameters.DoApplyPaging)
             {
                 AddPaging(parameters.Size * (parameters.Page - 1), parameters.Size);

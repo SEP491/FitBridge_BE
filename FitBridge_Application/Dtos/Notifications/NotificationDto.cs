@@ -15,10 +15,14 @@ namespace FitBridge_Application.Dtos.Notifications
 
         public bool IsRead { get; set; }
 
-        public string NotificationCategory { get; set; } = notificationCategory;
+        public string? NotificationCategory { get; set; } = notificationCategory;
 
         public NotificationTypes NotificationType { get; set; }
 
         public string? AdditionalPayload { get; set; } = additionalPayload;
+
+        public NotificationDto() : this("", "")
+        {
+        }
     }
 }
