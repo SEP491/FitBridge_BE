@@ -26,7 +26,6 @@ namespace FitBridge_Application.Features.Notifications.AddUserDeviceToken
             {
                 return;
             }
-            //banana
 
             var newToken = new PushNotificationTokens
             {
