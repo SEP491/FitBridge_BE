@@ -23,6 +23,8 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             List<Guid> failedTokens = [];
             foreach (var userDeviceToken in userDeviceTokens)
             {
+                logger.LogInformation("Processing {DeviceToken} for platform {Platform}",
+                    userDeviceToken.DeviceToken, userDeviceToken.Platform);
                 try
                 {
                     switch (userDeviceToken.Platform)
@@ -73,7 +75,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
                 var response = await client.SendAsync(push);
                 if (response.IsSuccessful)
                 {
-                    logger.LogInformation("An alert push has been successfully sent!");
+                    logger.LogInformation("An ios alert push has been successfully sent!");
                 }
                 else
                 {
@@ -121,7 +123,7 @@ namespace FitBridge_Infrastructure.Services.Notifications.Helpers
             try
             {
                 await firebaseApp.SendAsync(message);
-                logger.LogInformation("Successfully sent message to {DeviceToken}", userDeviceToken.DeviceToken);
+                logger.LogInformation("Successfully sent android message to {DeviceToken}", userDeviceToken.DeviceToken);
             }
             catch (FirebaseMessagingException ex)
             {
