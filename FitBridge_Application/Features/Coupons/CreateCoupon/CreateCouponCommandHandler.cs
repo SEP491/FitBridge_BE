@@ -46,7 +46,7 @@ namespace FitBridge_Application.Features.Coupons.CreateCoupon
                 Id = Guid.NewGuid()
             };
 
-            var overlappedCoupons = await GetOverlappedCoupons(newCoupon.StartDate);
+            var overlappedCoupons = await GetOverlappedCoupons(newCoupon.StartDate, creatorId);
             if (overlappedCoupons.Count > 0)
             {
                 throw new CouponOverlapException(overlappedCoupons[0].CouponCode);
@@ -77,9 +77,9 @@ namespace FitBridge_Application.Features.Coupons.CreateCoupon
             };
         }
 
-        private async Task<IReadOnlyList<Coupon>> GetOverlappedCoupons(DateOnly expirationDate)
+        private async Task<IReadOnlyList<Coupon>> GetOverlappedCoupons(DateOnly expirationDate, Guid creatorId)
         {
-            var spec = new GetOverlapCouponsSpec(expirationDate);
+            var spec = new GetOverlapCouponsSpec(expirationDate, creatorId);
             var overlapCoupons = await unitOfWork.Repository<Coupon>().GetAllWithSpecificationAsync(spec);
 
             return overlapCoupons;
