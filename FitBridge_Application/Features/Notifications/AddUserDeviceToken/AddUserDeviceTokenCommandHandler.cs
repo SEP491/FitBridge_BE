@@ -20,6 +20,13 @@ namespace FitBridge_Application.Features.Notifications.AddUserDeviceToken
             var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
                 ?? throw new NotFoundException(nameof(ApplicationUser));
 
+            var userToken = await unitOfWork.Repository<PushNotificationTokens>()
+                .GetBySpecificationAsync(new GetDeviceTokenByUserSpecification(accountId));
+            if (userToken != null)
+            {
+                return;
+            }
+
             var newToken = new PushNotificationTokens
             {
                 Id = Guid.NewGuid(),
@@ -30,7 +37,7 @@ namespace FitBridge_Application.Features.Notifications.AddUserDeviceToken
             };
 
             unitOfWork.Repository<PushNotificationTokens>().Insert(newToken);
-                await unitOfWork.CommitAsync();
+            await unitOfWork.CommitAsync();
         }
     }
 }
