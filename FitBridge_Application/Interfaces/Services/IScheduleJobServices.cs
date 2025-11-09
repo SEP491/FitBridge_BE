@@ -15,4 +15,6 @@ public interface IScheduleJobServices
     Task<bool> ScheduleAutoRejectBookingRequestJob(BookingRequest bookingRequest);
     Task<TriggerState> GetJobStatus(string jobName, string jobGroup);
     Task<bool> RescheduleJob(string jobName, string jobGroup, DateTime triggerTime);
+    Task<bool> ScheduleExpireUserSubscriptionJob(Guid UserSubscriptionId, DateTime triggerTime);
+    Task<bool> ScheduleSendRemindExpiredSubscriptionNotiJob(Guid UserSubscriptionId, DateTime triggerTime);
 }

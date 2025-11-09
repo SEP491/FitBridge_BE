@@ -16,13 +16,35 @@ using Quartz;
 using FitBridge_Application.Dtos.Jobs;
 using FitBridge_Application.Dtos.Payments;
 using FitBridge_Domain.Enums.Trainings;
+using Microsoft.VisualBasic;
+using FitBridge_Domain.Entities.ServicePackages;
+using FitBridge_Domain.Enums.SubscriptionPlans;
 
 namespace FitBridge_Application.Services;
 
-public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsService> _logger, ISchedulerFactory _schedulerFactory, IScheduleJobServices _scheduleJobServices, IApplicationUserService _applicationUserService) : ITransactionService
+public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsService> _logger, ISchedulerFactory _schedulerFactory, IScheduleJobServices _scheduleJobServices, IApplicationUserService _applicationUserService, SystemConfigurationService systemConfigurationService) : ITransactionService
 {
+    private int defaultProfitDistributionDays;
+    private decimal defaultCommissionRate;
+    public async Task<int> GetProfitDistributionDays()
+    {
+        if (defaultProfitDistributionDays == 0)
+        {
+            defaultProfitDistributionDays = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.ProfitDistributionDays);
+        }
+        return defaultProfitDistributionDays;
+    }
+    public async Task<decimal> GetCommissionRate()
+    {
+        if (defaultCommissionRate == 0)
+        {
+            defaultCommissionRate = (decimal)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.CommissionRate);
+        }
+        return defaultCommissionRate;
+    }
     public async Task<bool> ExtendCourse(long orderCode)
     {
+        defaultProfitDistributionDays = await GetProfitDistributionDays();
         var transactionToExtend = await _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
         if (transactionToExtend == null)
         {
@@ -55,7 +77,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
         customerPurchasedToExtend.AvailableSessions += orderItemToExtend.Quantity * numOfSession;
         customerPurchasedToExtend.ExpirationDate = customerPurchasedToExtend.ExpirationDate.AddDays(orderItemToExtend.GymCourse.Duration * orderItemToExtend.Quantity);
-        var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(ProjectConstant.ProfitDistributionDays); // Profit distribute planned date is the day after the expiration date
+        var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(defaultProfitDistributionDays); // Profit distribute planned date is the day after the expiration date
         orderItemToExtend.ProfitDistributePlannedDate = profitDistributionDate;
         transactionToExtend.Order.Status = OrderStatus.Finished;
         var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItemToExtend.GymCourse.GymOwnerId);
@@ -81,17 +103,18 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<decimal> CalculateSystemProfit(Order order)
     {
-        var systemProfit = order.SubTotalPrice * ProjectConstant.CommissionRate;
+        defaultCommissionRate = await GetCommissionRate();
+        var systemProfit = order.SubTotalPrice * defaultCommissionRate;
         if (order.Coupon != null)
         {
             if (order.Coupon.Type == CouponType.FreelancePT || order.Coupon.Type == CouponType.GymOwner)
             {
-                systemProfit = order.TotalAmount * ProjectConstant.CommissionRate;
+                systemProfit = order.TotalAmount * defaultCommissionRate;
             }
             else if (order.Coupon.Type == CouponType.System)
             {
                 var discountAmount = order.SubTotalPrice * (decimal)(order.Coupon.DiscountPercent / 100) > order.Coupon.MaxDiscount ? order.Coupon.MaxDiscount : order.SubTotalPrice * (decimal)(order.Coupon.DiscountPercent / 100);
-                systemProfit = (order.SubTotalPrice * ProjectConstant.CommissionRate) - discountAmount;
+                systemProfit = (order.SubTotalPrice * defaultCommissionRate) - discountAmount;
             }
         }
         return Math.Round(systemProfit, 0, MidpointRounding.AwayFromZero);
@@ -238,8 +261,9 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<decimal> CalculateMerchantProfit(OrderItem orderItem, Coupon? coupon)
     {
+        defaultCommissionRate = await GetCommissionRate();
         var subTotalOrderItemPrice = orderItem.Price * orderItem.Quantity;
-        var commissionAmount = subTotalOrderItemPrice * ProjectConstant.CommissionRate;
+        var commissionAmount = subTotalOrderItemPrice * defaultCommissionRate;
         var merchantPtProfit = Math.Round(subTotalOrderItemPrice - commissionAmount, 0, MidpointRounding.AwayFromZero);
         if (coupon != null) // If there is a voucher, recalculate the profit
         {
@@ -255,6 +279,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<bool> PurchaseGymCourse(long orderCode)
     {
+        defaultProfitDistributionDays = await GetProfitDistributionDays();
         var OrderEntity = await _unitOfWork.Repository<Order>()
                 .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(orderCode), false);
         if (OrderEntity == null)
@@ -282,7 +307,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             {
                 var expirationDate = DateOnly.FromDateTime(DateTime.UtcNow);
                 var numOfSession = 0;
-                var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(ProjectConstant.ProfitDistributionDays);
+                var profitDistributionDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(defaultProfitDistributionDays);
                 orderItem.ProfitDistributePlannedDate = profitDistributionDate;
                 if (orderItem.GymCourseId != null && orderItem.GymPtId != null)
                 {
@@ -416,6 +441,57 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         _logger.LogInformation("Number of allocated session:" + allocatedSessionsForDistribute);
         await _unitOfWork.CommitAsync();
 
+        return true;
+    }
+    public async Task<bool> PurchaseSubscriptionPlans(long orderCode)
+    {
+        var transactionToPurchaseSubscriptionPlans = await _unitOfWork.Repository<Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
+        if (transactionToPurchaseSubscriptionPlans == null)
+        {
+            throw new NotFoundException("Transaction not found with order code " + orderCode);
+        }
+        var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(transactionToPurchaseSubscriptionPlans.Order!.OrderItems.First().SubscriptionPlansInformationId!.Value, includes: new List<string> { "FeatureKey" });
+        if(subscriptionPlansInformation == null)
+        {
+            throw new NotFoundException("Subscription plans information not found");
+        }
+        int? assignLimitUsage;
+        if (subscriptionPlansInformation.FeatureKey.FeatureName == ProjectConstant.FeatureKeyNames.HotResearch)
+        {
+            assignLimitUsage = null;
+            transactionToPurchaseSubscriptionPlans.Order.Account.hotResearch = true;
+        }
+        else
+        {
+            assignLimitUsage = subscriptionPlansInformation.LimitUsage;
+        }
+        transactionToPurchaseSubscriptionPlans.ProfitAmount = transactionToPurchaseSubscriptionPlans.Amount;
+
+        var startDate = DateTime.UtcNow;
+        var endDate = startDate.AddDays(subscriptionPlansInformation.Duration);
+
+        var newUserSubscription = new UserSubscription
+        {
+            UserId = transactionToPurchaseSubscriptionPlans.Order!.AccountId,
+            SubscriptionPlanId = transactionToPurchaseSubscriptionPlans.Order.OrderItems.First().SubscriptionPlansInformationId!.Value,
+            StartDate = startDate,
+            EndDate = endDate,
+            LimitUsage = assignLimitUsage,
+            CurrentUsage = 0,
+            Status = SubScriptionStatus.Active,
+        };
+        _unitOfWork.Repository<Transaction>().Update(transactionToPurchaseSubscriptionPlans);
+        _unitOfWork.Repository<UserSubscription>().Insert(newUserSubscription);
+        await _unitOfWork.CommitAsync();
+
+        var remindExpiredSubscriptionBeforeDays = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.RemindExpiredSubscriptionBeforeDays);
+
+        await _scheduleJobServices.ScheduleSendRemindExpiredSubscriptionNotiJob(newUserSubscription.Id, endDate.AddDays(-remindExpiredSubscriptionBeforeDays));
+
+        _logger.LogInformation($"Successfully scheduled send remind expired subscription notification job for user subscription {newUserSubscription.Id} at {endDate.AddDays(-remindExpiredSubscriptionBeforeDays)}");
+
+        await _scheduleJobServices.ScheduleExpireUserSubscriptionJob(newUserSubscription.Id, endDate);
+        _logger.LogInformation($"Successfully scheduled expire user subscription job for user subscription {newUserSubscription.Id} at {endDate.ToLocalTime}");
         return true;
     }
 }

@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Identity;
 using FitBridge_Domain.Enums.ApplicationUser;
 using FitBridge_Domain.Entities.Meetings;
 using FitBridge_Domain.Entities.Reports;
+using FitBridge_Domain.Entities.Systems;
+using FitBridge_Domain.Entities.ServicePackages;
 
 namespace FitBridge_Domain.Entities.Identity
 {
@@ -69,6 +71,8 @@ namespace FitBridge_Domain.Entities.Identity
         public ICollection<BookingRequest> CustomerBookingRequests { get; set; } = new List<BookingRequest>();
         public ICollection<ReportCases> ReportCasesCreated { get; set; } = new List<ReportCases>();
         public ICollection<ReportCases> ReportCasesReported { get; set; } = new List<ReportCases>();
+        public ICollection<SystemConfiguration> SystemConfigurations { get; set; } = new List<SystemConfiguration>();
+        public ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
     }
 
 }

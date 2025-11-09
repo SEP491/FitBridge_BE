@@ -22,10 +22,12 @@ using FitBridge_Domain.Enums.Orders;
 using FitBridge_Application.Specifications.Coupons;
 using FitBridge_Application.Specifications.Coupons.GetCouponById;
 using FitBridge_Application.Services;
+using FitBridge_Application.Specifications.UserSubscriptions.GetUserSubscriptionByUserId;
+using FitBridge_Application.Commons.Constants;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
-public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper, CouponService couponService) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
+public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper, CouponService couponService, SubscriptionService subscriptionService, SystemConfigurationService systemConfigurationService) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
 {
     public async Task<PaymentResponseDto> Handle(CreatePaymentLinkCommand request, CancellationToken cancellationToken)
     {
@@ -66,9 +68,9 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         {
             transactionType = TransactionType.GymCourse;
         }
-        if (request.Request.OrderItems.Any(x => x.ServiceInformationId != null))
+        if (request.Request.OrderItems.Any(x => x.SubscriptionPlansInformationId != null))
         {
-            transactionType = TransactionType.ServiceOrder;
+            transactionType = TransactionType.SubscriptionPlansOrder;
         }
         if(request.Request.OrderItems.Any(x => x.FreelancePTPackageId != null) && request.Request.CustomerPurchasedIdToExtend != null)
         {
@@ -128,14 +130,14 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 }
                 item.ProductName = gymCourse.Name;
             }
-            if (item.ServiceInformationId != null)
+            if (item.SubscriptionPlansInformationId != null)
             {
-                var serviceInformation = await _unitOfWork.Repository<ServiceInformation>().GetByIdAsync(item.ServiceInformationId.Value);
-                if (serviceInformation == null)
+                var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(item.SubscriptionPlansInformationId.Value);
+                if (subscriptionPlansInformation == null)
                 {
-                    throw new NotFoundException("Service information not found");
+                    throw new NotFoundException("Subscription plans information not found");
                 }
-                item.ProductName = serviceInformation.ServiceName;
+                item.ProductName = subscriptionPlansInformation.PlanName;
             }
             if (item.FreelancePTPackageId != null)
             {
@@ -208,6 +210,31 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 if (userPackage != null && customerPurchasedIdToExtend == null)
                 {
                     throw new PackageExistException($"Package of this freelance PT still not expired, customer purchased id: {userPackage.Id}, package expiration date: {userPackage.ExpirationDate} please extend the package");
+                }
+            }
+            if (item.SubscriptionPlansInformationId != null)
+            {
+                var maxHotResearchSubscription = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.HotResearchSubscriptionLimit);
+                
+                var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(item.SubscriptionPlansInformationId.Value, includes: new List<string> { "FeatureKey" });
+                if (subscriptionPlansInformation == null)
+                {
+                    throw new NotFoundException("Subscription plans information not found");
+                }
+                if(subscriptionPlansInformation.FeatureKey.FeatureName == ProjectConstant.FeatureKeyNames.HotResearch)
+                {
+                    var numOfCurrentHotResearchSubscription = await subscriptionService.GetNumOfCurrentHotResearchSubscription();
+                    if (numOfCurrentHotResearchSubscription >= maxHotResearchSubscription)
+                    {
+                        throw new BusinessException("Maximum hot research subscription reached");
+                    }
+                }
+                item.Price = subscriptionPlansInformation.PlanCharge;
+
+                var userSubscription = await _unitOfWork.Repository<UserSubscription>().GetBySpecificationAsync(new GetUserSubscriptionByUserIdSpec(userId, subscriptionPlansInformation.Id));
+                if (userSubscription != null)
+                {
+                    throw new DuplicateException($"User already has a subscription for this plan, subscription id: {userSubscription.Id}, subscription expiration date: {userSubscription.EndDate}");
                 }
             }
         }

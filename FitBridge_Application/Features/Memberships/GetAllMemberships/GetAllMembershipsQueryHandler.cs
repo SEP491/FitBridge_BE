@@ -13,15 +13,16 @@ namespace FitBridge_Application.Features.Memberships.GetAllMemberships
     {
         public async Task<(IReadOnlyList<GetMembershipDto> Items, int Total)> Handle(GetAllMembershipsQuery request, CancellationToken cancellationToken)
         {
-            var spec = new GetAllMembershipsSpecification(request.Params);
-            var memberships = await unitOfWork.Repository<ServiceInformation>()
-                .GetAllWithSpecificationAsync(spec);
+            // var spec = new GetAllMembershipsSpecification(request.Params);
+            // var memberships = await unitOfWork.Repository<ServiceInformation>()
+            //     .GetAllWithSpecificationAsync(spec);
 
-            var totalCount = await unitOfWork.Repository<ServiceInformation>()
-                .CountAsync(spec);
+            // var totalCount = await unitOfWork.Repository<ServiceInformation>()
+            //     .CountAsync(spec);
 
-            var dtos = mapper.Map<IReadOnlyList<GetMembershipDto>>(memberships);
-            return (dtos, totalCount);
+            // var dtos = mapper.Map<IReadOnlyList<GetMembershipDto>>(memberships);
+            // return (dtos, totalCount);
+            return (new List<GetMembershipDto>(), 0);
         }
     }
 }

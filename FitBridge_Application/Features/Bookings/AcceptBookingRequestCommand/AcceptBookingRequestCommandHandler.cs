@@ -9,10 +9,11 @@ using AutoMapper;
 using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidate;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Services;
 
 namespace FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
 
-public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IScheduleJobServices _scheduleJobServices) : IRequestHandler<AcceptBookingRequestCommand, Guid>
+public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IScheduleJobServices _scheduleJobServices, BookingService _bookingService) : IRequestHandler<AcceptBookingRequestCommand, Guid>
 {
     public async Task<Guid> Handle(AcceptBookingRequestCommand request, CancellationToken cancellationToken)
     {
@@ -29,7 +30,7 @@ public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper
         {
             throw new BusinessException("Booking request is not customer create or pt create");
         }
-        await ValidateBookingRequest(bookingRequest);
+        await _bookingService.ValidateBookingRequest(bookingRequest);
         var newBooking = _mapper.Map<Booking>(bookingRequest);
         bookingRequest.RequestStatus = BookingRequestStatus.Approved;
         _unitOfWork.Repository<Booking>().Insert(newBooking);
@@ -45,22 +46,5 @@ public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper
         await _scheduleJobServices.CancelScheduleJob($"AutoRejectBookingRequest_{bookingRequest.Id}", "AutoRejectBookingRequest");
         await _unitOfWork.CommitAsync();
         return request.BookingRequestId;
-    }
-
-    public async Task<bool> ValidateBookingRequest(BookingRequest bookingRequest)
-    {
-        var bookingSpec = new GetBookingForValidationSpec(bookingRequest.CustomerId, bookingRequest.BookingDate, bookingRequest.StartTime, bookingRequest.EndTime);
-        var booking = await _unitOfWork.Repository<Booking>().GetBySpecificationAsync(bookingSpec, false);
-        if (booking != null)
-        {
-            throw new DuplicateException($"Customer have course at this time, booking that overlapped: {booking.Id}");
-        }
-        var freelancePtBookingSpec = new GetFreelancePtBookingForValidationSpec(bookingRequest.PtId, bookingRequest.BookingDate, bookingRequest.StartTime, bookingRequest.EndTime);
-        var freelancePtBooking = await _unitOfWork.Repository<Booking>().GetBySpecificationAsync(freelancePtBookingSpec, false);
-        if (freelancePtBooking != null)
-        {
-            throw new DuplicateException($"PT have course at this time booking that overlapped: {freelancePtBooking.Id}");
-        }
-        return true;
     }
 }

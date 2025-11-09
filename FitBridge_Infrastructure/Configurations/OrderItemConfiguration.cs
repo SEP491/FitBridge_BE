@@ -21,7 +21,7 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.Property(e => e.ProfitDistributeActualDate).IsRequired(false);
         builder.Property(e => e.IsRefunded).HasDefaultValue(false);
         builder.HasOne(e => e.Order).WithMany(e => e.OrderItems).HasForeignKey(e => e.OrderId);
-        builder.HasOne(e => e.ServiceInformation).WithMany(e => e.OrderItems).HasForeignKey(e => e.ServiceInformationId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(e => e.SubscriptionPlansInformation).WithMany(e => e.OrderItems).HasForeignKey(e => e.SubscriptionPlansInformationId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(e => e.ProductDetail).WithMany(e => e.OrderItems).HasForeignKey(e => e.ProductDetailId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(e => e.GymCourse).WithMany(e => e.OrderItems).HasForeignKey(e => e.GymCourseId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(e => e.GymPt).WithMany(e => e.OrderItems).HasForeignKey(e => e.GymPtId).OnDelete(DeleteBehavior.Restrict);

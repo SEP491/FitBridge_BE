@@ -9,10 +9,11 @@ using Microsoft.AspNetCore.Http;
 using FitBridge_Domain.Exceptions;
 using FitBridge_Application.Specifications.GymSlots;
 using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Services;
 
 namespace FitBridge_Application.Features.GymSlots.CreateGymSlot;
 
-public class CreateGymSlotCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork, IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor) : IRequestHandler<CreateGymSlotCommand, CreateNewSlotResponse>
+public class CreateGymSlotCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWork, IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, SystemConfigurationService systemConfigurationService) : IRequestHandler<CreateGymSlotCommand, CreateNewSlotResponse>
 {
     public async Task<CreateNewSlotResponse> Handle(CreateGymSlotCommand request, CancellationToken cancellationToken)
     {
@@ -35,10 +36,11 @@ public class CreateGymSlotCommandHandler(IMapper _mapper, IUnitOfWork _unitOfWor
         {
             throw new DataValidationFailedException("Start time must be less than end time");
         }
-
-        if (request.EndTime - request.StartTime < TimeSpan.FromHours(ProjectConstant.GymSlotDuration))
+        
+        var defaultGymSlotDuration = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.GymSlotDuration);
+        if (request.EndTime - request.StartTime < TimeSpan.FromHours(defaultGymSlotDuration))
         {
-            throw new DataValidationFailedException("Gym slot duration must be more than " + ProjectConstant.GymSlotDuration + " hour");
+            throw new DataValidationFailedException("Gym slot duration must be more than " + defaultGymSlotDuration + " hour");
         }
         
         var gymSlot = await _unitOfWork.Repository<GymSlot>().GetBySpecificationAsync(new GetGymSlotForCreateValidationSpecification(request));

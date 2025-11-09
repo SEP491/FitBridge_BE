@@ -14,7 +14,7 @@ public class GetGymPtsDetailForAdminResponseDto
     public string? AvatarUrl { get; set; }
     public List<string> GoalTrainings { get; set; } = new List<string>();
     public Guid? GymOwnerId { get; set; }
-    public string? GymName { get; set; }
+    public string? GymOwnerName { get; set; }
     public UserDetailDto? UserDetail { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }

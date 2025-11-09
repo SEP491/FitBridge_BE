@@ -29,12 +29,12 @@ public class GetAllGymOwnerTransactionQueryHandler(IUserUtil _userUtil, IHttpCon
             {
                 TransactionId = transaction.Id,
                 TransactionType = transaction.TransactionType,
-                TotalPaidAmount = transaction.TransactionType == TransactionType.PurchasePremiumService ? transaction.Amount : null,
+                TotalPaidAmount = transaction.TransactionType == TransactionType.SubscriptionPlansOrder ? transaction.Amount : null,
                 OrderCode = transaction.OrderCode,
                 CustomerName = transaction.Order.Account.FullName,
                 CustomerAvatarUrl = transaction.Order.Account.AvatarUrl,
             };
-            if (transaction.TransactionType != TransactionType.PurchasePremiumService && transaction.TransactionType != TransactionType.DistributeProfit)
+            if (transaction.TransactionType != TransactionType.SubscriptionPlansOrder && transaction.TransactionType != TransactionType.DistributeProfit)
             {
                 var profitAmount = await CalculateProfitAmount(transaction, userId);
                 getAllMerchantTransactionDto.ProfitAmount = profitAmount;

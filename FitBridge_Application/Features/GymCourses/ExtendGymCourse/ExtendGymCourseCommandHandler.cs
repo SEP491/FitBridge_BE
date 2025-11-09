@@ -117,14 +117,14 @@ public class ExtendGymCourseCommandHandler(IUserUtil _userUtil, IHttpContextAcce
                 }
                 item.ProductName = gymCourse.Name;
             }
-            if (item.ServiceInformationId != null)
+            if (item.SubscriptionPlansInformationId != null)
             {
-                var serviceInformation = await _unitOfWork.Repository<ServiceInformation>().GetByIdAsync(item.ServiceInformationId.Value);
-                if (serviceInformation == null)
+                var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(item.SubscriptionPlansInformationId.Value);
+                if (subscriptionPlansInformation == null)
                 {
-                    throw new NotFoundException("Service information not found");
+                    throw new NotFoundException("Subscription plans information not found");
                 }
-                item.ProductName = serviceInformation.ServiceName;
+                item.ProductName = subscriptionPlansInformation.PlanName;
             }
         }
     }

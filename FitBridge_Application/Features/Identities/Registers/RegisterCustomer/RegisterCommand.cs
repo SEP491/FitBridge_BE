@@ -13,4 +13,6 @@ public class RegisterCommand : IRequest<RegisterResponseDto>
     public string Password { get; set; }
     public string FullName { get; set; }
     public bool IsTestAccount { get; set; } = false;
+    public double? Longitude { get; set; }
+    public double? Latitude { get; set; }
 }

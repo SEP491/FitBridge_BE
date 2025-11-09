@@ -15,4 +15,5 @@ public interface ITransactionService
     Task<bool> DistributePendingProfit(Guid CustomerPurchasedId);
     Task<decimal> CalculateMerchantProfit(OrderItem orderItem, Coupon? coupon = null);
     Task<decimal> CalculateSystemProfit(Order order);
+    Task<bool> PurchaseSubscriptionPlans(long orderCode);
 }

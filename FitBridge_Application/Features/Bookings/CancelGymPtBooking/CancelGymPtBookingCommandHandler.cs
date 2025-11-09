@@ -5,10 +5,11 @@ using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Exceptions;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Domain.Enums.Trainings;
+using FitBridge_Application.Services;
 
 namespace FitBridge_Application.Features.Bookings.CancelGymPtBooking;
 
-public class CancelGymPtBookingCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CancelGymPtBookingCommand, bool>
+public class CancelGymPtBookingCommandHandler(IUnitOfWork _unitOfWork, SystemConfigurationService systemConfigurationService) : IRequestHandler<CancelGymPtBookingCommand, bool>
 {
     public async Task<bool> Handle(CancelGymPtBookingCommand request, CancellationToken cancellationToken)
     {
@@ -33,9 +34,9 @@ public class CancelGymPtBookingCommandHandler(IUnitOfWork _unitOfWork) : IReques
         }
 
         var hoursUntilSession = sessionDateTime - DateTime.UtcNow;
-
+        var defaultCancelBookingBeforeHours = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.CancelBookingBeforeHours);
         // Check cancellation policy and refund session if applicable
-        if (hoursUntilSession.TotalHours > ProjectConstant.CancelBookingBeforeHours)
+        if (hoursUntilSession.TotalHours > defaultCancelBookingBeforeHours)
         {
             if (booking.CustomerPurchased == null)
             {

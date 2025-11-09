@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using FitBridge_Domain.Enums.Trainings;
 
 namespace FitBridge_Application.Dtos.Bookings;

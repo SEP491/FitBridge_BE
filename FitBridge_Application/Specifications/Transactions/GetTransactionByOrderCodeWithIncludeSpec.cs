@@ -14,10 +14,11 @@ public class GetTransactionByOrderCodeWithIncludeSpec : BaseSpecification<Transa
         AddInclude(x => x.Order.CustomerPurchasedToExtend.OrderItems);
         AddInclude("Order.OrderItems.FreelancePTPackage");
         AddInclude("Order.OrderItems.GymCourse");
-        AddInclude("Order.OrderItems.ServiceInformation");
+        AddInclude("Order.OrderItems.SubscriptionPlansInformation");
         AddInclude("Order.OrderItems.ProductDetail");
         AddInclude("Order.OrderItems.GymCourse");
         AddInclude("Order.GymCoursePTToAssign");
         AddInclude("Order.Coupon");
+        AddInclude(x => x.Order.Account);
     }
 }

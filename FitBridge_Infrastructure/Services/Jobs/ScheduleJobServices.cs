@@ -10,6 +10,7 @@ using FitBridge_Domain.Entities.Trainings;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Build.Framework;
 using FitBridge_Infrastructure.Jobs.BookingRequests;
+using FitBridge_Infrastructure.Jobs.Subscriptions;
 
 namespace FitBridge_Infrastructure.Services.Jobs;
 
@@ -187,6 +188,48 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .StartAt(triggerTime)
         .Build();
         await scheduler.RescheduleJob(triggerKey, newTrigger);
+        return true;
+    }
+
+    public async Task<bool> ScheduleExpireUserSubscriptionJob(Guid UserSubscriptionId, DateTime triggerTime)
+    {
+        var jobKey = new JobKey($"ExpireUserSubscription_{UserSubscriptionId}", "ExpireUserSubscription");
+        var triggerKey = new TriggerKey($"ExpireUserSubscription_{UserSubscriptionId}_Trigger", "ExpireUserSubscription");
+        var jobData = new JobDataMap
+        {
+            { "userSubscriptionId", UserSubscriptionId.ToString() }
+        };
+        var job = JobBuilder.Create<ExpireUserSubscriptionJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled expire user subscription job for user subscription {UserSubscriptionId} at {triggerTime.ToLocalTime}");
+        return true;
+    }
+
+    public async Task<bool> ScheduleSendRemindExpiredSubscriptionNotiJob(Guid UserSubscriptionId, DateTime triggerTime)
+    {
+        var jobKey = new JobKey($"SendRemindExpiredSubscriptionNoti_{UserSubscriptionId}", "SendRemindExpiredSubscriptionNoti");
+        var triggerKey = new TriggerKey($"SendRemindExpiredSubscriptionNoti_{UserSubscriptionId}_Trigger", "SendRemindExpiredSubscriptionNoti");
+        var jobData = new JobDataMap
+        {
+            { "userSubscriptionId", UserSubscriptionId.ToString() }
+        };
+        var job = JobBuilder.Create<SendRemindExpiredSubscriptionNotiJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled send remind expired subscription notification job for user subscription {UserSubscriptionId} at {triggerTime.ToLocalTime}");
         return true;
     }
 }

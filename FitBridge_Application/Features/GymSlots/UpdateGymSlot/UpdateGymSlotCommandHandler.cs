@@ -7,10 +7,11 @@ using FitBridge_Application.Dtos.GymSlots;
 using AutoMapper;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Specifications.GymSlots;
+using FitBridge_Application.Services;
 
 namespace FitBridge_Application.Features.GymSlots.UpdateGymSlot;
 
-public class UpdateGymSlotCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<UpdateGymSlotCommand, SlotResponseDto>
+public class UpdateGymSlotCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, SystemConfigurationService systemConfigurationService) : IRequestHandler<UpdateGymSlotCommand, SlotResponseDto>
 {
     public async Task<SlotResponseDto> Handle(UpdateGymSlotCommand request, CancellationToken cancellationToken)
     {
@@ -42,9 +43,10 @@ public class UpdateGymSlotCommandHandler(IUnitOfWork _unitOfWork, IMapper _mappe
             throw new DataValidationFailedException("Start time must be less than end time");
         }
 
-        if (request.EndTime - request.StartTime < TimeSpan.FromHours(ProjectConstant.GymSlotDuration))
+        var defaultGymSlotDuration = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.GymSlotDuration);
+        if (request.EndTime - request.StartTime < TimeSpan.FromHours(defaultGymSlotDuration))
         {
-            throw new DataValidationFailedException("Gym slot duration must be more than " + ProjectConstant.GymSlotDuration + " hour");
+            throw new DataValidationFailedException("Gym slot duration must be more than " + defaultGymSlotDuration + " hour");
         }
         
         if(request.Name != entity.Name)
