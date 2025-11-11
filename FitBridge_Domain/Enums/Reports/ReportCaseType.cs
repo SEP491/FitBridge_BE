@@ -4,5 +4,6 @@ public enum ReportCaseType
 {
     ProductReport,
     FreelancePtReport,
-    GymCourseReport
+    GymCourseReport,
+    ProductHaventArrivedReport
 }

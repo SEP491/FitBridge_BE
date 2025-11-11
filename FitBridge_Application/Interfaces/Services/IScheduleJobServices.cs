@@ -17,4 +17,5 @@ public interface IScheduleJobServices
     Task<bool> RescheduleJob(string jobName, string jobGroup, DateTime triggerTime);
     Task<bool> ScheduleExpireUserSubscriptionJob(Guid UserSubscriptionId, DateTime triggerTime);
     Task<bool> ScheduleSendRemindExpiredSubscriptionNotiJob(Guid UserSubscriptionId, DateTime triggerTime);
+    Task<bool> ScheduleAutoRejectEditBookingRequestJob(Guid BookingRequestId, DateTime triggerTime);
 }

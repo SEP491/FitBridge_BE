@@ -39,5 +39,6 @@
         NewReport, // Customer creates a new report case
 
         ReportStatusUpdated, // Admin updates report status
+        NearExpiredSubscriptionReminder, // Customer's subscription is about to expire
     }
 }

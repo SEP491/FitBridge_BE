@@ -13,13 +13,14 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(e => e.Name).IsRequired(true);
         builder.Property(e => e.Description).IsRequired(true);
         builder.Property(e => e.Volume).IsRequired(true);
-        builder.Property(e => e.ImageUrls).IsRequired(false);
+        builder.Property(e => e.CoverImageUrl).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.Property(e => e.SubCategoryId).IsRequired(true);
         builder.Property(e => e.BrandId).IsRequired(true);
-
+        builder.Property(e => e.IsDisplayed).IsRequired(true).HasDefaultValue(false);
+        
         builder.HasOne(e => e.SubCategory).WithMany(e => e.Products).HasForeignKey(e => e.SubCategoryId);
         builder.HasOne(e => e.Brand).WithMany(e => e.Products).HasForeignKey(e => e.BrandId);
     }
