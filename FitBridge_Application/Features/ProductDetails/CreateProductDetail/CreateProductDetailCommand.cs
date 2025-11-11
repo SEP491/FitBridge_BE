@@ -8,6 +8,7 @@ public class CreateProductDetailCommand : IRequest<string>
 {
     public decimal OriginalPrice { get; set; }
     public decimal DisplayPrice { get; set; }
+    public decimal SalePrice { get; set; }
     public DateOnly ExpirationDate { get; set; }
     public IFormFile? Image { get; set; }
     public Guid ProductId { get; set; }
