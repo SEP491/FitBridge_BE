@@ -9,8 +9,9 @@ public class Product : BaseEntity
     public double Volume { get; set; }
     public Guid BrandId { get; set; }
     public Brand Brand { get; set; }
-    public List<string> ImageUrls { get; set; } = new List<string>();
+    public string CoverImageUrl { get; set; }
     public Guid SubCategoryId { get; set; }
+    public bool IsDisplayed { get; set; }
     public SubCategory SubCategory { get; set; }
     public ICollection<ProductDetail> ProductDetails { get; set; } = new List<ProductDetail>();
 }

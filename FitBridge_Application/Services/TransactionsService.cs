@@ -19,6 +19,7 @@ using FitBridge_Domain.Enums.Trainings;
 using Microsoft.VisualBasic;
 using FitBridge_Domain.Entities.ServicePackages;
 using FitBridge_Domain.Enums.SubscriptionPlans;
+using FitBridge_Application.Dtos.Payments.ApplePaymentDto;
 
 namespace FitBridge_Application.Services;
 
@@ -492,6 +493,36 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
         await _scheduleJobServices.ScheduleExpireUserSubscriptionJob(newUserSubscription.Id, endDate);
         _logger.LogInformation($"Successfully scheduled expire user subscription job for user subscription {newUserSubscription.Id} at {endDate.ToLocalTime}");
+        return true;
+    }
+    public async Task<bool> PurchaseAppleSubscriptionPlans(AsnDecodedPayload asnDecodedPayload, JwsTransactionDecoded jwsTransactionDecoded)
+    {
+        // var orderItemToInsert = new OrderItem
+        // {
+        //     Quantity = 1,
+        //     Price = jwsTransactionDecoded.Price.Value,
+        //     SubscriptionPlansInformationId = Guid.Parse(jwsTransactionDecoded.ProductId),
+        // };
+        // var orderToInsert = new Order
+        // {
+        //     AccountId = Guid.Parse(jwsTransactionDecoded.AppAppleId.Value.ToString()),
+        //     Status = OrderStatus.Finished,
+        //     OrderItems = new List<OrderItem> { orderItemToInsert },
+        // };
+        // var transactionToInsert = new Transaction
+        // {
+        //     Amount = jwsTransactionDecoded.Price.Value,
+        //     OrderCode = long.Parse(jwsTransactionDecoded.TransactionId),
+        //     OrderItemId = jwsTransactionDecoded.OrderItemId,
+        //     TransactionType = TransactionType.SubscriptionPlansOrder,
+        //     Status = TransactionStatus.Success,
+        // };
+        // if (transactionToPurchaseSubscriptionPlans == null)
+        // {
+        //     throw new NotFoundException("Transaction not found with order code " + jwsTransactionDecoded.TransactionId);
+        // }
+        // var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(transactionToPurchaseSubscriptionPlans.Order!.OrderItems.First().SubscriptionPlansInformationId!.Value, includes: new List<string> { "FeatureKey" });
+        // if(subscriptionPlansInformation == null)
         return true;
     }
 }

@@ -11,6 +11,7 @@ public class WeightConfiguration : IEntityTypeConfiguration<Weight>
     {
         builder.ToTable("Weights");
         builder.Property(e => e.Value).IsRequired(true);
+        builder.Property(e => e.Unit).IsRequired(true);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);

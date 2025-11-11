@@ -53,7 +53,7 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
     public async Task<IActionResult> AppleWebhook()
     {
         using var reader = new StreamReader(Request.Body);
-        var webhookData = await reader.ReadToEndAsync();
+          var webhookData = await reader.ReadToEndAsync();
         var spec = new AppleWebhookCommand { WebhookData = webhookData };
         var result = await _mediator.Send(spec);
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Apple webhook processed successfully", result));

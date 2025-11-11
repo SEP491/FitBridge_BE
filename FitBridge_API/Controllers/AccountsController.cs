@@ -213,6 +213,7 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     }
 
     [HttpGet("search")]
+    [AllowAnonymous]
     public async Task<IActionResult> SearchAccounts([FromQuery] GetAccountForSearchingParams parameters)
     {
         var response = await _mediator.Send(new SearchAccountQuery { Params = parameters });

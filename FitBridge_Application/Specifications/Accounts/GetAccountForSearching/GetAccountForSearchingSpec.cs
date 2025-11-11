@@ -5,7 +5,8 @@ namespace FitBridge_Application.Specifications.Accounts.GetAccountForSearching;
 
 public class GetAccountForSearchingSpec : BaseSpecification<ApplicationUser>
 {
-    public GetAccountForSearchingSpec(GetAccountForSearchingParams parameters, List<Guid> userIds) : base(x => (((parameters.SearchTerm == null || parameters.SearchTerm.Trim() == "")
+    public GetAccountForSearchingSpec(GetAccountForSearchingParams parameters, List<Guid> userIds) : base(x => ((parameters.SearchTerm == null
+    || parameters.SearchTerm.Trim() == ""
     || x.FullName.ToLower().Contains(parameters.SearchTerm.ToLower())
     || (x.GymName != null && x.GymName.ToLower().Contains(parameters.SearchTerm.ToLower()))
     || x.GoalTrainings.Any(gt => gt.Name.ToLower().Contains(parameters.SearchTerm.ToLower())))

@@ -12,10 +12,11 @@ using FitBridge_Application.Interfaces.Utils;
 using Microsoft.AspNetCore.Http;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidate;
+using FitBridge_Application.Interfaces.Services;
 
 namespace FitBridge_Application.Features.Bookings.RequestEditBooking;
 
-public class RequestEditBookingCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor) : IRequestHandler<RequestEditBookingCommand, EditBookingResponseDto>
+public class RequestEditBookingCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IScheduleJobServices _scheduleJobServices) : IRequestHandler<RequestEditBookingCommand, EditBookingResponseDto>
 {
     public async Task<EditBookingResponseDto> Handle(RequestEditBookingCommand request, CancellationToken cancellationToken)
     {
@@ -62,6 +63,7 @@ public class RequestEditBookingCommandHandler(IUnitOfWork _unitOfWork, IMapper _
         bookingRequestResponse.OriginalStartTime = booking.PtFreelanceStartTime.Value;
         bookingRequestResponse.OriginalEndTime = booking.PtFreelanceEndTime.Value;
         await _unitOfWork.CommitAsync();
+        await _scheduleJobServices.ScheduleAutoRejectEditBookingRequestJob(editBookingRequest.Id, booking.BookingDate.ToDateTime(booking.PtFreelanceStartTime.Value));
         return bookingRequestResponse;
     }
     
