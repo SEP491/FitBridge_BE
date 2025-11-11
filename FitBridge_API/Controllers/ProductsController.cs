@@ -15,7 +15,7 @@ namespace FitBridge_API.Controllers;
 public class ProductsController(IMediator _mediator) : _BaseApiController
 {
     [HttpPost]
-    public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
+    public async Task<IActionResult> CreateProduct([FromForm] CreateProductCommand command)
     {
         var product = await _mediator.Send(command);
         return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "Product created successfully", product));

@@ -32,6 +32,8 @@ public static class ProjectConstant
         public const string CancelBookingBeforeHours = "CancelBookingBeforeHours";
         public const string ProfitDistributionDays = "ProfitDistributionDays";
         public const string HotResearchSubscriptionLimit = "MaximumHotResearch";
+        public const string NearExpiredDateProductWarning = "NearExpiredDateProductWarning";
+        public const string AutoHideProductBeforeExpirationDate = "AutoHideProductBeforeExpirationDate";
     }
     public const int MaxRetries = 3;
     public static class EmailTypes
