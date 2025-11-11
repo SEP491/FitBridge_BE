@@ -10,6 +10,8 @@ public class ProductResponseDto
     public string BrandName { get; set; }
     public string SubCategoryName { get; set; }
     public string CoverImageUrl { get; set; }
+    public string? ProteinSources { get; set; }
+    public string? CountryOfOrigin { get; set; }
     public bool IsDisplayed { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

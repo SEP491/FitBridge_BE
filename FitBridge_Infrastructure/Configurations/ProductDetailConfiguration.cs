@@ -13,7 +13,7 @@ public class ProductDetailConfiguration : IEntityTypeConfiguration<ProductDetail
         builder.Property(e => e.OriginalPrice).IsRequired(true);
         builder.Property(e => e.DisplayPrice).IsRequired(true);
         builder.Property(e => e.ExpirationDate).IsRequired(true);
-        builder.Property(e => e.ImageUrls).IsRequired(false);
+        builder.Property(e => e.ImageUrl).IsRequired(false);
         builder.Property(e => e.ProductId).IsRequired(true);
         builder.Property(e => e.WeightId).IsRequired(true);
         builder.Property(e => e.FlavourId).IsRequired(true);
@@ -23,6 +23,11 @@ public class ProductDetailConfiguration : IEntityTypeConfiguration<ProductDetail
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
+        builder.Property(e => e.ServingSizeInformation).IsRequired(false);
+        builder.Property(e => e.ServingsPerContainerInformation).IsRequired(false);
+        builder.Property(e => e.ProteinPerServingGrams).IsRequired(false);
+        builder.Property(e => e.CaloriesPerServingKcal).IsRequired(false);
+        builder.Property(e => e.BCAAPerServingGrams).IsRequired(false);
         builder.HasIndex(e => new { e.ProductId, e.WeightId, e.FlavourId, e.IsEnabled, e.ExpirationDate }).IsUnique();
         builder.HasOne(e => e.Product).WithMany(e => e.ProductDetails).HasForeignKey(e => e.ProductId);
         builder.HasOne(e => e.Weight).WithMany(e => e.ProductDetails).HasForeignKey(e => e.WeightId);

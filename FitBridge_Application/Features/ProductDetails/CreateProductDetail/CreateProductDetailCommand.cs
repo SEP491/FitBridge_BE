@@ -1,5 +1,6 @@
 using System;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace FitBridge_Application.Features.ProductDetails.CreateProductDetail;
 
@@ -8,10 +9,15 @@ public class CreateProductDetailCommand : IRequest<string>
     public decimal OriginalPrice { get; set; }
     public decimal DisplayPrice { get; set; }
     public DateOnly ExpirationDate { get; set; }
-    public List<string> ImageUrls { get; set; } = new List<string>();
+    public IFormFile? Image { get; set; }
     public Guid ProductId { get; set; }
     public Guid WeightId { get; set; }
     public Guid FlavourId { get; set; }
     public int Quantity { get; set; }
     public bool IsDisplayed { get; set; }
+    public string? ServingSizeInformation { get; set; }
+    public string? ServingsPerContainerInformation { get; set; }
+    public double? ProteinPerServingGrams { get; set; }
+    public int? CaloriesPerServingKcal { get; set; }
+    public int? BCAAPerServingGrams { get; set; }
 }
