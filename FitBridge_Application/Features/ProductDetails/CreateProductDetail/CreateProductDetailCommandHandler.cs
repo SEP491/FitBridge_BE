@@ -15,7 +15,11 @@ public class CreateProductDetailCommandHandler(IUnitOfWork _unitOfWork, IMapper 
     public async Task<string> Handle(CreateProductDetailCommand request, CancellationToken cancellationToken)
     {
         var autoHideProductBeforeExpirationDate = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.AutoHideProductBeforeExpirationDate);
-        if(request.ExpirationDate.DayNumber - DateOnly.FromDateTime(DateTime.UtcNow).DayNumber <= autoHideProductBeforeExpirationDate)
+        if (request.SalePrice > request.DisplayPrice)
+        {
+            throw new BusinessException("Sale price cannot be greater than display price");
+        }
+        if (request.ExpirationDate.DayNumber - DateOnly.FromDateTime(DateTime.UtcNow).DayNumber <= autoHideProductBeforeExpirationDate)
         {
             throw new BusinessException($"Expiration date is too close to the current date, please set the expiration date to at least {autoHideProductBeforeExpirationDate} days from the current date");
         }

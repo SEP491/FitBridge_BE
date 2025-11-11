@@ -7,6 +7,7 @@ public class ProductDetailForAdminResponseDto
     public Guid Id { get; set; }
     public decimal OriginalPrice { get; set; }
     public decimal DisplayPrice { get; set; }
+    public decimal SalePrice { get; set; }
     public DateOnly ExpirationDate { get; set; }
     public string ImageUrl { get; set; }
     public Guid ProductId { get; set; }
