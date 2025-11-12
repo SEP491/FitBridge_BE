@@ -10,6 +10,9 @@ public class ConversationMemberConfiguration : IEntityTypeConfiguration<Conversa
     public void Configure(EntityTypeBuilder<ConversationMember> builder)
     {
         builder.ToTable("ConversationMembers");
+
+        builder.Ignore(e => e.Id);
+        // Property configurations
         builder.Property(e => e.ConversationId).IsRequired(true);
         builder.Property(e => e.UserId).IsRequired(true);
         builder.Property(e => e.CustomTitle).IsRequired(false);
@@ -20,7 +23,33 @@ public class ConversationMemberConfiguration : IEntityTypeConfiguration<Conversa
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
 
-        builder.HasOne(e => e.User).WithMany(e => e.ConversationMembers).HasForeignKey(e => e.UserId);
-        builder.HasOne(e => e.Conversation).WithMany(e => e.ConversationMembers).HasForeignKey(e => e.ConversationId);
+        // Relationship configurations
+        builder.HasOne(e => e.User)
+            .WithMany(e => e.ConversationMembers)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(e => e.Conversation)
+            .WithMany(e => e.ConversationMembers)
+            .HasForeignKey(e => e.ConversationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(e => e.LastReadMessage)
+            .WithMany()
+            .HasForeignKey(e => e.LastMessageId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(e => e.Messages)
+            .WithOne(e => e.Sender)
+            .HasForeignKey(e => e.SenderId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasMany(e => e.MessageStatuses)
+            .WithOne(e => e.User)
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Composite unique index for UserId and ConversationId
+        builder.HasIndex(e => new { e.UserId, e.ConversationId }).IsUnique();
     }
 }
