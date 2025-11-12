@@ -13,9 +13,22 @@ public class MessageStatus : BaseEntity
 
     public DateTime? DeliveredAt { get; set; }
 
+    public CurrentMessageStatus CurrentStatus { get; set; }
+
     public DateTime? ReadAt { get; set; }
 
     public Message Message { get; set; }
 
     public ConversationMember User { get; set; }
+}
+
+public enum CurrentMessageStatus
+{
+    Sent,
+
+    Delivered,
+
+    Read,
+
+    None
 }
