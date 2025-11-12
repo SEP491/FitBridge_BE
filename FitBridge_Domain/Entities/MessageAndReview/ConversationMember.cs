@@ -12,7 +12,7 @@ public class ConversationMember : BaseEntity
 
     public string CustomTitle { get; set; }
 
-    public string ConversationImage { get; set; }
+    public string? ConversationImage { get; set; }
 
     public DateTime? LastReadAt { get; set; }
 
