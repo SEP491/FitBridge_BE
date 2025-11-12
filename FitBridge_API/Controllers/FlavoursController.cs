@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Flavours;
+using FitBridge_Application.Features.Flavours.GetAllFlavours;
 namespace FitBridge_API.Controllers;
 
 public class FlavoursController(IMediator _mediator) : _BaseApiController   
