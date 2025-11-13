@@ -3,6 +3,7 @@ using AutoMapper;
 using FitBridge_Application.Features.Products.CreateProduct;
 using FitBridge_Application.Dtos.Products;
 using FitBridge_Domain.Entities.Ecommerce;
+using FitBridge_Application.Dtos.ProductDetails;
 
 namespace FitBridge_Application.MappingProfiles;
 
@@ -48,5 +49,16 @@ public class ProductMappingProfile : Profile
         .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.ProductDetails.SelectMany(pd => pd.Reviews).Any() ? src.ProductDetails.Average(pd => pd.Reviews.Average(r => r.Rating)) : 0))
         .ForMember(dest => dest.TotalReviews, opt => opt.MapFrom(src => src.ProductDetails.Sum(pd => pd.Reviews.Count)))
         .ForMember(dest => dest.CountryOfOrigin, opt => opt.MapFrom(src => src.CountryOfOrigin));
+
+        CreateMap<Product, ProductDetailForSaleResponseDto>()
+        .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.Id))
+        .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Name))
+        .ForMember(dest => dest.ProductImageUrl, opt => opt.MapFrom(src => src.CoverImageUrl))
+        .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.ProductDetails.Where(pd => pd.IsDisplayed).SelectMany(pd => pd.Reviews).Any() ? src.ProductDetails.Where(pd => pd.IsDisplayed).SelectMany(pd => pd.Reviews).Average(r => r.Rating) : 0))
+        .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.Brand.Name))
+        .ForMember(dest => dest.SubCategoryName, opt => opt.MapFrom(src => src.SubCategory.Name))
+        .ForMember(dest => dest.ProteinSources, opt => opt.MapFrom(src => src.ProteinSources))
+        .ForMember(dest => dest.CountryOfOrigin, opt => opt.MapFrom(src => src.CountryOfOrigin))
+        .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
     }
 }

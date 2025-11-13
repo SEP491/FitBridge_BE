@@ -10,12 +10,12 @@ public class ConversationMemberConfiguration : IEntityTypeConfiguration<Conversa
     public void Configure(EntityTypeBuilder<ConversationMember> builder)
     {
         builder.ToTable("ConversationMembers");
-
-        builder.Ignore(e => e.Id);
+        // Composite unique index for UserId and ConversationId
+        builder.HasIndex(e => new { e.UserId, e.ConversationId }).IsUnique();
         // Property configurations
         builder.Property(e => e.ConversationId).IsRequired(true);
         builder.Property(e => e.UserId).IsRequired(true);
-        builder.Property(e => e.CustomTitle).IsRequired(false);
+        builder.Property(e => e.CustomTitle).IsRequired(true);
         builder.Property(e => e.ConversationImage).IsRequired(false);
         builder.Property(e => e.LastMessageId).IsRequired(false);
         builder.Property(e => e.LastReadAt).IsRequired(false);
@@ -49,7 +49,6 @@ public class ConversationMemberConfiguration : IEntityTypeConfiguration<Conversa
             .HasForeignKey(e => e.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Composite unique index for UserId and ConversationId
-        builder.HasIndex(e => new { e.UserId, e.ConversationId }).IsUnique();
+
     }
 }

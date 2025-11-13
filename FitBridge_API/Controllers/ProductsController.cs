@@ -2,9 +2,11 @@ using System;
 
 using FitBridge_API.Controllers;
 using FitBridge_API.Helpers.RequestHelpers;
+using FitBridge_Application.Dtos.ProductDetails;
 using FitBridge_Application.Dtos.Products;
 using FitBridge_Application.Features.Products.CreateProduct;
 using FitBridge_Application.Features.Products.GetAllProductForAdmin;
+using FitBridge_Application.Features.Products.GetProductDetailForSale;
 using FitBridge_Application.Features.Products.GetProductForAdminById;
 using FitBridge_Application.Features.Products.GetProductForSale;
 using FitBridge_Application.Features.Products.UpdateProduct;
@@ -56,5 +58,13 @@ public class ProductsController(IMediator _mediator) : _BaseApiController
         command.Id = id;
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<ProductResponseDto>(StatusCodes.Status200OK.ToString(), "Product updated successfully", result));
+    }
+    
+    [HttpGet("detail/{id}")]
+    public async Task<IActionResult> GetProductDetailForSale([FromRoute] Guid id)
+    {
+        var query = new GetProductDetailForSaleQuery { ProductId = id };
+        var result = await _mediator.Send(query);
+        return Ok(new BaseResponse<ProductDetailForSaleResponseDto>(StatusCodes.Status200OK.ToString(), "Product detail retrieved successfully", result));
     }
 }
