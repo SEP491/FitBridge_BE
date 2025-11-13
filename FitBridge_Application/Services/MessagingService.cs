@@ -26,5 +26,16 @@ namespace FitBridge_Application.Services
 
             return index + 1; // 1-based index
         }
+
+        public string? GetMessageStatus(Message message)
+        {
+            if (message.DeletedAt != null)
+                return "Deleted";
+
+            if (message.UpdatedAt != null)
+                return "Edited";
+
+            return null;
+        }
     }
 }

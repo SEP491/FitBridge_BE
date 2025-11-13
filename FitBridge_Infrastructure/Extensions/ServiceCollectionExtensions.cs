@@ -32,6 +32,8 @@ using System.Threading.Channels;
 using Appwrite;
 using Appwrite.Services;
 using FitBridge_Infrastructure.Services.Meetings.Helpers;
+using FitBridge_Application.Interfaces.Services.Messaging;
+using FitBridge_Infrastructure.Services.Messaging;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -177,6 +179,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddSingleton<NotificationHandshakeManager>();
             services.AddSingleton<SessionManager>();
 
+            services.AddScoped<IMessagingHubService, MessagingHubService>();
             services.AddScoped<INotificationService, NotificationsService>();
             services.AddScoped<IIdentitySeeder, IdentitySeeder>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();

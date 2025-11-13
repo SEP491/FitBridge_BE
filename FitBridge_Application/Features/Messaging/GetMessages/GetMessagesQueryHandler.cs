@@ -2,50 +2,29 @@
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Services;
-using FitBridge_Application.Specifications;
 using FitBridge_Application.Specifications.Messaging.GetMessages;
-using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.MessageAndReview;
-using FitBridge_Domain.Entities.Trainings;
-using FitBridge_Domain.Enums.MessageAndReview;
 using FitBridge_Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using CurrentMessageStatus = FitBridge_Domain.Enums.MessageAndReview.CurrentMessageStatus;
 
-namespace FitBridge_Application.Features.Messaging.GetMessagesInRange
+namespace FitBridge_Application.Features.Messaging.GetMessages
 {
-    internal class GetMessagesInRangeQueryHandler(
-        MessagingService messagingService,
+    internal class GetMessagesQueryHandler(
         IUnitOfWork unitOfWork,
-        IUserUtil userUtil,
-        IHttpContextAccessor httpContextAccessor) : IRequestHandler<GetMessagesInRangeQuery, IEnumerable<GetMessagesDto>>
+        MessagingService messagingService) : IRequestHandler<GetMessagesQuery, IEnumerable<GetMessagesDto>>
     {
-        public async Task<IEnumerable<GetMessagesDto>> Handle(GetMessagesInRangeQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<GetMessagesDto>> Handle(GetMessagesQuery request, CancellationToken cancellationToken)
         {
-            var userId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
-                ?? throw new NotFoundException(nameof(ApplicationUser));
-
-            if (request.CurrentPage <= 0) request.CurrentPage = 1;
-
-            var targetMessageIndex = await messagingService.GetMessageIndexAsync(request.ConversationId, request.TargetMessageId);
-            var targetPageNumber = (targetMessageIndex / BaseParams.PAGE_SIZE) + 1;
-
-            if (targetPageNumber <= request.CurrentPage) return [];
-
-            var spec = new GetMessagesSpec(
-                request.ConversationId,
-                userId,
-                skip: BaseParams.PAGE_SIZE * request.CurrentPage,
-                take: BaseParams.PAGE_SIZE * (targetPageNumber - request.CurrentPage),
-                includeBookingRequest: true,
-                includeConversationMembers: true,
+            var spec = new GetMessagesSpec(request.ConversationId,
+                parameters: request.Params,
                 includeOwnMessageStatus: true,
+                includeBookingRequest: true,
                 includeReplyToMessage: true,
-                includeSender: true);
-
-            var messages = await unitOfWork
-                .Repository<Message>()
-                .GetAllWithSpecificationAsync(spec);
+                includeSender: true,
+                includeConversationMembers: true);
+            var messages = await unitOfWork.Repository<Message>().GetAllWithSpecificationAsync(spec);
 
             var dtos = messages.Select(x => new GetMessagesDto
             {
@@ -67,16 +46,14 @@ namespace FitBridge_Application.Features.Messaging.GetMessagesInRange
                 SenderId = x.SenderId,
                 Reaction = x.Reaction ?? string.Empty,
                 SenderName = x.Sender?.User.UserName,
-                SenderAvatarUrl = x.MessageType != MessageType.System
-                    ? x.Sender?.User.AvatarUrl
-                    : null,
+                SenderAvatarUrl = x.Sender?.User.AvatarUrl,
                 BookingRequest = x.BookingRequest != null ? MapBookingRequestDto(x.BookingRequest) : null
             });
 
             return dtos;
         }
 
-        private static BookingRequestDto MapBookingRequestDto(BookingRequest bookingRequest)
+        private static BookingRequestDto MapBookingRequestDto(FitBridge_Domain.Entities.Trainings.BookingRequest bookingRequest)
         {
             return new BookingRequestDto
             {

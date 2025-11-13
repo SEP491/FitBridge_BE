@@ -10,10 +10,28 @@ using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Application.Specifications.Bookings.GetFreelancePtBookingForValidate;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Services;
+using System.Formats.Asn1;
+using FitBridge_Application.Interfaces.Utils;
+using Microsoft.AspNetCore.Http;
+using FitBridge_Application.Interfaces.Services.Messaging;
+using FitBridge_Domain.Entities.Identity;
+using FitBridge_Application.Specifications.Messaging.GetMessageByBookingRequest;
+using FitBridge_Domain.Entities.MessageAndReview;
+using FitBridge_Domain.Enums.MessageAndReview;
+using FitBridge_Application.Specifications.Messaging.GetConversationMembers;
+using FitBridge_Application.Dtos.Messaging;
 
 namespace FitBridge_Application.Features.Bookings.AcceptBookingRequestCommand;
 
-public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IScheduleJobServices _scheduleJobServices, BookingService _bookingService) : IRequestHandler<AcceptBookingRequestCommand, Guid>
+public class AcceptBookingRequestCommandHandler(
+    IUnitOfWork _unitOfWork,
+    IMapper _mapper,
+    IScheduleJobServices _scheduleJobServices,
+    IUserUtil userUtil,
+    IMessagingHubService messagingHubService,
+    IHttpContextAccessor httpContextAccessor,
+
+    BookingService _bookingService) : IRequestHandler<AcceptBookingRequestCommand, Guid>
 {
     public async Task<Guid> Handle(AcceptBookingRequestCommand request, CancellationToken cancellationToken)
     {
@@ -44,7 +62,91 @@ public class AcceptBookingRequestCommandHandler(IUnitOfWork _unitOfWork, IMapper
         _unitOfWork.Repository<BookingRequest>().Update(bookingRequest);
         await _scheduleJobServices.ScheduleAutoCancelBookingJob(newBooking);
         await _scheduleJobServices.CancelScheduleJob($"AutoRejectBookingRequest_{bookingRequest.Id}", "AutoRejectBookingRequest");
+
+        var userId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
+                ?? throw new NotFoundException(nameof(ApplicationUser));
+        var userName = userUtil.GetUserFullName(httpContextAccessor.HttpContext)
+                ?? throw new NotFoundException("User name not found");
+        var message = await GetMessageAsync(request.BookingRequestId);
+        var msgContent = $"{userName} has approved the booking request";
+        InsertSystemMessage(message, msgContent, out var newSystemMessage);
         await _unitOfWork.CommitAsync();
+        await SendAcceptedMessage(
+            message,
+            msgContent,
+            newSystemMessage,
+            bookingRequest,
+            userId);
         return request.BookingRequestId;
+    }
+
+    private async Task<Message> GetMessageAsync(Guid bookingRequestId)
+    {
+        var msgSpec = new GetMessageByBookingRequestSpec(bookingRequestId);
+        var message = await _unitOfWork.Repository<Message>().GetBySpecificationAsync(msgSpec);
+        return message;
+    }
+
+    private void InsertSystemMessage(Message message, string msgContent, out Message newSystemMessage)
+    {
+        newSystemMessage = new Message
+        {
+            Id = Guid.NewGuid(),
+            Content = msgContent,
+            ConversationId = message.ConversationId,
+            MediaType = MediaType.Text,
+            MessageType = MessageType.System,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = null,
+        };
+
+        _unitOfWork.Repository<Message>().Insert(newSystemMessage);
+    }
+
+    private async Task SendAcceptedMessage(
+        Message message,
+        string msgContent,
+        Message newSystemMessage,
+        BookingRequest bookingRequest,
+        Guid userId)
+    {
+        var convo = await _unitOfWork.Repository<Conversation>().GetByIdAsync(message.ConversationId);
+        convo.LastMessageMediaType = MediaType.BookingRequest;
+        convo.LastMessageContent = msgContent;
+        convo.LastMessageId = newSystemMessage.Id;
+        convo.LastMessageType = MessageType.System;
+        convo.UpdatedAt = DateTime.UtcNow;
+
+        _unitOfWork.Repository<Conversation>().Update(convo);
+
+        await _unitOfWork.CommitAsync();
+        var convoMemberSpec = new GetConversationMembersSpec(message.ConversationId);
+        var users = (await _unitOfWork.Repository<ConversationMember>()
+            .GetAllWithSpecificationAsync(convoMemberSpec))
+            .Select(x => x.UserId.ToString());
+
+        var dtoSystemMessage = new MessageReceivedDto
+        {
+            Id = newSystemMessage.Id,
+            ConversationId = message.ConversationId,
+            MessageType = MessageType.System.ToString(),
+            Content = newSystemMessage.Content,
+            CreatedAt = DateTime.UtcNow,
+            MediaType = MediaType.Text.ToString(),
+        };
+
+        await messagingHubService.NotifyUsers(dtoSystemMessage, users);
+        var bookingRequestDto = BookingRequestDto.FromEntity(bookingRequest);
+        bookingRequestDto.RequestStatus = BookingRequestStatus.Approved.ToString();
+        var dtoUpdatedMessageSchedule = new MessageUpdatedDto
+        {
+            Id = message.Id,
+            ConversationId = message.ConversationId,
+            MessageType = MessageType.System.ToString(),
+            BookingRequest = bookingRequestDto,
+            Status = "Updated"
+        };
+
+        await messagingHubService.NotifyUsers(dtoUpdatedMessageSchedule, users.Except([userId.ToString()]));
     }
 }

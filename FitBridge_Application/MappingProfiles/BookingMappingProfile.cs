@@ -74,6 +74,7 @@ public class BookingMappingProfile : Profile
         .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
         .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
         .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
+        .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
         .ForMember(dest => dest.RequestType, opt => opt.MapFrom(src => src.RequestType));
 
         CreateMap<BookingRequest, Booking>()
@@ -96,7 +97,6 @@ public class BookingMappingProfile : Profile
         .ForMember(dest => dest.TargetBookingId, opt => opt.MapFrom(src => src.TargetBookingId))
         .ForMember(dest => dest.RequestType, opt => opt.MapFrom(src => src.RequestType))
         .ForMember(dest => dest.RequestStatus, opt => opt.MapFrom(src => src.RequestStatus));
-
 
         CreateMap<BookingRequest, UpdateBookingResponseDto>()
         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
@@ -210,7 +210,6 @@ public class BookingMappingProfile : Profile
             PlannedPracticeTimeSeconds = s.ActivitySets.Sum(a => a.PlannedPracticeTime ?? 0),
             CompletedDistanceMeters = s.ActivitySets.Sum(a => a.IsCompleted ? a.ActualDistance ?? 0 : 0),
             CompletedPracticeTimeSeconds = s.ActivitySets.Sum(a => a.IsCompleted ? a.PracticeTime ?? 0 : 0),
-
         }).ToList()));
     }
 }

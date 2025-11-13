@@ -33,6 +33,7 @@ public class UserTokenService(
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Name, user.FullName),
+                    new Claim("AvatarUrl", user.AvatarUrl),
                     new Claim(ClaimTypes.Role, string.Join(",", roles)),
                 ]),
             Expires = DateTime.Now.AddMinutes(configuration.GetValue<int>("JwtAccessTokenSettings:ExpirationInMinutes")),

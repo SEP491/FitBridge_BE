@@ -36,6 +36,11 @@ namespace FitBridge_Infrastructure.Repositories
             return addedEntity;
         }
 
+        public void InsertRange(List<T> entities)
+        {
+            _dbContext.Set<T>().AddRange(entities);
+        }
+
         public T? Update(T entityToUpdate)
         {
             _dbContext.Entry(entityToUpdate).State = EntityState.Modified;
@@ -80,6 +85,12 @@ namespace FitBridge_Infrastructure.Repositories
                 query = query.AsNoTracking();
             }
             return await SpecificationQueryBuilder<T>.BuildQuery(query, specification).ToListAsync();
+        }
+
+        public async Task<bool> AnyAsync(ISpecification<T> specification)
+        {
+            IQueryable<T> query = _dbContext.Set<T>().AsQueryable().AsNoTracking();
+            return await SpecificationQueryBuilder<T>.BuildQuery(query, specification).AnyAsync();
         }
 
         public async Task<T?> GetBySpecificationAsync(ISpecification<T> specification, bool asNoTracking = true)

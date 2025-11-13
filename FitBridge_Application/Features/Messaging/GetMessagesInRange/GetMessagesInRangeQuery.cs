@@ -3,7 +3,7 @@ using MediatR;
 
 namespace FitBridge_Application.Features.Messaging.GetMessagesInRange
 {
-    internal class GetMessagesInRangeQuery : IRequest<IEnumerable<GetMessagesDto>>
+    public class GetMessagesInRangeQuery : IRequest<IEnumerable<GetMessagesDto>>
     {
         public Guid ConversationId { get; set; }
 

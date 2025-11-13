@@ -8,6 +8,7 @@ using FitBridge_Infrastructure.Extensions;
 using FitBridge_Infrastructure.Persistence;
 using FitBridge_Infrastructure.Seeder;
 using FitBridge_Infrastructure.Services.Meetings;
+using FitBridge_Infrastructure.Services.Messaging;
 using FitBridge_Infrastructure.Services.Notifications;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -44,6 +45,7 @@ app.UseHttpsRedirection();
 
 app.MapHub<NotificationHub>("hub/notifications");
 app.MapHub<SignalingHub>("hub/signaling");
+app.MapHub<MessagingHub>("hub/messaging");
 app.MapControllers();
 app.UseRouting();
 app.UseAuthentication();

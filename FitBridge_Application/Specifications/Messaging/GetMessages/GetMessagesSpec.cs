@@ -8,6 +8,7 @@ namespace FitBridge_Application.Specifications.Messaging.GetMessages
             Guid convoId,
             Guid? userId = null,
             GetMessagesParam? parameters = null,
+            List<Guid>? messagesInclude = null,
             int? skip = null,
             int? take = null,
             Guid? messageId = null,
@@ -18,6 +19,7 @@ namespace FitBridge_Application.Specifications.Messaging.GetMessages
             bool includeConversationMembers = false) : base(x =>
             (messageId == null || x.Id == messageId)
             && x.ConversationId == convoId
+            && (messagesInclude == null || messagesInclude.Contains(x.Id))
         )
         {
             if (parameters != null && parameters.DoApplyPaging)

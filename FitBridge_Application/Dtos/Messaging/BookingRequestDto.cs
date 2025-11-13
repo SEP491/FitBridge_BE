@@ -1,12 +1,10 @@
+using FitBridge_Domain.Entities.Trainings;
+
 namespace FitBridge_Application.Dtos.Messaging;
 
 public class BookingRequestDto
 {
-    public Guid Id { get; set; }
-
-    public Guid CustomerId { get; set; }
-
-    public Guid PtId { get; set; }
+    public Guid BookingRequestId { get; set; }
 
     public Guid? TargetBookingId { get; set; }
 
@@ -25,4 +23,20 @@ public class BookingRequestDto
     public DateOnly BookingDate { get; set; }
 
     public string RequestType { get; set; }
+
+    public static BookingRequestDto FromEntity(BookingRequest bookingRequest)
+    {
+        return new BookingRequestDto
+        {
+            BookingRequestId = bookingRequest.Id,
+            RequestStatus = bookingRequest.RequestStatus.ToString(),
+            RequestType = bookingRequest.RequestType.ToString(),
+            StartTime = bookingRequest.StartTime,
+            EndTime = bookingRequest.EndTime,
+            BookingDate = bookingRequest.BookingDate,
+            TargetBookingId = bookingRequest.TargetBookingId,
+            Note = bookingRequest.Note,
+            BookingName = bookingRequest.BookingName
+        };
+    }
 }
