@@ -4,7 +4,7 @@
     {
         private const int _maxPageSize = 20;
 
-        private int _pageSize = 10;
+        public static int PAGE_SIZE = 10;
 
         public bool DoApplyPaging { get; set; } = true;
 
@@ -12,8 +12,8 @@
 
         public int Size
         {
-            get { return _pageSize; }
-            set { _pageSize = value > _maxPageSize ? _maxPageSize : value; }
+            get { return PAGE_SIZE; }
+            set { PAGE_SIZE = value > _maxPageSize ? _maxPageSize : value; }
         }
 
         public string SortBy { get; set; } = "Id";

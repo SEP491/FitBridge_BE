@@ -26,6 +26,7 @@ namespace FitBridge_Application.Extensions
             // business services
             services.AddScoped<CouponService>();
             services.AddScoped<AccountService>();
+            services.AddScoped<MessagingService>();
         }
     }
 }
