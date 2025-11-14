@@ -2,6 +2,7 @@
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services.Messaging;
 using FitBridge_Application.Interfaces.Utils;
+using FitBridge_Application.Specifications.Messaging.GetConversationMembers;
 using FitBridge_Application.Specifications.Messaging.GetMessages;
 using FitBridge_Application.Specifications.Messaging.GetMessageStatuses;
 using FitBridge_Application.Specifications.Messaging.GetOtherConversationMembers;
@@ -25,9 +26,17 @@ namespace FitBridge_Application.Features.Messaging.ReadMessages
             var userId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
                     ?? throw new NotFoundException(nameof(ApplicationUser));
 
+            // Get the user's ConversationMember record
+            var memberSpec = new GetConversationMembersSpec(request.ConversationId, userId);
+            var convoMember = await unitOfWork.Repository<ConversationMember>().GetBySpecificationAsync(memberSpec)
+                ?? throw new NotFoundException("User is not a member of this conversation");
+
             // Validate that all messages belong to the specified conversation
             var messageIds = request.MessageIds;
-            var msgSpec = new GetMessagesSpec(request.ConversationId, messagesInclude: request.MessageIds);
+            var msgSpec = new GetMessagesSpec(
+                request.ConversationId,
+                includeConversationMembers: false,
+                messagesInclude: request.MessageIds);
             var messages = await unitOfWork.Repository<Message>().GetAllWithSpecificationAsync(msgSpec);
 
             if (messages.Count != messageIds.Count)
@@ -40,7 +49,7 @@ namespace FitBridge_Application.Features.Messaging.ReadMessages
 
             foreach (var messageId in messageIds)
             {
-                var msgStatusSpec = new GetMessageStatusesSpec(messageId, userId);
+                var msgStatusSpec = new GetMessageStatusesSpec(messageId, convoMember.Id);
                 var existingStatus = await unitOfWork.Repository<MessageStatus>()
                     .GetBySpecificationAsync(msgStatusSpec);
 
@@ -49,7 +58,7 @@ namespace FitBridge_Application.Features.Messaging.ReadMessages
                     var newStatus = new MessageStatus
                     {
                         MessageId = messageId,
-                        UserId = userId,
+                        UserId = convoMember.Id, // Use ConversationMember.Id
                         CurrentStatus = CurrentMessageStatus.Read,
                         ReadAt = now,
                         DeliveredAt = now,

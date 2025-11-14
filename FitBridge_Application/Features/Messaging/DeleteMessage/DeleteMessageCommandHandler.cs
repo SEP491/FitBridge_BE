@@ -2,6 +2,7 @@
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services.Messaging;
 using FitBridge_Application.Interfaces.Utils;
+using FitBridge_Application.Specifications.Messaging.GetConversationMembers;
 using FitBridge_Application.Specifications.Messaging.GetOtherConversationMembers;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.MessageAndReview;
@@ -21,12 +22,18 @@ namespace FitBridge_Application.Features.Messaging.DeleteMessage
         public async Task Handle(DeleteMessageCommand request, CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
-            var senderId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
+            var userId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
                     ?? throw new NotFoundException(nameof(ApplicationUser));
 
             var existingMessage = await unitOfWork.Repository<Message>().GetByIdAsync(request.MessageId, includes: [nameof(Message.Conversation)])
                 ?? throw new NotFoundException(nameof(Message));
-            if (existingMessage.SenderId != senderId)
+            
+            // Get the user's ConversationMember record to compare with SenderId
+            var memberSpec = new GetConversationMembersSpec(existingMessage.ConversationId, userId);
+            var senderMember = await unitOfWork.Repository<ConversationMember>().GetBySpecificationAsync(memberSpec)
+                ?? throw new NotFoundException("User is not a member of this conversation");
+            
+            if (existingMessage.SenderId != senderMember.Id)
             {
                 throw new InvalidDataException("Sender not match with database");
             }
@@ -44,7 +51,7 @@ namespace FitBridge_Application.Features.Messaging.DeleteMessage
 
             await unitOfWork.CommitAsync();
 
-            var spec = new GetOtherConversationMembersSpec(existingMessage.ConversationId, senderId);
+            var spec = new GetOtherConversationMembersSpec(existingMessage.ConversationId, userId);
             var users = (await unitOfWork.Repository<ConversationMember>().GetAllWithSpecificationAsync(spec))
                 .Select(x => x.UserId.ToString()).ToList();
 

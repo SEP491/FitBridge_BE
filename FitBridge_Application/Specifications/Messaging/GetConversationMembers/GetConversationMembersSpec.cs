@@ -9,6 +9,7 @@ namespace FitBridge_Application.Specifications.Messaging.GetConversationMembers
             x.ConversationId == convoId
             && (userId == null || x.UserId == userId))
         {
+            AddInclude(x => x.User);
         }
     }
 }

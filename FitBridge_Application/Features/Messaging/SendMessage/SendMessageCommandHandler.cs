@@ -41,8 +41,11 @@ namespace FitBridge_Application.Features.Messaging.SendMessage
             }
 
             var spec = new GetConversationMembersSpec(request.ConversationId);
-            var users = (await unitOfWork.Repository<ConversationMember>().GetAllWithSpecificationAsync(spec))
-                .Select(x => x.UserId.ToString()).ToList();
+            var conversationMembers = await unitOfWork.Repository<ConversationMember>().GetAllWithSpecificationAsync(spec);
+            
+            // Get the sender's ConversationMember record
+            var senderMember = conversationMembers.FirstOrDefault(x => x.UserId == senderId)
+                ?? throw new NotFoundException("Sender is not a member of this conversation");
 
             var newMessageGuid = Guid.NewGuid();
             var mediaType = Enum.Parse<MediaType>(request.MediaType);
@@ -56,7 +59,7 @@ namespace FitBridge_Application.Features.Messaging.SendMessage
                 ReplyToMessageId = request.ReplyToMessageId ?? null,
                 CreatedAt = now,
                 UpdatedAt = null,
-                SenderId = senderId,
+                SenderId = senderMember.Id, // Use ConversationMember.Id
             };
 
             List<CreateRequestBookingResponseDto?> newBookingRequest = [];
@@ -101,7 +104,7 @@ namespace FitBridge_Application.Features.Messaging.SendMessage
             {
                 Id = Guid.NewGuid(),
                 MessageId = newMessage.Id,
-                UserId = senderId,
+                UserId = senderMember.Id, // Use ConversationMember.Id
                 CurrentStatus = CurrentMessageStatus.Sent,
                 ReadAt = now,
                 SentAt = now,
@@ -121,7 +124,7 @@ namespace FitBridge_Application.Features.Messaging.SendMessage
             else
             {
                 convo.LastMessageSenderName = senderName;
-                convo.LastMessageSenderId = senderId;
+                convo.LastMessageSenderId = senderMember.Id; // Use ConversationMember.Id
 
                 convo.LastMessageContent = request.Content ?? string.Empty;
                 convo.LastMessageMediaType = mediaType;
@@ -132,6 +135,9 @@ namespace FitBridge_Application.Features.Messaging.SendMessage
             unitOfWork.Repository<Conversation>().Update(convo);
 
             await unitOfWork.CommitAsync();
+
+            // For SignalR notifications, we still use the UserId
+            var userIds = conversationMembers.Select(x => x.UserId.ToString()).ToList();
 
             if (newSystemMessage != null)
             {
@@ -144,7 +150,7 @@ namespace FitBridge_Application.Features.Messaging.SendMessage
                     CreatedAt = now,
                     MediaType = MediaType.Text.ToString(),
                 };
-                await messagingHubService.NotifyUsers(dtoSystemMessage, users.AsReadOnly());
+                await messagingHubService.NotifyUsers(dtoSystemMessage, userIds.AsReadOnly());
             }
             var dto = new MessageReceivedDto
             {
@@ -164,7 +170,7 @@ namespace FitBridge_Application.Features.Messaging.SendMessage
                 BookingRequest = bookingRequest
                                     != null ? BookingRequestDto.FromEntity(bookingRequest) : null
             };
-            await messagingHubService.NotifyUsers(dto, users.AsReadOnly());
+            await messagingHubService.NotifyUsers(dto, userIds);
         }
     }
 }

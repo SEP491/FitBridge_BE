@@ -1,5 +1,6 @@
 using FitBridge_Domain.Entities.Trainings;
 using FitBridge_Domain.Enums.MessageAndReview;
+using System.ComponentModel.DataAnnotations;
 
 namespace FitBridge_Domain.Entities.MessageAndReview;
 

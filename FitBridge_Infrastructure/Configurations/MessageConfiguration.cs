@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities.MessageAndReview;
+using FitBridge_Domain.Enums.MessageAndReview;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,11 +11,17 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
     public void Configure(EntityTypeBuilder<Message> builder)
     {
         builder.ToTable("Messages");
-        
+
         // Property configurations
         builder.Property(e => e.Content).IsRequired(true);
-        builder.Property(e => e.MessageType).IsRequired(true);
-        builder.Property(e => e.MediaType).IsRequired(true);
+        builder.Property(e => e.MessageType).IsRequired(true).HasConversion(
+            convertToProviderExpression: s => s.ToString(),
+            convertFromProviderExpression: s => Enum.Parse<MessageType>(s)
+            );
+        builder.Property(e => e.MediaType).IsRequired(true).HasConversion(
+            convertToProviderExpression: s => s.ToString(),
+            convertFromProviderExpression: s => Enum.Parse<MediaType>(s)
+            );
         builder.Property(e => e.Metadata).IsRequired(false);
         builder.Property(e => e.DeletedAt).IsRequired(false);
         builder.Property(e => e.Reaction).IsRequired(false);
@@ -31,11 +38,6 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
             .WithMany(e => e.Messages)
             .HasForeignKey(e => e.ConversationId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(e => e.Sender)
-            .WithMany(e => e.Messages)
-            .HasForeignKey(e => e.SenderId)
-            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne(e => e.ReplyToMessage)
             .WithMany()

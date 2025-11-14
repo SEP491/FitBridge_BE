@@ -52,57 +52,69 @@ namespace FitBridge_Application.Features.Messaging.CreateConversation
                 LastMessageMediaType = MediaType.Text,
                 LastMessageContent = request.NewMessageContent,
                 LastMessageType = MessageType.User,
-                LastMessageSenderId = senderId,
-                LastMessageSenderName = request.Members.First(m => m.MemberId.ToString() == senderId.ToString()).MemberName
             };
             unitOfWork.Repository<Conversation>().Insert(newConversation);
 
             var newMessageId = Guid.NewGuid();
             var groupName = CreateGroupName(request.Members);
             var groupImage = request.GroupImage;
+
+            // Create conversation members
+            var conversationMembers = new List<ConversationMember>();
             for (int i = 0; i < request.Members.Count; ++i)
             {
                 var member = request.Members[i];
                 var conversationMember = new ConversationMember
                 {
+                    Id = Guid.NewGuid(), // Explicitly set the Id
                     ConversationId = newConversation.Id,
                     UserId = member.MemberId,
                     CustomTitle = !request.IsGroup ? request.Members[1 - i].MemberName : groupName, // get the other member: 1 - 0 = 1, 1- 1 = 0
                     ConversationImage = !request.IsGroup ? request.Members[1 - i].MemberAvatarUrl : groupImage,
+                    CreatedAt = now,
+                    UpdatedAt = now,
                 };
 
                 unitOfWork.Repository<ConversationMember>().Insert(conversationMember);
-
-                if (member.MemberId == senderId)
-                {
-                    var newMessage = new Message
-                    {
-                        Id = newMessageId,
-                        Content = request.NewMessageContent,
-                        ConversationId = newConversation.Id,
-                        MediaType = MediaType.Text,
-                        ReplyToMessageId = null,
-                        CreatedAt = now,
-                        SenderId = conversationMember.UserId
-                    };
-                    unitOfWork.Repository<Message>().Insert(newMessage);
-
-                    newConversation.LastMessageId = newMessage.Id;
-
-                    var newMessageStatus = new MessageStatus
-                    {
-                        Id = Guid.NewGuid(),
-                        MessageId = newMessage.Id,
-                        UserId = senderId,
-                        CurrentStatus = CurrentMessageStatus.Sent,
-                        ReadAt = now,
-                        SentAt = now,
-                        DeliveredAt = null
-                    };
-                    unitOfWork.Repository<MessageStatus>().Insert(newMessageStatus);
-                }
+                conversationMembers.Add(conversationMember);
             }
 
+            // Commit to save Conversation and ConversationMembers first
+            await unitOfWork.CommitAsync();
+
+            // Now create the message with the correct SenderId (ConversationMember.Id)
+            var senderMember = conversationMembers.First(cm => cm.UserId == senderId);
+
+            var newMessage = new Message
+            {
+                Id = newMessageId,
+                Content = request.NewMessageContent,
+                ConversationId = newConversation.Id,
+                MediaType = MediaType.Text,
+                ReplyToMessageId = null,
+                CreatedAt = now,
+                SenderId = senderMember.Id // Use the ConversationMember.Id
+            };
+            unitOfWork.Repository<Message>().Insert(newMessage);
+
+            newConversation.LastMessageSenderId = senderMember.Id;
+            newConversation.LastMessageSenderName = request.Members.First(m => m.MemberId == senderId).MemberName;
+            newConversation.LastMessageId = newMessageId;
+            unitOfWork.Repository<Conversation>().Update(newConversation);
+
+            var newMessageStatus = new MessageStatus
+            {
+                Id = Guid.NewGuid(),
+                MessageId = newMessage.Id,
+                UserId = senderMember.Id,
+                CurrentStatus = CurrentMessageStatus.Sent,
+                ReadAt = now,
+                SentAt = now,
+                DeliveredAt = null
+            };
+            unitOfWork.Repository<MessageStatus>().Insert(newMessageStatus);
+
+            // Commit the message and status
             await unitOfWork.CommitAsync();
 
             var newConvoDto = new NewConversationDto
