@@ -62,4 +62,20 @@ public class UserUtil : IUserUtil
         var roles = nameClaim.Value.Split(',');
         return roles.FirstOrDefault();
     }
+
+    public string? GetAvatarUrl(HttpContext httpContext)
+    {
+        if (httpContext.User == null)
+        {
+            return null;
+        }
+
+        var avatarClaim = httpContext.User.FindFirst("AvatarUrl");
+        if (avatarClaim == null)
+        {
+            return null;
+        }
+
+        return avatarClaim.Value;
+    }
 }

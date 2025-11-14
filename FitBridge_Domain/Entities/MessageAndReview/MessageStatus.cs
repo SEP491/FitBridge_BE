@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities;
+using FitBridge_Domain.Enums.MessageAndReview;
 
 namespace FitBridge_Domain.Entities.MessageAndReview;
 
@@ -20,15 +21,4 @@ public class MessageStatus : BaseEntity
     public Message Message { get; set; }
 
     public ConversationMember User { get; set; }
-}
-
-public enum CurrentMessageStatus
-{
-    Sent,
-
-    Delivered,
-
-    Read,
-
-    None
 }
