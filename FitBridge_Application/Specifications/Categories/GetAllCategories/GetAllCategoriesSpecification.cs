@@ -8,5 +8,6 @@ public class GetAllCategoriesSpecification : BaseSpecification<Category>
     public GetAllCategoriesSpecification() : base(x => x.IsEnabled)
     {
         AddOrderBy(x => x.Name);
+        AddInclude(x => x.SubCategories);
     }
 }

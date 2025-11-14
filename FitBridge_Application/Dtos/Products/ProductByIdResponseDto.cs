@@ -10,11 +10,13 @@ public class ProductByIdResponseDto
     public string Description { get; set; }
     public string BrandName { get; set; }
     public Guid BrandId { get; set; }
+    public string? CountryOfOrigin { get; set; }
     public Guid SubCategoryId { get; set; }
     public string SubCategoryName { get; set; }
     public string CoverImageUrl { get; set; }
     public bool IsDisplayed { get; set; }
-    public bool TotalSold { get; set; }
+    public int TotalSold { get; set; }
+    public string? ProteinSources { get; set; }
     public List<ProductDetailForAdminResponseDto> ProductDetails { get; set; } = new List<ProductDetailForAdminResponseDto>();
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
