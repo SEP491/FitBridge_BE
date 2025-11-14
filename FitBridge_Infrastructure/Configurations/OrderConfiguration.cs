@@ -17,6 +17,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(e => e.CheckoutUrl).IsRequired(false);
         builder.Property(e => e.TotalAmount).IsRequired(true);
         builder.Property(e => e.AddressId).IsRequired(false);
+        builder.Property(e => e.ShippingFeeActualCost).IsRequired(false).HasDefaultValue(0m);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);

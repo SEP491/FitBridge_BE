@@ -14,6 +14,7 @@ public class Order : BaseEntity
     public decimal SubTotalPrice { get; set; }
     public Guid? AddressId { get; set; }
     public decimal ShippingFee { get; set; }
+    public decimal? ShippingFeeActualCost { get; set; }
     public decimal TotalAmount { get; set; }
     public Guid? CustomerPurchasedIdToExtend { get; set; }
     public Guid? GymCoursePTIdToAssign { get; set; }

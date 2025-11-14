@@ -7,6 +7,7 @@
         Pending,
 
         Processing,
+        Shipping,
 
         Arrived,
 

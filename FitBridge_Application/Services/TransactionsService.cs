@@ -495,6 +495,44 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         _logger.LogInformation($"Successfully scheduled expire user subscription job for user subscription {newUserSubscription.Id} at {endDate.ToLocalTime}");
         return true;
     }
+
+    public async Task<bool> UpdateOrderShippingDetails(Guid orderId, decimal shippingActualCost, string ahamoveOrderId)
+    {
+        var order = await _unitOfWork.Repository<Order>().GetByIdAsync(orderId, includes: new List<string> { "Transactions" });
+        if (order == null)
+        {
+            throw new NotFoundException($"Order with ID {orderId} not found");
+        }
+
+        // Update order shipping actual cost
+        order.ShippingFeeActualCost = shippingActualCost;
+        order.Status = OrderStatus.Shipping;
+        
+        _logger.LogInformation($"Order {orderId} updated with shipping actual cost {shippingActualCost} and status changed to Shipping");
+
+        // Calculate profit from shipping fee difference
+        var shippingProfit = order.ShippingFee - shippingActualCost;
+        
+        // Update transaction profit amount
+        var transaction = order.Transactions.FirstOrDefault();
+        if (transaction != null)
+        {
+            // Add shipping profit to existing profit amount
+            var currentProfit = transaction.ProfitAmount ?? 0;
+            transaction.ProfitAmount = currentProfit + shippingProfit;
+            
+            _logger.LogInformation($"Transaction for Order {orderId} updated with profit amount {transaction.ProfitAmount} (shipping profit: {shippingProfit})");
+            
+            _unitOfWork.Repository<Transaction>().Update(transaction);
+        }
+
+        _unitOfWork.Repository<Order>().Update(order);
+        await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation($"Successfully updated Order {orderId} with Ahamove Order ID {ahamoveOrderId}");
+        
+        return true;
+    }
     public async Task<bool> PurchaseAppleSubscriptionPlans(AsnDecodedPayload asnDecodedPayload, JwsTransactionDecoded jwsTransactionDecoded)
     {
         // var orderItemToInsert = new OrderItem
