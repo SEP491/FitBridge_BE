@@ -10,7 +10,7 @@ namespace FitBridge_Application.Services
 
         public async Task<int?> GetMessageIndexAsync(Guid convoId, Guid messageId)
         {
-            var spec = new GetMessagesSpec(convoId, messageId);
+            var spec = new GetMessagesSpec(convoId, messageId: messageId);
             var targetMessage = await unitOfWork
                 .Repository<Message>()
                 .GetBySpecificationAsync(spec);
@@ -21,7 +21,7 @@ namespace FitBridge_Application.Services
             }
             var countSpec = new GetMessagesAfterAMessageSpec(convoId, targetMessage.CreatedAt);
             var index = await unitOfWork.Repository<Message>()
-                    .CountAsync(spec);
+                    .CountAsync(countSpec);
             if (index < -1) return MESSAGE_NOT_FOUND;
 
             return index + 1; // 1-based index

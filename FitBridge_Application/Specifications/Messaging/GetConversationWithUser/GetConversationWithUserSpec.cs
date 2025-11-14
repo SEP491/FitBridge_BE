@@ -12,7 +12,7 @@ namespace FitBridge_Application.Specifications.Messaging.GetConversationWithUser
             x.ConversationMembers.Any(cm => cm.UserId == targetUserId))
         {
             AddInclude(c => c.ConversationMembers);
-            AddInclude("ConversationMember.User");
+            AddInclude($"{nameof(Conversation.ConversationMembers)}.{nameof(ConversationMember.User)}");
             AddInclude(c => c.Messages);
         }
     }

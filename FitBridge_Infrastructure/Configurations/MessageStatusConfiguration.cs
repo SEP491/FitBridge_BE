@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities.MessageAndReview;
+using FitBridge_Domain.Enums.MessageAndReview;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,7 +21,11 @@ public class MessageStatusConfiguration : IEntityTypeConfiguration<MessageStatus
         builder.Property(e => e.UserId).IsRequired(true);
         builder.Property(e => e.SentAt).IsRequired(false);
         builder.Property(e => e.DeliveredAt).IsRequired(false);
-        builder.Property(e => e.CurrentStatus).IsRequired(true);
+        builder.Property(e => e.CurrentStatus)
+            .IsRequired(true)
+            .HasConversion(
+                convertToProviderExpression: v => v.ToString(),
+                convertFromProviderExpression: v => Enum.Parse<CurrentMessageStatus>(v));
         builder.Property(e => e.ReadAt).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");

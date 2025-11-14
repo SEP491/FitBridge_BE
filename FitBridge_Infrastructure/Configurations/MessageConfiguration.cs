@@ -11,17 +11,19 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
     public void Configure(EntityTypeBuilder<Message> builder)
     {
         builder.ToTable("Messages");
-
+        
         // Property configurations
         builder.Property(e => e.Content).IsRequired(true);
-        builder.Property(e => e.MessageType).IsRequired(true).HasConversion(
-            convertToProviderExpression: s => s.ToString(),
-            convertFromProviderExpression: s => Enum.Parse<MessageType>(s)
-            );
-        builder.Property(e => e.MediaType).IsRequired(true).HasConversion(
-            convertToProviderExpression: s => s.ToString(),
-            convertFromProviderExpression: s => Enum.Parse<MediaType>(s)
-            );
+        builder.Property(e => e.MessageType)
+            .IsRequired(true)
+            .HasConversion(
+                convertToProviderExpression: v => v.ToString(),
+                convertFromProviderExpression: v => Enum.Parse<MessageType>(v));
+        builder.Property(e => e.MediaType)
+            .IsRequired(true)
+            .HasConversion(
+                convertToProviderExpression: v => v.ToString(),
+                convertFromProviderExpression: v => Enum.Parse<MediaType>(v));
         builder.Property(e => e.Metadata).IsRequired(false);
         builder.Property(e => e.DeletedAt).IsRequired(false);
         builder.Property(e => e.Reaction).IsRequired(false);
@@ -38,6 +40,9 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
             .WithMany(e => e.Messages)
             .HasForeignKey(e => e.ConversationId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Sender relationship is defined in ConversationMemberConfiguration
+        // to avoid duplicate relationship definitions
 
         builder.HasOne(e => e.ReplyToMessage)
             .WithMany()

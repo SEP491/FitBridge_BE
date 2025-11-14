@@ -16,20 +16,28 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
         builder.Property(e => e.IsGroup).IsRequired(true).HasDefaultValue(false);
         builder.Property(e => e.LastMessageId).IsRequired(false);
         builder.Property(e => e.LastMessageContent).IsRequired(true);
-        builder.Property(e => e.LastMessageType).IsRequired(true).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<MessageType>(s));
-        builder.Property(e => e.LastMessageMediaType).IsRequired(true).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<MediaType>(s));
+        builder.Property(e => e.LastMessageType)
+            .IsRequired(true)
+            .HasConversion(
+                convertToProviderExpression: v => v.ToString(),
+                convertFromProviderExpression: v => Enum.Parse<MessageType>(v));
+        builder.Property(e => e.LastMessageMediaType)
+            .IsRequired(true)
+            .HasConversion(
+                convertToProviderExpression: v => v.ToString(),
+                convertFromProviderExpression: v => Enum.Parse<MediaType>(v));
         builder.Property(e => e.LastMessageSenderName).IsRequired(false);
         builder.Property(e => e.LastMessageSenderId).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
-
+        
         // Relationship configurations
         builder.HasMany(e => e.Messages)
             .WithOne(e => e.Conversation)
             .HasForeignKey(e => e.ConversationId)
             .OnDelete(DeleteBehavior.Cascade);
-
+        
         builder.HasMany(e => e.ConversationMembers)
             .WithOne(e => e.Conversation)
             .HasForeignKey(e => e.ConversationId)

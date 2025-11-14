@@ -39,7 +39,7 @@ namespace FitBridge_Application.Specifications.Messaging.GetMessages
             if (includeConversationMembers)
             {
                 AddInclude(x => x.Conversation.ConversationMembers);
-                AddInclude($"{nameof(Conversation.ConversationMembers)}.{nameof(ConversationMember.User)}");
+                AddInclude($"{nameof(Message.Conversation)}.{nameof(Conversation.ConversationMembers)}.{nameof(ConversationMember.User)}");
             }
             if (includeReplyToMessage)
             {
