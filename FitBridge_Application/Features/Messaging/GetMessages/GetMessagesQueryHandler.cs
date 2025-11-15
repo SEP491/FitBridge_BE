@@ -13,11 +13,15 @@ namespace FitBridge_Application.Features.Messaging.GetMessages
 {
     internal class GetMessagesQueryHandler(
         IUnitOfWork unitOfWork,
+        IUserUtil userUtil,
+        IHttpContextAccessor httpContextAccessor,
         MessagingService messagingService) : IRequestHandler<GetMessagesQuery, IEnumerable<GetMessagesDto>>
     {
         public async Task<IEnumerable<GetMessagesDto>> Handle(GetMessagesQuery request, CancellationToken cancellationToken)
         {
+            var userId = userUtil.GetAccountId(httpContextAccessor.HttpContext);
             var spec = new GetMessagesSpec(request.ConversationId,
+                userId: userId,
                 parameters: request.Params,
                 includeOwnMessageStatus: true,
                 includeBookingRequest: true,
