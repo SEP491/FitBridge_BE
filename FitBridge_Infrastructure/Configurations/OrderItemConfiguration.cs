@@ -17,6 +17,7 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.Property(e => e.Price).IsRequired(true);
         builder.Property(e => e.OrderId).IsRequired(true);
         builder.Property(e => e.ProductDetailId).IsRequired(false);
+        builder.Property(e => e.OriginalProductPrice).IsRequired(false);
         builder.Property(e => e.ProfitDistributePlannedDate).IsRequired(false);
         builder.Property(e => e.ProfitDistributeActualDate).IsRequired(false);
         builder.Property(e => e.IsRefunded).HasDefaultValue(false);

@@ -26,6 +26,7 @@ public class OrderItem : BaseEntity
     public Guid? FreelancePTPackageId { get; set; }
     public DateOnly? ProfitDistributePlannedDate { get; set; }
     public DateOnly? ProfitDistributeActualDate { get; set; }
+    public decimal? OriginalProductPrice { get; set; }
     public bool IsRefunded { get; set; }
     public SubscriptionPlansInformation? SubscriptionPlansInformation { get; set; }
     public ProductDetail? ProductDetail { get; set; }

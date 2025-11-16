@@ -14,9 +14,10 @@ public interface ITransactionService
     Task<bool> PurchaseGymCourse(long orderCode);
     Task<bool> ExtendFreelancePTPackage(long orderCode);
     Task<bool> DistributePendingProfit(Guid CustomerPurchasedId);
-    Task<bool> UpdateOrderShippingDetails(Guid orderId, decimal shippingActualCost, string ahamoveOrderId);
+    Task<bool> UpdateOrderShippingDetails(Guid orderId, decimal shippingActualCost, string shippingTrackingId);
     Task<decimal> CalculateMerchantProfit(OrderItem orderItem, Coupon? coupon = null);
     Task<decimal> CalculateSystemProfit(Order order);
     Task<bool> PurchaseSubscriptionPlans(long orderCode);
     Task<bool> PurchaseAppleSubscriptionPlans(AsnDecodedPayload asnDecodedPayload, JwsTransactionDecoded jwsTransactionDecoded);
+    Task<bool> PurchaseProduct(long orderCode);
 }

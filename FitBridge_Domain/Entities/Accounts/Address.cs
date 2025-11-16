@@ -16,6 +16,9 @@ public class Address : BaseEntity
     public string HouseNumber { get; set; }
     public string Note { get; set; }
     public Guid CustomerId { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public string? GoogleMapAddressString { get; set; }
     public ApplicationUser Customer { get; set; }
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

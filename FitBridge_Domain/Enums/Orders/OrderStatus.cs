@@ -12,6 +12,11 @@
         Arrived,
 
         Cancelled,
-        Finished
+        Finished,
+        Assigning,
+        Accepted,
+        CustomerNotReceived,
+        InReturn,
+        Returned
     }
 }

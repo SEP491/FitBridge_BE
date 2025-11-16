@@ -10,6 +10,8 @@ public class OrderItemDto
     public decimal Price { get; set; }
     [JsonIgnore]
     public string ProductName { get; set; } = string.Empty;
+    [JsonIgnore]
+    public decimal OriginalProductPrice { get; set; }
     public Guid? ProductDetailId { get; set; }
     public Guid? GymCourseId { get; set; }
     public Guid? GymPtId { get; set; }

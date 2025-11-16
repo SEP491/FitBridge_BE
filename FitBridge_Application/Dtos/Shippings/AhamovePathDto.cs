@@ -2,8 +2,8 @@ namespace FitBridge_Application.Dtos.Shippings;
 
 public class AhamovePathDto
 {
-    public double Lat { get; set; }
-    public double Lng { get; set; }
+    public double? Lat { get; set; }
+    public double? Lng { get; set; }
     public string Address { get; set; }
     public string ShortAddress { get; set; }
     public string Name { get; set; }
