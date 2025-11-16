@@ -3,6 +3,7 @@ using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services.Messaging;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Services;
+using FitBridge_Application.Specifications.Messaging.GetConversationMembers;
 using FitBridge_Application.Specifications.Messaging.GetOtherConversationMembers;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.MessageAndReview;
@@ -30,6 +31,15 @@ namespace FitBridge_Application.Features.Messaging.UpdateMessage
             var existingConvo = await unitOfWork.Repository<Conversation>().GetByIdAsync(request.ConversationId)
                 ?? throw new NotFoundException(nameof(Conversation));
 
+            // Get the user's ConversationMember record to compare with SenderId
+            var memberSpec = new GetConversationMembersSpec(existingMessage.ConversationId, senderId);
+            var senderMember = await unitOfWork.Repository<ConversationMember>().GetBySpecificationAsync(memberSpec)
+                ?? throw new NotFoundException("User is not a member of this conversation");
+
+            if (existingMessage.SenderId != senderMember.Id)
+            {
+                throw new DataValidationFailedException("Sender not match with database");
+            }
             existingMessage.Content = request.NewContent;
             existingMessage.UpdatedAt = now;
             unitOfWork.Repository<Message>().Update(existingMessage);

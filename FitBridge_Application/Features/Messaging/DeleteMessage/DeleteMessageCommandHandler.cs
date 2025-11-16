@@ -27,15 +27,15 @@ namespace FitBridge_Application.Features.Messaging.DeleteMessage
 
             var existingMessage = await unitOfWork.Repository<Message>().GetByIdAsync(request.MessageId, includes: [nameof(Message.Conversation)])
                 ?? throw new NotFoundException(nameof(Message));
-            
+
             // Get the user's ConversationMember record to compare with SenderId
             var memberSpec = new GetConversationMembersSpec(existingMessage.ConversationId, userId);
             var senderMember = await unitOfWork.Repository<ConversationMember>().GetBySpecificationAsync(memberSpec)
                 ?? throw new NotFoundException("User is not a member of this conversation");
-            
+
             if (existingMessage.SenderId != senderMember.Id)
             {
-                throw new InvalidDataException("Sender not match with database");
+                throw new DataValidationFailedException("Sender not match with database");
             }
 
             existingMessage.DeletedAt = now;

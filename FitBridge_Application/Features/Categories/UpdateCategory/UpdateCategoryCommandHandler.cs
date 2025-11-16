@@ -21,7 +21,7 @@ namespace FitBridge_Application.Features.Categories.UpdateCategory
             
             if (existingCategory != null && existingCategory.Id != request.Id)
             {
-                throw new InvalidDataException($"Category with name '{request.Name}' already exists.");
+                throw new DataValidationFailedException($"Category with name '{request.Name}' already exists.");
             }
 
             category.Name = request.Name;

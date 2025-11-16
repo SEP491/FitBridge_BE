@@ -41,7 +41,7 @@ namespace FitBridge_Application.Features.Messaging.ReadMessages
 
             if (messages.Count != messageIds.Count)
             {
-                throw new InvalidDataException("Some messages not found or don't belong to this conversation.");
+                throw new DataValidationFailedException("Some messages not found or don't belong to this conversation.");
             }
 
             var now = DateTime.UtcNow;
