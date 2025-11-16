@@ -51,7 +51,7 @@ namespace FitBridge_Application.Features.Messaging.GetMessages
                 ReplyToMessageId = x.ReplyToMessageId,
                 ReplyToMessageContent = x.ReplyToMessage?.Content,
                 ReplyToMessageMediaType = x.ReplyToMessage?.MediaType.ToString(),
-                SenderId = x.Sender.UserId,
+                SenderId = x.Sender?.UserId,
                 Reaction = x.Reaction ?? string.Empty,
                 SenderName = x.Sender?.User.FullName,
                 SenderAvatarUrl = x.Sender?.User.AvatarUrl,
