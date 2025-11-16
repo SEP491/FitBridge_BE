@@ -261,6 +261,10 @@ public class PayOSService : IPayOSService
             {
                 return await _transactionService.PurchaseSubscriptionPlans(verifiedWebhookData.orderCode);
             }
+            if(transaction.TransactionType == TransactionType.ProductOrder)
+            {
+                return await _transactionService.PurchaseProduct(verifiedWebhookData.orderCode);
+            }
 
             return false;
         }

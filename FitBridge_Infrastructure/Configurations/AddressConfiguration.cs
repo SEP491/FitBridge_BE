@@ -13,6 +13,9 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
         builder.Property(e => e.ReceiverName).IsRequired(true);
         builder.Property(e => e.PhoneNumber).IsRequired(true);
         builder.Property(e => e.Note).IsRequired(false);
+        builder.Property(e => e.Latitude).IsRequired(false);
+        builder.Property(e => e.Longitude).IsRequired(false);
+        builder.Property(e => e.GoogleMapAddressString).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);

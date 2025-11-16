@@ -201,6 +201,7 @@ namespace FitBridge_Infrastructure.Extensions
             
             // Register HttpClient for Ahamove Service
             services.AddHttpClient<IAhamoveService, AhamoveService>();
+            services.AddScoped<IAhamoveWebhookService, AhamoveWebhookService>();
         }
     }
 }

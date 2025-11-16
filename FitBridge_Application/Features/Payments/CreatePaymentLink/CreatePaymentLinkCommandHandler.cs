@@ -91,6 +91,16 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             OrderId = orderId,
             Amount = paymentResponse.Data.Amount
         };
+        if (transactionType == TransactionType.ProductOrder)
+        {
+            var newOrderHistory = new OrderStatusHistory
+            {
+                OrderId = orderId,
+                Status = OrderStatus.Created,
+                Description = "Order created",
+            };
+            _unitOfWork.Repository<OrderStatusHistory>().Insert(newOrderHistory);
+        }
         _unitOfWork.Repository<Transaction>().Insert(newTransaction);
     }
 
@@ -215,13 +225,13 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             if (item.SubscriptionPlansInformationId != null)
             {
                 var maxHotResearchSubscription = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.HotResearchSubscriptionLimit);
-                
+
                 var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(item.SubscriptionPlansInformationId.Value, includes: new List<string> { "FeatureKey" });
                 if (subscriptionPlansInformation == null)
                 {
                     throw new NotFoundException("Subscription plans information not found");
                 }
-                if(subscriptionPlansInformation.FeatureKey.FeatureName == ProjectConstant.FeatureKeyNames.HotResearch)
+                if (subscriptionPlansInformation.FeatureKey.FeatureName == ProjectConstant.FeatureKeyNames.HotResearch)
                 {
                     var numOfCurrentHotResearchSubscription = await subscriptionService.GetNumOfCurrentHotResearchSubscription();
                     if (numOfCurrentHotResearchSubscription >= maxHotResearchSubscription)
@@ -236,6 +246,16 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 {
                     throw new DuplicateException($"User already has a subscription for this plan, subscription id: {userSubscription.Id}, subscription expiration date: {userSubscription.EndDate}");
                 }
+            }
+            if(item.ProductDetailId != null)
+            {
+                var productDetail = await _unitOfWork.Repository<ProductDetail>().GetByIdAsync(item.ProductDetailId.Value);
+                if (productDetail == null)
+                {
+                    throw new NotFoundException("Product detail not found");
+                }
+                item.Price = productDetail.SalePrice;
+                item.OriginalProductPrice = productDetail.OriginalPrice;
             }
         }
     }

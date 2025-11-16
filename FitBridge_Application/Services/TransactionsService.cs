@@ -452,7 +452,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             throw new NotFoundException("Transaction not found with order code " + orderCode);
         }
         var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(transactionToPurchaseSubscriptionPlans.Order!.OrderItems.First().SubscriptionPlansInformationId!.Value, includes: new List<string> { "FeatureKey" });
-        if(subscriptionPlansInformation == null)
+        if (subscriptionPlansInformation == null)
         {
             throw new NotFoundException("Subscription plans information not found");
         }
@@ -496,41 +496,55 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         return true;
     }
 
-    public async Task<bool> UpdateOrderShippingDetails(Guid orderId, decimal shippingActualCost, string ahamoveOrderId)
+    public async Task<bool> UpdateOrderShippingDetails(Guid orderId, decimal shippingActualCost, string shippingTrackingId)
     {
-        var order = await _unitOfWork.Repository<Order>().GetByIdAsync(orderId, includes: new List<string> { "Transactions" });
+        var order = await _unitOfWork.Repository<Order>().GetByIdAsync(orderId, includes: new List<string> { "Transactions", "OrderStatusHistories" });
         if (order == null)
         {
             throw new NotFoundException($"Order with ID {orderId} not found");
         }
 
-        // Update order shipping actual cost
-        order.ShippingFeeActualCost = shippingActualCost;
-        order.Status = OrderStatus.Shipping;
-        
-        _logger.LogInformation($"Order {orderId} updated with shipping actual cost {shippingActualCost} and status changed to Shipping");
+        // Update order shipping actual cost and Ahamove order ID
+        order.ShippingFeeActualCost += shippingActualCost;
+        order.ShippingTrackingId = shippingTrackingId;
+        var oldStatus = order.Status;
+        order.Status = OrderStatus.Assigning;
+        var orderStatusHistory = new OrderStatusHistory
+        {
+            OrderId = orderId,
+            Status = OrderStatus.Assigning,
+            Description = "Order status updated to Assigning",
+            PreviousStatus = oldStatus,
+        };
+        _unitOfWork.Repository<OrderStatusHistory>().Insert(orderStatusHistory);
+
+        _logger.LogInformation($"Order {orderId} updated with shipping actual cost {shippingActualCost}, Shipping Tracking ID {shippingTrackingId}, and status changed to Assigning");
 
         // Calculate profit from shipping fee difference
-        var shippingProfit = order.ShippingFee - shippingActualCost;
-        
+        var shippingDifference = shippingActualCost - order.ShippingFee;
+        if(order.OrderStatusHistories.Any(o => o.Status == OrderStatus.Returned))
+        {
+            shippingDifference = shippingActualCost; // If the order is returned, and the admin send the shipping order again the profit will be minus by the new shipping actual cost
+        }
+
         // Update transaction profit amount
         var transaction = order.Transactions.FirstOrDefault();
         if (transaction != null)
         {
             // Add shipping profit to existing profit amount
             var currentProfit = transaction.ProfitAmount ?? 0;
-            transaction.ProfitAmount = currentProfit + shippingProfit;
-            
-            _logger.LogInformation($"Transaction for Order {orderId} updated with profit amount {transaction.ProfitAmount} (shipping profit: {shippingProfit})");
-            
+            transaction.ProfitAmount = currentProfit - shippingDifference;
+
+            _logger.LogInformation($"Transaction for Order {orderId} updated with profit amount {transaction.ProfitAmount} (shipping profit: {shippingDifference})");
+
             _unitOfWork.Repository<Transaction>().Update(transaction);
         }
 
         _unitOfWork.Repository<Order>().Update(order);
         await _unitOfWork.CommitAsync();
 
-        _logger.LogInformation($"Successfully updated Order {orderId} with Ahamove Order ID {ahamoveOrderId}");
-        
+        _logger.LogInformation($"Successfully updated Order {orderId} with Shipping Tracking ID {shippingTrackingId}");
+
         return true;
     }
     public async Task<bool> PurchaseAppleSubscriptionPlans(AsnDecodedPayload asnDecodedPayload, JwsTransactionDecoded jwsTransactionDecoded)
@@ -561,6 +575,36 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         // }
         // var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(transactionToPurchaseSubscriptionPlans.Order!.OrderItems.First().SubscriptionPlansInformationId!.Value, includes: new List<string> { "FeatureKey" });
         // if(subscriptionPlansInformation == null)
+        return true;
+    }
+    public async Task<bool> PurchaseProduct(long orderCode)
+    {
+        var transactionToPurchaseProduct = await _unitOfWork.Repository<Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
+        if (transactionToPurchaseProduct == null)
+        {
+            throw new NotFoundException("Transaction not found with order code " + orderCode);
+        }
+        var profit = transactionToPurchaseProduct.Order.TotalAmount;
+        foreach (var orderItem in transactionToPurchaseProduct.Order.OrderItems)
+        {
+            if (orderItem.ProductDetailId != null)
+            {
+                profit -= orderItem.OriginalProductPrice.Value * orderItem.Quantity;
+            }
+        }
+        var previousStatus = transactionToPurchaseProduct.Order.Status;
+        transactionToPurchaseProduct.Order.Status = OrderStatus.Pending;
+        transactionToPurchaseProduct.ProfitAmount = profit;
+        var orderStatusHistory = new OrderStatusHistory
+        {
+            OrderId = transactionToPurchaseProduct.OrderId!.Value,
+            Status = OrderStatus.Pending,
+            Description = "Order status updated to Pending",
+            PreviousStatus = previousStatus,
+        };
+        _unitOfWork.Repository<OrderStatusHistory>().Insert(orderStatusHistory);
+        _unitOfWork.Repository<Transaction>().Update(transactionToPurchaseProduct);
+        await _unitOfWork.CommitAsync();
         return true;
     }
 }
