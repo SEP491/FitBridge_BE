@@ -53,7 +53,7 @@ namespace FitBridge_Application.Features.Messaging.GetMessages
                 ReplyToMessageMediaType = x.ReplyToMessage?.MediaType.ToString(),
                 SenderId = x.Sender.UserId,
                 Reaction = x.Reaction ?? string.Empty,
-                SenderName = x.Sender?.User.UserName,
+                SenderName = x.Sender?.User.FullName,
                 SenderAvatarUrl = x.Sender?.User.AvatarUrl,
                 BookingRequest = x.BookingRequest != null ? MapBookingRequestDto(x.BookingRequest) : null
             });
