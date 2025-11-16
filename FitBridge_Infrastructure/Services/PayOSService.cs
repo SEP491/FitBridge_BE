@@ -275,7 +275,7 @@ public class PayOSService : IPayOSService
         }
     }
 
-    private long GenerateOrderCode()
+    public long GenerateOrderCode()
     {
         // Generate a unique order code using timestamp and random number
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

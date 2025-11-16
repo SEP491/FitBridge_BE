@@ -34,4 +34,10 @@ public interface IPayOSService
     /// <param name="webhookData">Webhook data from PayOS</param>
     /// <returns>True if webhook was processed successfully</returns>
     Task<bool> HandlePaymentWebhookAsync(string webhookData);
+
+    /// <summary>
+    /// Generates a unique order code
+    /// </summary>
+    /// <returns>Unique order code</returns>
+    long GenerateOrderCode();
 }

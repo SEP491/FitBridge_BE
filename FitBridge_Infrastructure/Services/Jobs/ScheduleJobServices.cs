@@ -12,6 +12,7 @@ using Microsoft.Build.Framework;
 using FitBridge_Infrastructure.Jobs.BookingRequests;
 using FitBridge_Infrastructure.Jobs.Subscriptions;
 using FitBridge_Application.Features.Jobs.RejectEditBookingRequest;
+using FitBridge_Infrastructure.Jobs.Orders;
 
 namespace FitBridge_Infrastructure.Services.Jobs;
 
@@ -252,6 +253,27 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .Build();
         await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
         _logger.LogInformation($"Successfully scheduled auto reject edit booking request job for booking request {BookingRequestId} at {triggerTime.ToLocalTime}");
+        return true;
+    }
+
+    public async Task<bool> ScheduleAutoFinishArrivedOrderJob(Guid OrderId, DateTime triggerTime)
+    {
+        var jobKey = new JobKey($"AutoFinishArrivedOrder_{OrderId}", "AutoFinishArrivedOrder");
+        var triggerKey = new TriggerKey($"AutoFinishArrivedOrder_{OrderId}_Trigger", "AutoFinishArrivedOrder");
+        var jobData = new JobDataMap
+        {
+            { "orderId", OrderId.ToString() }
+        };
+        var job = JobBuilder.Create<AutoFinishArrivedOrderJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled auto finish arrived order job for order {OrderId} at {triggerTime.ToLocalTime}");
         return true;
     }
 }
