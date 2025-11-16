@@ -29,6 +29,7 @@ public class BookingRequestDto
         return new BookingRequestDto
         {
             BookingRequestId = bookingRequest.Id,
+            CustomerPurchasedId = bookingRequest.CustomerPurchasedId,
             RequestStatus = bookingRequest.RequestStatus.ToString(),
             RequestType = bookingRequest.RequestType.ToString(),
             StartTime = bookingRequest.StartTime,
