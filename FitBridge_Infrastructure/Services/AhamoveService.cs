@@ -148,14 +148,42 @@ public class AhamoveService : IAhamoveService
 
             // Determine the new status based on Ahamove webhook data
             var (newStatus, statusDescription) = DetermineOrderStatus(webhookData, order);
+            var oldStatus = order.Status;
+
+            if (newStatus == OrderStatus.Arrived)
+            {
+                order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!.Status = TransactionStatus.Success;
+            }
+            if (newStatus == OrderStatus.Cancelled)
+            {
+                // If the order has been returned once, the status will be auto swich to cancelled
+                if (order.OrderStatusHistories.Any(x => x.Status == OrderStatus.Returned))
+                {
+                    var returnStatusHistory = new OrderStatusHistory
+                    {
+                        OrderId = order.Id,
+                        Status = OrderStatus.Returned,
+                        Description = $"Đã hoàn trả hàng. Lý do: {webhookData.CancelComment}",
+                        PreviousStatus = OrderStatus.Returned,
+                    };
+                    oldStatus = OrderStatus.Returned;
+                    _unitOfWork.Repository<OrderStatusHistory>().Insert(returnStatusHistory);
+                }
+            }
 
             // Only update if status has changed
-            if (order.Status != newStatus)
+            order.Status = newStatus;
+            order.UpdatedAt = DateTime.UtcNow;
+            var statusHistoryToUpdate = order.OrderStatusHistories.Where(x => x.Status == oldStatus).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+            if (statusHistoryToUpdate != null)
             {
-                var oldStatus = order.Status;
-                order.Status = newStatus;
+                statusHistoryToUpdate.Description = statusDescription;
+                statusHistoryToUpdate.PreviousStatus = oldStatus;
+                statusHistoryToUpdate.UpdatedAt = DateTime.UtcNow;
+            }
 
-                // Create order status history entry
+            if (oldStatus != newStatus)
+            {
                 var statusHistory = new OrderStatusHistory
                 {
                     OrderId = order.Id,
@@ -163,17 +191,12 @@ public class AhamoveService : IAhamoveService
                     Description = statusDescription,
                     PreviousStatus = oldStatus,
                 };
-
                 _unitOfWork.Repository<OrderStatusHistory>().Insert(statusHistory);
-                _unitOfWork.Repository<Order>().Update(order);
-                await _unitOfWork.CommitAsync();
+            }
 
-                _logger.LogInformation($"Order {order.Id} status updated from {oldStatus} to {newStatus}. Description: {statusDescription}");
-            }
-            else
-            {
-                _logger.LogInformation($"Order {order.Id} status unchanged: {newStatus}");
-            }
+            await _unitOfWork.CommitAsync();
+
+            _logger.LogInformation($"Order {order.Id} status updated from {oldStatus} to {newStatus}. Description: {statusDescription}");
         }
         catch (Exception ex)
         {
@@ -217,19 +240,20 @@ public class AhamoveService : IAhamoveService
                 return (OrderStatus.Shipping, "Đang giao hàng");
 
             case "COMPLETED":
-                if (subStatus != null && subStatus == "IN_RETURN")
+                if (subStatus == "IN_RETURN")
                 {
                     // Package is being returned to sender
                     return (OrderStatus.InReturn, "Đang hoàn trả hàng về người gửi");
                 }
-                else if (subStatus != null && subStatus == "RETURNED")
+                else if (subStatus == "RETURNED")
                 {
+
                     // Package was returned to sender - customer did not receive
                     var deliveryPath = webhookData.Path?.Skip(1).FirstOrDefault();
                     var failReason = deliveryPath?.FailComment ?? "Không xác định";
                     if (order.OrderStatusHistories.Any(x => x.Status == OrderStatus.Returned))
                     {
-                        return (OrderStatus.Cancelled, $"Hủy đơn hàng do khách hàng ko nhận được hàng sau khi đã hoàn trả một lần");
+                        return (OrderStatus.Cancelled, $"Đã hoàn trả hàng. Lý do: {failReason}");
                     }
                     return (OrderStatus.Returned, $"Đã hoàn trả hàng. Lý do: {failReason}");
                 }
@@ -239,10 +263,9 @@ public class AhamoveService : IAhamoveService
                     var deliveryPath = webhookData.Path?.Skip(1).FirstOrDefault();
                     if (deliveryPath?.Status == "COMPLETED")
                     {
-                        return (OrderStatus.Finished, "Giao hàng thành công");
+                        return (OrderStatus.Arrived, "Giao hàng thành công");
                     }
-                    // If path status is FAILED but main status is COMPLETED, it might be returned
-                    return (OrderStatus.Finished, "Hoàn thành đơn hàng");
+                    throw new BusinessException("Trạng thái không xác định");
                 }
 
             case "CANCELLED":

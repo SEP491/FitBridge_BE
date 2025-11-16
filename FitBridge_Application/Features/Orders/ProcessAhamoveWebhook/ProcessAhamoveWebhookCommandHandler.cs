@@ -9,14 +9,14 @@ namespace FitBridge_Application.Features.Orders.ProcessAhamoveWebhook;
 
 public class ProcessAhamoveWebhookCommandHandler : IRequestHandler<ProcessAhamoveWebhookCommand, bool>
 {
-    private readonly IAhamoveWebhookService _ahamoveWebhookService;
+    private readonly IAhamoveService _ahamoveService;
     private readonly ILogger<ProcessAhamoveWebhookCommandHandler> _logger;
 
     public ProcessAhamoveWebhookCommandHandler(
-        IAhamoveWebhookService ahamoveWebhookService,
+        IAhamoveService ahamoveService,
         ILogger<ProcessAhamoveWebhookCommandHandler> logger)
     {
-        _ahamoveWebhookService = ahamoveWebhookService;
+        _ahamoveService = ahamoveService;
         _logger = logger;
     }
 
@@ -53,7 +53,7 @@ public class ProcessAhamoveWebhookCommandHandler : IRequestHandler<ProcessAhamov
             }
 
             // Process the webhook data
-            await _ahamoveWebhookService.ProcessWebhookAsync(webhookData);
+            await _ahamoveService.ProcessWebhookAsync(webhookData);
 
             _logger.LogInformation($"Successfully processed webhook for Ahamove Order ID: {webhookData.Id}");
             return true;

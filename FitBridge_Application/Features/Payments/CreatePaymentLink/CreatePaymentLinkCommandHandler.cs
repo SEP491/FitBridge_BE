@@ -31,6 +31,11 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 {
     public async Task<PaymentResponseDto> Handle(CreatePaymentLinkCommand request, CancellationToken cancellationToken)
     {
+        var paymentMethod = await _unitOfWork.Repository<PaymentMethod>().GetByIdAsync(request.Request.PaymentMethodId);
+        if (paymentMethod == null)
+        {
+            throw new NotFoundException("Payment method not found");
+        }
         var userId = _userUtil.GetAccountId(_httpContextAccessor.HttpContext);
         if (userId == null)
         {
@@ -47,16 +52,55 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         request.Request.AccountId = userId;
         var calculateTotalPrice = await CalculateTotalPrice(request.Request, userId.Value);
         request.Request.TotalAmountPrice = calculateTotalPrice;
-
-        var paymentResponse = await _payOSService.CreatePaymentLinkAsync(request.Request, user);
-        var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl, userId.Value);
-        await CreateTransaction(paymentResponse, request, orderId);
-        await AssignOrderItemProductName(request.Request.OrderItems);
+        var paymentResponse = new PaymentResponseDto();
+        if (paymentMethod.MethodType == MethodType.COD)
+        {
+            await CreateCodOrder(request.Request, userId.Value);
+            paymentResponse.IsCOD = true;
+        }
+        else
+        {
+            paymentResponse = await _payOSService.CreatePaymentLinkAsync(request.Request, user);
+            var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl, userId.Value);
+            await CreateTransaction(paymentResponse, request, orderId);
+            await AssignOrderItemProductName(request.Request.OrderItems);
+        }
         await _unitOfWork.CommitAsync();
 
         return paymentResponse;
     }
 
+    public async Task<bool> CreateCodOrder(CreatePaymentRequestDto request, Guid userId)
+    {
+        var orderId = await CreateOrder(request, "", userId);
+        var newTransaction = new Transaction
+        {
+            OrderCode = _payOSService.GenerateOrderCode(),
+            Description = "Payment for order " + orderId,
+            PaymentMethodId = request.PaymentMethodId,
+            TransactionType = TransactionType.ProductOrder,
+            Status = TransactionStatus.Pending,
+            OrderId = orderId,
+            Amount = request.TotalAmountPrice
+        };
+        var createdOrderHistory = new OrderStatusHistory
+        {
+            OrderId = orderId,
+            Status = OrderStatus.Created,
+            Description = "Order created",
+        };
+        var pendingOrderHistory = new OrderStatusHistory
+        {
+            OrderId = orderId,
+            Status = OrderStatus.Pending,
+            PreviousStatus = OrderStatus.Created,
+            Description = "Order pending",
+        };
+        _unitOfWork.Repository<OrderStatusHistory>().Insert(createdOrderHistory);
+        _unitOfWork.Repository<OrderStatusHistory>().Insert(pendingOrderHistory);
+        _unitOfWork.Repository<Transaction>().Insert(newTransaction);
+        return true;
+    }
     public async Task CreateTransaction(PaymentResponseDto paymentResponse, CreatePaymentLinkCommand request, Guid orderId)
     {
         var transactionType = TransactionType.ProductOrder;
@@ -72,11 +116,11 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         {
             transactionType = TransactionType.SubscriptionPlansOrder;
         }
-        if(request.Request.OrderItems.Any(x => x.FreelancePTPackageId != null) && request.Request.CustomerPurchasedIdToExtend != null)
+        if (request.Request.OrderItems.Any(x => x.FreelancePTPackageId != null) && request.Request.CustomerPurchasedIdToExtend != null)
         {
             transactionType = TransactionType.ExtendFreelancePTPackage;
         }
-        if(request.Request.OrderItems.Any(x => x.GymCourseId != null) && request.Request.CustomerPurchasedIdToExtend != null)
+        if (request.Request.OrderItems.Any(x => x.GymCourseId != null) && request.Request.CustomerPurchasedIdToExtend != null)
         {
             transactionType = TransactionType.ExtendCourse;
         }
