@@ -55,26 +55,10 @@ namespace FitBridge_Application.Features.Messaging.GetMessages
                 Reaction = x.Reaction ?? string.Empty,
                 SenderName = x.Sender?.User.FullName,
                 SenderAvatarUrl = x.Sender?.User.AvatarUrl,
-                BookingRequest = x.BookingRequest != null ? MapBookingRequestDto(x.BookingRequest) : null
+                BookingRequest = x.BookingRequest != null ? BookingRequestDto.FromEntity(x.BookingRequest) : null
             });
 
             return dtos;
-        }
-
-        private static BookingRequestDto MapBookingRequestDto(FitBridge_Domain.Entities.Trainings.BookingRequest bookingRequest)
-        {
-            return new BookingRequestDto
-            {
-                TargetBookingId = bookingRequest.TargetBookingId,
-                CustomerPurchasedId = bookingRequest.CustomerPurchasedId,
-                Note = bookingRequest.Note,
-                StartTime = bookingRequest.StartTime,
-                EndTime = bookingRequest.EndTime,
-                BookingName = bookingRequest.BookingName,
-                RequestStatus = bookingRequest.RequestStatus.ToString(),
-                BookingDate = bookingRequest.BookingDate,
-                RequestType = bookingRequest.RequestType.ToString()
-            };
         }
     }
 }
