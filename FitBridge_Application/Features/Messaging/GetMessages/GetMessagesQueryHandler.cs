@@ -2,6 +2,7 @@
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Services;
+using FitBridge_Application.Specifications.Messaging.GetConversationMembers;
 using FitBridge_Application.Specifications.Messaging.GetMessages;
 using FitBridge_Domain.Entities.MessageAndReview;
 using FitBridge_Domain.Exceptions;
@@ -20,8 +21,11 @@ namespace FitBridge_Application.Features.Messaging.GetMessages
         public async Task<IEnumerable<GetMessagesDto>> Handle(GetMessagesQuery request, CancellationToken cancellationToken)
         {
             var userId = userUtil.GetAccountId(httpContextAccessor.HttpContext);
+            var memberSpec = new GetConversationMembersSpec(request.ConversationId, userId);
+            var convoMember = await unitOfWork.Repository<ConversationMember>().GetBySpecificationAsync(memberSpec)
+                ?? throw new NotFoundException("User is not a member of this conversation");
             var spec = new GetMessagesSpec(request.ConversationId,
-                userId: userId,
+                userId: convoMember.Id,
                 parameters: request.Params,
                 includeOwnMessageStatus: true,
                 includeBookingRequest: true,

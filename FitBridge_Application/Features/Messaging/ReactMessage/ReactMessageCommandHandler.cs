@@ -26,7 +26,8 @@ namespace FitBridge_Application.Features.Messaging.ReactMessage
             var senderId = userUtil.GetAccountId(httpContextAccessor.HttpContext)
                      ?? throw new NotFoundException(nameof(ApplicationUser));
 
-            var message = await unitOfWork.Repository<Message>().GetByIdAsync(senderId, includes: [nameof(Message.Conversation)]);
+            var message = await unitOfWork.Repository<Message>().GetByIdAsync(
+                request.MessageId, includes: [nameof(Message.Conversation)]);
 
             if (message == null)
             {
@@ -39,7 +40,7 @@ namespace FitBridge_Application.Features.Messaging.ReactMessage
 
             if (!isMember)
             {
-                throw new InvalidDataException("Not a member of the conversation");
+                throw new DataValidationFailedException("Not a member of the conversation");
             }
 
             if (request.RemoveReaction)

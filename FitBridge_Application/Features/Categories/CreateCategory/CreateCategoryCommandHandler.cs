@@ -2,6 +2,7 @@ using FitBridge_Application.Dtos.Categories;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Specifications.Categories.GetCategoryByName;
 using FitBridge_Domain.Entities.Ecommerce;
+using FitBridge_Domain.Exceptions;
 using MediatR;
 
 namespace FitBridge_Application.Features.Categories.CreateCategory
@@ -14,10 +15,10 @@ namespace FitBridge_Application.Features.Categories.CreateCategory
             var spec = new GetCategoryByNameSpec(request.Name);
             var category = await unitOfWork.Repository<Category>()
                 .GetBySpecificationAsync(spec);
-            
+
             if (category != null)
             {
-                throw new InvalidDataException($"Category with name '{request.Name}' already exists.");
+                throw new DataValidationFailedException($"Category with name '{request.Name}' already exists.");
             }
 
             var newCategory = new Category

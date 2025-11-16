@@ -2,6 +2,7 @@ using FitBridge_Application.Dtos.Weights;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Specifications.Weights.GetWeightByValueAndUnit;
 using FitBridge_Domain.Entities.Ecommerce;
+using FitBridge_Domain.Exceptions;
 using MediatR;
 
 namespace FitBridge_Application.Features.Weights.CreateWeight
@@ -17,7 +18,7 @@ namespace FitBridge_Application.Features.Weights.CreateWeight
 
             if (weight != null)
             {
-                throw new InvalidDataException($"Weight with value '{request.Value}' and unit '{request.Unit}' already exists.");
+                throw new DataValidationFailedException($"Weight with value '{request.Value}' and unit '{request.Unit}' already exists.");
             }
 
             var newWeight = new Weight

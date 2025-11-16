@@ -3,6 +3,7 @@ using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Specifications.Flavours.GetAllFlavours;
 using FitBridge_Application.Specifications.Flavours.GetFlavourByName;
 using FitBridge_Domain.Entities.Ecommerce;
+using FitBridge_Domain.Exceptions;
 using MediatR;
 
 namespace FitBridge_Application.Features.Flavours.CreateFlavour
@@ -17,7 +18,7 @@ namespace FitBridge_Application.Features.Flavours.CreateFlavour
                 .GetBySpecificationAsync(spec);
             if (flavour != null)
             {
-                throw new InvalidDataException($"Flavour with name '{request.Name}' already exists.");
+                throw new DataValidationFailedException($"Flavour with name '{request.Name}' already exists.");
             }
 
             var newFlavour = new Flavour

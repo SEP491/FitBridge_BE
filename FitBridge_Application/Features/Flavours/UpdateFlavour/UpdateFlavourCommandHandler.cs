@@ -21,7 +21,7 @@ namespace FitBridge_Application.Features.Flavours.UpdateFlavour
 
             if (existingFlavour != null && existingFlavour.Id != request.Id)
             {
-                throw new InvalidDataException($"Flavour with name '{request.Name}' already exists.");
+                throw new DataValidationFailedException($"Flavour with name '{request.Name}' already exists.");
             }
 
             flavour.Name = request.Name;

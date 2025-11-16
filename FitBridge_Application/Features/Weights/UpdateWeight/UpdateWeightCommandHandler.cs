@@ -21,7 +21,7 @@ namespace FitBridge_Application.Features.Weights.UpdateWeight
 
             if (existingWeight != null && existingWeight.Id != request.Id)
             {
-                throw new InvalidDataException($"Weight with value '{request.Value}' and unit '{request.Unit}' already exists.");
+                throw new DataValidationFailedException($"Weight with value '{request.Value}' and unit '{request.Unit}' already exists.");
             }
 
             weight.Value = request.Value;

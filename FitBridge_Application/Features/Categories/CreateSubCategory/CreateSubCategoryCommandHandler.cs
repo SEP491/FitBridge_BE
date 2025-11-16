@@ -23,7 +23,7 @@ namespace FitBridge_Application.Features.Categories.CreateSubCategory
             
             if (subCategory != null)
             {
-                throw new InvalidDataException($"SubCategory with name '{request.Name}' already exists in this category.");
+                throw new DataValidationFailedException($"SubCategory with name '{request.Name}' already exists in this category.");
             }
 
             var newSubCategory = new SubCategory
