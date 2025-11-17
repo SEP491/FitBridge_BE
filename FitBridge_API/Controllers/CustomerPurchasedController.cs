@@ -37,6 +37,7 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<CustomerPurchasedResponseDto>>(StatusCodes.Status200OK.ToString(), "Get customer purchased course success", pagination));
     }
+
     /// <summary>
     /// Use for customer to view list of their purchased packages both FreelancePtPackage and GymCourse
     /// </summary>
@@ -96,14 +97,46 @@ public class CustomerPurchasedController(IMediator _mediator) : _BaseApiControll
     }
 
     /// <summary>
-    /// Check if the customer and this pt already have a customer purchased package, this api use for validate booking request in chat box
+    /// Check if a customer and PT have an active customer purchased package.
+    /// This API is used to validate booking requests in chat box and other scenarios.
     /// </summary>
-    /// <param name="PtId"></param>
-    /// <returns>On success, return the CustomerPurchasedId</returns>
+    /// <param name="PtId">The PT ID to check (optional - used when customer is checking)</param>
+    /// <param name="CustomerId">The Customer ID to check (optional - used when PT is checking)</param>
+    /// <returns>On success, returns the CustomerPurchasedId</returns>
+    /// <remarks>
+    /// This endpoint supports two usage scenarios:
+    ///
+    /// **Scenario 1: Customer checking if they have a package with a PT**
+    /// - Provide only PtId parameter
+    /// - The customer is identified from the authentication token
+    /// - Returns the CustomerPurchased record if an active package exists
+    ///
+    /// **Scenario 2: PT checking if a customer has a package with them**
+    /// - Provide only CustomerId parameter
+    /// - The PT is identified from the authentication token
+    /// - Returns the CustomerPurchased record if an active package exists
+    ///
+    /// Sample requests:
+    ///
+    ///     GET /api/v1/customer-purchased/check?ptId=3fa85f64-5717-4562-b3fc-2c963f66afa6
+    ///     (Customer checking for package with PT)
+    ///
+    ///     GET /api/v1/customer-purchased/check?customerId=3fa85f64-5717-4562-b3fc-2c963f66afa7
+    ///     (PT checking for customer's package)
+    ///
+    /// </remarks>
+    /// <response code="200">Returns the CustomerPurchasedId</response>
+    /// <response code="400">Neither PtId nor CustomerId was provided</response>
+    /// <response code="401">User not authenticated</response>
+    /// <response code="404">Customer purchased package not found or has expired</response>
     [HttpGet("check")]
-    public async Task<IActionResult> CheckCustomerPurchased([FromQuery] Guid PtId)
+    [ProducesResponseType(typeof(BaseResponse<Guid>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CheckCustomerPurchased([FromQuery] Guid? PtId, [FromQuery] Guid? CustomerId)
     {
-        var command = new CheckCustomerPurchasedCommand { PtId = PtId };
+        var command = new CheckCustomerPurchasedCommand { PtId = PtId, CustomerId = CustomerId };
         var response = await _mediator.Send(command);
         return Ok(new BaseResponse<Guid>(StatusCodes.Status200OK.ToString(), "Check customer purchased success", response));
     }

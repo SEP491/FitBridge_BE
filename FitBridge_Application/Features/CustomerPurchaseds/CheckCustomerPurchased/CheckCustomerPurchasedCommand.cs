@@ -5,5 +5,7 @@ namespace FitBridge_Application.Features.CustomerPurchaseds.CheckCustomerPurchas
 
 public class CheckCustomerPurchasedCommand : IRequest<Guid>
 {
-    public Guid PtId { get; set; }
+    public Guid? PtId { get; set; }
+
+    public Guid? CustomerId { get; set; }
 }
