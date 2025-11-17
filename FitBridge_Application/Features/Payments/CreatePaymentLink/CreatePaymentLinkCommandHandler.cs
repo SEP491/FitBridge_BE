@@ -27,7 +27,7 @@ using FitBridge_Application.Commons.Constants;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
-public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper, CouponService couponService, SubscriptionService subscriptionService, SystemConfigurationService systemConfigurationService) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
+public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper, CouponService couponService, SubscriptionService subscriptionService, SystemConfigurationService systemConfigurationService, ITransactionService _transactionService) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
 {
     public async Task<PaymentResponseDto> Handle(CreatePaymentLinkCommand request, CancellationToken cancellationToken)
     {
@@ -81,13 +81,17 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             TransactionType = TransactionType.ProductOrder,
             Status = TransactionStatus.Pending,
             OrderId = orderId,
-            Amount = request.TotalAmountPrice
+            Amount = request.TotalAmountPrice,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
         };
         var createdOrderHistory = new OrderStatusHistory
         {
             OrderId = orderId,
             Status = OrderStatus.Created,
             Description = "Order created",
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
         };
         var pendingOrderHistory = new OrderStatusHistory
         {
@@ -95,10 +99,13 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             Status = OrderStatus.Pending,
             PreviousStatus = OrderStatus.Created,
             Description = "Order pending",
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
         };
         _unitOfWork.Repository<OrderStatusHistory>().Insert(createdOrderHistory);
         _unitOfWork.Repository<OrderStatusHistory>().Insert(pendingOrderHistory);
         _unitOfWork.Repository<Transaction>().Insert(newTransaction);
+        await _transactionService.PurchaseProduct(newTransaction.OrderCode);
         return true;
     }
     public async Task CreateTransaction(PaymentResponseDto paymentResponse, CreatePaymentLinkCommand request, Guid orderId)
@@ -133,7 +140,9 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             TransactionType = transactionType,
             Status = TransactionStatus.Pending,
             OrderId = orderId,
-            Amount = paymentResponse.Data.Amount
+            Amount = paymentResponse.Data.Amount,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
         };
         if (transactionType == TransactionType.ProductOrder)
         {
@@ -157,6 +166,8 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         order.CheckoutUrl = checkoutUrl;
         order.CouponId = request.CouponId ?? null;
         order.CustomerPurchasedIdToExtend = request.CustomerPurchasedIdToExtend ?? null;
+        order.UpdatedAt = DateTime.UtcNow;
+        order.CreatedAt = DateTime.UtcNow;
         _unitOfWork.Repository<Order>().Insert(order);
         return order.Id;
     }

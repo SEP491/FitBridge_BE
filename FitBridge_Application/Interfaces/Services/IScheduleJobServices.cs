@@ -19,4 +19,5 @@ public interface IScheduleJobServices
     Task<bool> ScheduleSendRemindExpiredSubscriptionNotiJob(Guid UserSubscriptionId, DateTime triggerTime);
     Task<bool> ScheduleAutoRejectEditBookingRequestJob(Guid BookingRequestId, DateTime triggerTime);
     Task<bool> ScheduleAutoFinishArrivedOrderJob(Guid OrderId, DateTime triggerTime);
+    Task<bool> ScheduleAutoMarkAsFeedbackJob(Guid OrderItemId, DateTime triggerTime);
 }

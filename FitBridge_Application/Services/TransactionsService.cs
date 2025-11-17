@@ -28,6 +28,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 {
     private int defaultProfitDistributionDays;
     private decimal defaultCommissionRate;
+    private int autoMarkAsFeedbackAfterDays;
     public async Task<int> GetProfitDistributionDays()
     {
         if (defaultProfitDistributionDays == 0)
@@ -44,8 +45,17 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
         return defaultCommissionRate;
     }
+    public async Task<int> GetAutoMarkAsFeedbackAfterDays()
+    {
+        if (autoMarkAsFeedbackAfterDays == 0)
+        {
+            autoMarkAsFeedbackAfterDays = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.AutoMarkAsFeedbackAfterDays);
+        }
+        return autoMarkAsFeedbackAfterDays;
+    }
     public async Task<bool> ExtendCourse(long orderCode)
     {
+        autoMarkAsFeedbackAfterDays = await GetAutoMarkAsFeedbackAfterDays();
         defaultProfitDistributionDays = await GetProfitDistributionDays();
         var transactionToExtend = await _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
         if (transactionToExtend == null)
@@ -199,6 +209,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<bool> PurchaseFreelancePTPackage(long orderCode)
     {
+        autoMarkAsFeedbackAfterDays = await GetAutoMarkAsFeedbackAfterDays();
         var OrderEntity = await _unitOfWork.Repository<Order>()
             .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(orderCode), false);
         if (OrderEntity == null)
@@ -257,6 +268,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                 OrderItemId = orderItem.Id,
                 ProfitDistributionDate = profitDistributionDate
             });
+            await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItem.Id, profitDistributionDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MinValue));
         }
         return true;
     }
@@ -282,6 +294,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
     public async Task<bool> PurchaseGymCourse(long orderCode)
     {
         defaultProfitDistributionDays = await GetProfitDistributionDays();
+        autoMarkAsFeedbackAfterDays = await GetAutoMarkAsFeedbackAfterDays();
         var OrderEntity = await _unitOfWork.Repository<Order>()
                 .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(orderCode), false);
         if (OrderEntity == null)
@@ -344,6 +357,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                     OrderItemId = orderItem.Id,
                     ProfitDistributionDate = profitDistributionDate
                 });
+                await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItem.Id, profitDistributionDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MinValue));
             }
         }
         return true;
@@ -351,6 +365,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<bool> ExtendFreelancePTPackage(long orderCode)
     {
+        autoMarkAsFeedbackAfterDays = await GetAutoMarkAsFeedbackAfterDays();
         var transactionToExtend = await _unitOfWork.Repository<Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
         if (transactionToExtend == null)
         {
@@ -391,6 +406,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             OrderItemId = orderItemToExtend.Id,
             ProfitDistributionDate = profitDistributePlannedDate
         });
+        await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItemToExtend.Id, profitDistributePlannedDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MinValue));
         return true;
     }
 

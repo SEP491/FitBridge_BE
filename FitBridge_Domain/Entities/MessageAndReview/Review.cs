@@ -14,6 +14,7 @@ public class Review : BaseEntity
     public Guid? GymId { get; set; }
     public Guid? FreelancePtId { get; set; }
     public Guid? ProductDetailId { get; set; }
+    public ICollection<string>? ImageUrls { get; set; }
     public ApplicationUser User { get; set; }
     public ApplicationUser Gym { get; set; }
     public ApplicationUser FreelancePt { get; set; }

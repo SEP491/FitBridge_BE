@@ -28,7 +28,7 @@ public class GetShippingPriceCommandHandler(IUnitOfWork _unitOfWork, IAhamoveSer
         {
             Lat = fromAddress.Latitude,
             Lng = fromAddress.Longitude,
-            Address = fromAddress.Street,
+            Address = fromAddress.GoogleMapAddressString,
             ShortAddress = fromAddress.Ward,
             Name = "Shop",
             Mobile = fromAddress.PhoneNumber
@@ -37,7 +37,7 @@ public class GetShippingPriceCommandHandler(IUnitOfWork _unitOfWork, IAhamoveSer
         {
             Lat = toAddress.Latitude,
             Lng = toAddress.Longitude,
-            Address = toAddress.Street,
+            Address = toAddress.GoogleMapAddressString,
             ShortAddress = toAddress.Ward,
             Name = "Customer",
             Mobile = toAddress.PhoneNumber

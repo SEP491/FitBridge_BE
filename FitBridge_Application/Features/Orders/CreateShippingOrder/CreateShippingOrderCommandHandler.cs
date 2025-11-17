@@ -59,7 +59,7 @@ public class CreateShippingOrderCommandHandler : IRequestHandler<CreateShippingO
             ShortAddress = shopAddress.Ward + ", " + shopAddress.District,
             Name = shopAddress.ReceiverName,
             Mobile = shopAddress.PhoneNumber,
-            Remarks = shopAddress.Note,
+            Remarks = request.Remarks ?? shopAddress.Note,
         };
 
         var deliveryAddress = new AhamovePathDto

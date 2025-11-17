@@ -28,7 +28,7 @@ public class ProductDetailConfiguration : IEntityTypeConfiguration<ProductDetail
         builder.Property(e => e.ProteinPerServingGrams).IsRequired(false);
         builder.Property(e => e.CaloriesPerServingKcal).IsRequired(false);
         builder.Property(e => e.BCAAPerServingGrams).IsRequired(false);
-        builder.HasIndex(e => new { e.ProductId, e.WeightId, e.FlavourId, e.IsEnabled, e.ExpirationDate }).IsUnique();
+        builder.HasIndex(e => new { e.ProductId, e.WeightId, e.FlavourId, e.IsEnabled, e.IsDisplayed }).IsUnique();
         builder.HasOne(e => e.Product).WithMany(e => e.ProductDetails).HasForeignKey(e => e.ProductId);
         builder.HasOne(e => e.Weight).WithMany(e => e.ProductDetails).HasForeignKey(e => e.WeightId);
         builder.HasOne(e => e.Flavour).WithMany(e => e.ProductDetails).HasForeignKey(e => e.FlavourId);
