@@ -39,6 +39,7 @@
 		<PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Folder Include="Features\CustomerPurchaseds\CreateCustomerPurchased\" />
 	  <Folder Include="Features\Jobs\DistributeProfit\RejectBookingRequest\" />
 	  <Folder Include="Features\Tests\" />
 	  <Folder Include="Specifications\Transactions\GetCustomerTransactions\" />
