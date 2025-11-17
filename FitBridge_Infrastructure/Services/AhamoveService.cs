@@ -15,6 +15,9 @@ using FitBridge_Application.Dtos.Orders;
 using FitBridge_Domain.Entities.Accounts;
 using Azure.Core;
 using System.Text.Json.Serialization;
+using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Services;
+using FitBridge_Domain.Entities.Ecommerce;
 
 namespace FitBridge_Infrastructure.Services;
 
@@ -25,17 +28,23 @@ public class AhamoveService : IAhamoveService
     private readonly ILogger<AhamoveService> _logger;
     private string? _cachedToken;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IScheduleJobServices _scheduleJobServices;
+    private readonly SystemConfigurationService _systemConfigurationService;
     public AhamoveService(
         HttpClient httpClient,
         IOptions<AhamoveSettings> ahamoveSettings,
         ILogger<AhamoveService> logger,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IScheduleJobServices scheduleJobServices,
+        SystemConfigurationService systemConfigurationService)
     {
         _httpClient = httpClient;
         _ahamoveSettings = ahamoveSettings.Value;
         _logger = logger;
         _unitOfWork = unitOfWork;
         _httpClient.BaseAddress = new Uri(_ahamoveSettings.BaseUrl);
+        _scheduleJobServices = scheduleJobServices;
+        _systemConfigurationService = systemConfigurationService;
     }
 
     public async Task<string> GetTokenAsync()
@@ -152,7 +161,13 @@ public class AhamoveService : IAhamoveService
 
             if (newStatus == OrderStatus.Arrived)
             {
-                order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!.Status = TransactionStatus.Success;
+                int autoFinishArrivedOrderAfterTime = (int)await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.AutoFinishArrivedOrderAfterTime);
+                var transactionToUpdate = order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!;
+                if(transactionToUpdate.PaymentMethod.MethodType == MethodType.COD)
+                {
+                    transactionToUpdate.Status = TransactionStatus.Success;
+                }
+                await _scheduleJobServices.ScheduleAutoFinishArrivedOrderJob(order.Id, DateTime.UtcNow.AddDays(autoFinishArrivedOrderAfterTime));
             }
             if (newStatus == OrderStatus.Cancelled)
             {
@@ -166,6 +181,17 @@ public class AhamoveService : IAhamoveService
                         Description = $"Đã hoàn trả hàng. Lý do: {webhookData.CancelComment}",
                         PreviousStatus = OrderStatus.Returned,
                     };
+                    foreach (var orderItem in order.OrderItems)
+                    {
+                        var productDetail = await _unitOfWork.Repository<ProductDetail>().GetByIdAsync(orderItem.ProductDetailId.Value);
+                        if (productDetail == null)
+                        {
+                            throw new BusinessException("Product detail not found");
+                        }
+                        productDetail.Quantity += orderItem.Quantity;
+                        productDetail.SoldQuantity -= orderItem.Quantity;
+                        _unitOfWork.Repository<ProductDetail>().Update(productDetail);
+                    }
                     oldStatus = OrderStatus.Returned;
                     _unitOfWork.Repository<OrderStatusHistory>().Insert(returnStatusHistory);
                 }
