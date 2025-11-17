@@ -19,6 +19,10 @@ public class AddressesController(IMediator _mediator) : _BaseApiController
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "Address created successfully", result));
     }
+    /// <summary>
+    /// Get all addresses for a customer
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("customer")]
     public async Task<IActionResult> GetAllByCustomer()
     {

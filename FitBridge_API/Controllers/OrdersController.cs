@@ -30,13 +30,21 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
         return Ok(new BaseResponse<OrderResponseDto>(StatusCodes.Status200OK.ToString(), "Order retrieved successfully", order));
     }
 
+    /// <summary>
+    /// Create a shipping order for a product order
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
     [HttpPost("shipping")]
     public async Task<IActionResult> CreateShippingOrder([FromBody] CreateShippingOrderCommand command)
     {
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<CreateShippingOrderResponseDto>(StatusCodes.Status200OK.ToString(), "Shipping order created successfully", result));
     }
-
+    /// <summary>
+    /// API for ahamove to callback when there is a change in the shipping order status
+    /// </summary>
+    /// <returns></returns>
     [AllowAnonymous]
     [HttpPost("shipping/webhook")]
     public async Task<IActionResult> ShippingCallbackWebhook()
@@ -57,7 +65,12 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
 
         return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "Shipping webhook processed successfully", webhookPayload));
     }
-
+    /// <summary>
+    /// Update the status of an order
+    /// </summary>
+    /// <param name="orderId"></param>
+    /// <param name="command"></param>
+    /// <returns></returns>
     [HttpPut("status/{orderId}")]
     public async Task<IActionResult> UpdateOrderStatus([FromRoute] Guid orderId, [FromBody] UpdateOrderStatusCommand command)
     {
@@ -66,6 +79,12 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
         return Ok(new BaseResponse<OrderStatusResponseDto>(StatusCodes.Status200OK.ToString(), "Order status updated successfully", result));
     }
 
+    /// <summary>
+    /// Cancel a shipping order
+    /// </summary>
+    /// <param name="orderId"></param>
+    /// <param name="command"></param>
+    /// <returns></returns>
     [HttpPut("shipping/cancel/{orderId}")]
     public async Task<IActionResult> CancelShippingOrder([FromRoute] Guid orderId, [FromBody] CancelShippingOrderCommand command)
     {
@@ -74,6 +93,11 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Shipping order canceled successfully", result));
     }
 
+    /// <summary>
+    /// Estimate the shipping price for a product order
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
     [HttpPost("shipping/price-estimate")]
     public async Task<IActionResult> GetShippingPrice([FromBody] GetShippingPriceCommand command)
     {
