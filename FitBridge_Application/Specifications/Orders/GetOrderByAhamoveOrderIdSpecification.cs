@@ -9,6 +9,7 @@ public class GetOrderByAhamoveOrderIdSpecification : BaseSpecification<Order>
         AddInclude(o => o.Transactions);
         AddInclude(o => o.OrderItems);
         AddInclude(o => o.OrderStatusHistories);
+        AddInclude("Transactions.PaymentMethod");
     }
 }
 

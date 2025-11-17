@@ -20,6 +20,7 @@ using Microsoft.VisualBasic;
 using FitBridge_Domain.Entities.ServicePackages;
 using FitBridge_Domain.Enums.SubscriptionPlans;
 using FitBridge_Application.Dtos.Payments.ApplePaymentDto;
+using FitBridge_Domain.Entities.Ecommerce;
 
 namespace FitBridge_Application.Services;
 
@@ -590,6 +591,8 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             if (orderItem.ProductDetailId != null)
             {
                 profit -= orderItem.OriginalProductPrice.Value * orderItem.Quantity;
+                orderItem.ProductDetail.Quantity -= orderItem.Quantity;
+                orderItem.ProductDetail.SoldQuantity += orderItem.Quantity;
             }
         }
         var previousStatus = transactionToPurchaseProduct.Order.Status;
@@ -603,7 +606,6 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             PreviousStatus = previousStatus,
         };
         _unitOfWork.Repository<OrderStatusHistory>().Insert(orderStatusHistory);
-        _unitOfWork.Repository<Transaction>().Update(transactionToPurchaseProduct);
         await _unitOfWork.CommitAsync();
         return true;
     }

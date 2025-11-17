@@ -298,6 +298,10 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 {
                     throw new NotFoundException("Product detail not found");
                 }
+                if(productDetail.Quantity < item.Quantity)
+                {
+                    throw new BusinessException("Product quantity is not enough");
+                }
                 item.Price = productDetail.SalePrice;
                 item.OriginalProductPrice = productDetail.OriginalPrice;
             }
