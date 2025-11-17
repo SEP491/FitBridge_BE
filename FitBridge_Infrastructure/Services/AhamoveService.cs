@@ -163,51 +163,54 @@ public class AhamoveService : IAhamoveService
             {
                 int autoFinishArrivedOrderAfterTime = (int)await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.AutoFinishArrivedOrderAfterTime);
                 var transactionToUpdate = order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!;
-                if(transactionToUpdate.PaymentMethod.MethodType == MethodType.COD)
+                if (transactionToUpdate.PaymentMethod.MethodType == MethodType.COD)
                 {
                     transactionToUpdate.Status = TransactionStatus.Success;
                 }
+
                 await _scheduleJobServices.ScheduleAutoFinishArrivedOrderJob(order.Id, DateTime.UtcNow.AddDays(autoFinishArrivedOrderAfterTime));
+
+                var autoMarkAsFeedbackAfterDays = (int)await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.AutoMarkAsFeedbackAfterDays);
+                await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(transactionToUpdate.OrderItemId.Value, DateTime.UtcNow.AddDays(autoMarkAsFeedbackAfterDays));
             }
-            if (newStatus == OrderStatus.Cancelled)
+            if (newStatus == OrderStatus.Returned)
             {
-                // If the order has been returned once, the status will be auto swich to cancelled
-                if (order.OrderStatusHistories.Any(x => x.Status == OrderStatus.Returned))
+
+                foreach (var orderItem in order.OrderItems)
+                {
+                    var productDetail = await _unitOfWork.Repository<ProductDetail>().GetByIdAsync(orderItem.ProductDetailId.Value);
+                    if (productDetail == null)
+                    {
+                        throw new BusinessException("Product detail not found");
+                    }
+                    productDetail.Quantity += orderItem.Quantity;
+                    productDetail.SoldQuantity -= orderItem.Quantity;
+                    _unitOfWork.Repository<ProductDetail>().Update(productDetail);
+                }
+                var paymentMethod = await _unitOfWork.Repository<PaymentMethod>().GetByIdAsync(order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!.PaymentMethodId);
+                if (paymentMethod == null)
+                {
+                    throw new BusinessException("Payment method not found");
+                }
+                if (paymentMethod.MethodType == MethodType.COD)
                 {
                     var returnStatusHistory = new OrderStatusHistory
                     {
                         OrderId = order.Id,
                         Status = OrderStatus.Returned,
                         Description = $"Đã hoàn trả hàng. Lý do: {webhookData.CancelComment}",
-                        PreviousStatus = OrderStatus.Returned,
+                        PreviousStatus = OrderStatus.InReturn,
                     };
-                    foreach (var orderItem in order.OrderItems)
-                    {
-                        var productDetail = await _unitOfWork.Repository<ProductDetail>().GetByIdAsync(orderItem.ProductDetailId.Value);
-                        if (productDetail == null)
-                        {
-                            throw new BusinessException("Product detail not found");
-                        }
-                        productDetail.Quantity += orderItem.Quantity;
-                        productDetail.SoldQuantity -= orderItem.Quantity;
-                        _unitOfWork.Repository<ProductDetail>().Update(productDetail);
-                    }
                     oldStatus = OrderStatus.Returned;
+                    newStatus = OrderStatus.Cancelled;
                     _unitOfWork.Repository<OrderStatusHistory>().Insert(returnStatusHistory);
                 }
             }
 
-            // Only update if status has changed
             order.Status = newStatus;
             order.UpdatedAt = DateTime.UtcNow;
-            var statusHistoryToUpdate = order.OrderStatusHistories.Where(x => x.Status == oldStatus).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
-            if (statusHistoryToUpdate != null)
-            {
-                statusHistoryToUpdate.Description = statusDescription;
-                statusHistoryToUpdate.PreviousStatus = oldStatus;
-                statusHistoryToUpdate.UpdatedAt = DateTime.UtcNow;
-            }
 
+            // Only insert status history if status has changed
             if (oldStatus != newStatus)
             {
                 var statusHistory = new OrderStatusHistory
@@ -277,10 +280,6 @@ public class AhamoveService : IAhamoveService
                     // Package was returned to sender - customer did not receive
                     var deliveryPath = webhookData.Path?.Skip(1).FirstOrDefault();
                     var failReason = deliveryPath?.FailComment ?? "Không xác định";
-                    if (order.OrderStatusHistories.Any(x => x.Status == OrderStatus.Returned))
-                    {
-                        return (OrderStatus.Cancelled, $"Đã hoàn trả hàng. Lý do: {failReason}");
-                    }
                     return (OrderStatus.Returned, $"Đã hoàn trả hàng. Lý do: {failReason}");
                 }
                 else
@@ -365,16 +364,17 @@ public class AhamoveService : IAhamoveService
                 _logger.LogError($"Failed to get Ahamove shipping price. Status: {response.StatusCode}, Response: {responseContent}");
                 throw new BusinessException($"Failed to get Ahamove shipping price: {responseContent}");
             }
-            var responseDto = JsonSerializer.Deserialize<ShippingEstimateDto>(responseContent, new JsonSerializerOptions
+            var responseDtos = JsonSerializer.Deserialize<List<ShippingEstimateWrapper>>(responseContent, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 PropertyNameCaseInsensitive = true
             });
+            var responseDto = responseDtos?.FirstOrDefault();
             if (responseDto == null)
             {
                 throw new BusinessException("Failed to deserialize Ahamove price estimate response");
             }
-            return responseDto;
+            return responseDto.data;
         }
         catch (Exception ex)
         {

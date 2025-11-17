@@ -13,6 +13,7 @@ using FitBridge_Infrastructure.Jobs.BookingRequests;
 using FitBridge_Infrastructure.Jobs.Subscriptions;
 using FitBridge_Application.Features.Jobs.RejectEditBookingRequest;
 using FitBridge_Infrastructure.Jobs.Orders;
+using FitBridge_Infrastructure.Jobs.Reviews;
 
 namespace FitBridge_Infrastructure.Services.Jobs;
 
@@ -274,6 +275,27 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .Build();
         await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
         _logger.LogInformation($"Successfully scheduled auto finish arrived order job for order {OrderId} at {triggerTime.ToLocalTime}");
+        return true;
+    }
+
+    public async Task<bool> ScheduleAutoMarkAsFeedbackJob(Guid OrderItemId, DateTime triggerTime)
+    {
+        var jobKey = new JobKey($"AutoMarkAsFeedback_{OrderItemId}", "AutoMarkAsFeedback");
+        var triggerKey = new TriggerKey($"AutoMarkAsFeedback_{OrderItemId}_Trigger", "AutoMarkAsFeedback");
+        var jobData = new JobDataMap
+        {
+            { "orderItemId", OrderItemId.ToString() }
+        };
+        var job = JobBuilder.Create<MarkAsFeedbackJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled auto mark as reviewed job for order item {OrderItemId} at {triggerTime.ToLocalTime}");
         return true;
     }
 }

@@ -26,22 +26,8 @@ public class ProcessAhamoveWebhookCommandHandler : IRequestHandler<ProcessAhamov
         {
             _logger.LogInformation($"Received webhook payload: {request.WebhookPayload}");
 
-            // First, deserialize the wrapper
-            var wrapperDto = JsonSerializer.Deserialize<AhamoveWebhookWrapperDto>(request.WebhookPayload, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            if (wrapperDto == null || string.IsNullOrEmpty(wrapperDto.Data))
-            {
-                throw new BusinessException("Invalid webhook payload: wrapper or data is null");
-            }
-
-            _logger.LogInformation($"Wrapper status: {wrapperDto.Status}, message: {wrapperDto.Message}");
-            _logger.LogInformation($"Inner data string: {wrapperDto.Data}");
-
             // Then, deserialize the inner data string to get the actual Ahamove webhook data
-            var webhookData = JsonSerializer.Deserialize<AhamoveWebhookDto>(wrapperDto.Data, new JsonSerializerOptions
+            var webhookData = JsonSerializer.Deserialize<AhamoveWebhookDto>(request.WebhookPayload, new JsonSerializerOptions
             {
                 // PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 PropertyNameCaseInsensitive = true

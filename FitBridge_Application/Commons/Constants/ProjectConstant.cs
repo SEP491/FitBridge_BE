@@ -37,6 +37,8 @@ public static class ProjectConstant
         public const string NearExpiredDateProductWarning = "NearExpiredDateProductWarning";
         public const string AutoHideProductBeforeExpirationDate = "AutoHideProductBeforeExpirationDate";
         public const string AutoFinishArrivedOrderAfterTime = "AutoFinishArrivedOrderAfterTime";
+        public const string AutoMarkAsFeedbackAfterDays = "AutoMarkAsFeedbackAfterDays";
+        public const string MaximumReviewImages = "MaximumReviewImages";
     }
     public const int MaxRetries = 3;
     public static class EmailTypes
