@@ -8,6 +8,7 @@ using FitBridge_Domain.Exceptions;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using FitBridge_Domain.Entities.Accounts;
+using FitBridge_Application.Specifications.Addresses.GetShopDefaultAddress;
 
 namespace FitBridge_Application.Features.Orders.CreateShippingOrder;
 
@@ -45,7 +46,7 @@ public class CreateShippingOrderCommandHandler : IRequestHandler<CreateShippingO
         {
             throw new BusinessException($"Order is already in {order.Status} status and cannot be shipped again");
         }
-        var shopAddress = await _unitOfWork.Repository<Address>().GetByIdAsync(Guid.Parse(ProjectConstant.DefaultShopAddressId));
+        var shopAddress = await _unitOfWork.Repository<Address>().GetBySpecificationAsync(new GetShopDefaultAddressSpec());
         if (shopAddress == null)
         {
             throw new NotFoundException("Shop address not found");

@@ -17,4 +17,5 @@ public class CreateAddressCommand : IRequest<string>
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public string? GoogleMapAddressString { get; set; }
+    public bool? IsShopDefaultAddress { get; set; }
 }

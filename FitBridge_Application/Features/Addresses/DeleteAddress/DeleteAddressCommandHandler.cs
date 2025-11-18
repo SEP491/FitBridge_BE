@@ -15,6 +15,10 @@ public class DeleteAddressCommandHandler(IUnitOfWork unitOfWork) : IRequestHandl
         {
             throw new NotFoundException("Address not found");
         }
+        if(address.IsShopDefaultAddress)
+        {
+            throw new BusinessException("Shop default address cannot be deleted, please choose another address as shop default address for auto switch");
+        }
         unitOfWork.Repository<Address>().Delete(address);
         await unitOfWork.CommitAsync();
         return true;

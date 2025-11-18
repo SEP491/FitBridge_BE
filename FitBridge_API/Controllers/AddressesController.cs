@@ -8,6 +8,8 @@ using FitBridge_Application.Features.Addresses.GetAllCustomerAddress;
 using FitBridge_Application.Features.Addresses.GetAddressById;
 using FitBridge_Application.Features.Addresses.DeleteAddress;
 using FitBridge_Application.Features.Addresses.UpdateAddress;
+using FitBridge_Application.Features.Addresses.GetAllShopAddress;
+using FitBridge_Application.Specifications.Addresses.GetAllShopAddress;
 
 namespace FitBridge_API.Controllers;
 
@@ -38,17 +40,34 @@ public class AddressesController(IMediator _mediator) : _BaseApiController
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete([FromRoute] string id)
+    public async Task<IActionResult> DeleteAddress([FromRoute] string id)
     {
         var result = await _mediator.Send(new DeleteAddressCommand(Guid.Parse(id)));
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Address deleted successfully", result));
     }
 
+    /// <summary>
+    /// Update an address, pass IsShopDefaultAddress to switch default address to this address, cannot be false
+    /// </summary>
+    /// <param name="IsShopDefaultAddress">True to switch default address to this address, cannot be false</param>
+    /// <returns></returns>
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update([FromRoute] string id, [FromBody] UpdateAddressCommand command)
+    public async Task<IActionResult> UpdateAddress([FromRoute] string id, [FromBody] UpdateAddressCommand command)
     {
         command.Id = Guid.Parse(id);
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<AddressResponseDto>(StatusCodes.Status200OK.ToString(), "Address updated successfully", result));
+    }
+
+    /// <summary>
+    /// Get all shop addresses of all admin accounts
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("admin/shop-address")]
+    public async Task<IActionResult> GetAllShopAddress([FromQuery] GetAllShopAddressParams parameters)
+    {
+        var result = await _mediator.Send(new GetAllShopAddressQuery(parameters));
+        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<AddressResponseDto>>(StatusCodes.Status200OK.ToString(), "Shop address retrieved successfully", pagination));
     }
 }
