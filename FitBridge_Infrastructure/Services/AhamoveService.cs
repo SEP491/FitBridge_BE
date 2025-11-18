@@ -174,18 +174,6 @@ public class AhamoveService : IAhamoveService
             }
             if (newStatus == OrderStatus.Returned)
             {
-
-                foreach (var orderItem in order.OrderItems)
-                {
-                    var productDetail = await _unitOfWork.Repository<ProductDetail>().GetByIdAsync(orderItem.ProductDetailId.Value);
-                    if (productDetail == null)
-                    {
-                        throw new BusinessException("Product detail not found");
-                    }
-                    productDetail.Quantity += orderItem.Quantity;
-                    productDetail.SoldQuantity -= orderItem.Quantity;
-                    _unitOfWork.Repository<ProductDetail>().Update(productDetail);
-                }
                 var paymentMethod = await _unitOfWork.Repository<PaymentMethod>().GetByIdAsync(order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!.PaymentMethodId);
                 if (paymentMethod == null)
                 {
@@ -212,14 +200,14 @@ public class AhamoveService : IAhamoveService
                 {
                     order.ShippingFeeActualCost += webhookData.TotalPay;
                     var shippingFeeDifference = order.ShippingFeeActualCost - order.ShippingFee;
-                    order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!.ProfitAmount += shippingFeeDifference;
+                    order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!.ProfitAmount -= shippingFeeDifference;
                 }
             }
  
             order.Status = newStatus;
             order.UpdatedAt = DateTime.UtcNow;
             var statusHistoryToUpdate = order.OrderStatusHistories.Where(s => s.Status == oldStatus).OrderByDescending(s => s.CreatedAt).FirstOrDefault();
-            if (statusHistoryToUpdate != null)
+            if (statusHistoryToUpdate != null && oldStatus != newStatus)
             {
                 statusHistoryToUpdate.Description = statusDescription;
             }

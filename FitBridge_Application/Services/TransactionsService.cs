@@ -523,7 +523,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
         // Update order shipping actual cost and Ahamove order ID
         // order.ShippingFeeActualCost += shippingActualCost;
-        // order.ShippingTrackingId = shippingTrackingId;
+        order.ShippingTrackingId = shippingTrackingId;
         var oldStatus = order.Status;
         order.Status = OrderStatus.Assigning;
         var orderStatusHistory = new OrderStatusHistory
