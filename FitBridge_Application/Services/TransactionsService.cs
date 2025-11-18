@@ -522,8 +522,8 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
 
         // Update order shipping actual cost and Ahamove order ID
-        order.ShippingFeeActualCost += shippingActualCost;
-        order.ShippingTrackingId = shippingTrackingId;
+        // order.ShippingFeeActualCost += shippingActualCost;
+        // order.ShippingTrackingId = shippingTrackingId;
         var oldStatus = order.Status;
         order.Status = OrderStatus.Assigning;
         var orderStatusHistory = new OrderStatusHistory
@@ -537,25 +537,25 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
         _logger.LogInformation($"Order {orderId} updated with shipping actual cost {shippingActualCost}, Shipping Tracking ID {shippingTrackingId}, and status changed to Assigning");
 
-        // Calculate profit from shipping fee difference
-        var shippingDifference = shippingActualCost - order.ShippingFee;
-        if(order.OrderStatusHistories.Any(o => o.Status == OrderStatus.Returned))
-        {
-            shippingDifference = shippingActualCost; // If the order is returned, and the admin send the shipping order again the profit will be minus by the new shipping actual cost
-        }
+        // // Calculate profit from shipping fee difference
+        // var shippingDifference = shippingActualCost - order.ShippingFee;
+        // if(order.OrderStatusHistories.Any(o => o.Status == OrderStatus.Returned))
+        // {
+        //     shippingDifference = shippingActualCost; // If the order is returned, and the admin send the shipping order again the profit will be minus by the new shipping actual cost
+        // }
 
         // Update transaction profit amount
-        var transaction = order.Transactions.FirstOrDefault();
-        if (transaction != null)
-        {
-            // Add shipping profit to existing profit amount
-            var currentProfit = transaction.ProfitAmount ?? 0;
-            transaction.ProfitAmount = currentProfit - shippingDifference;
+        // var transaction = order.Transactions.FirstOrDefault();
+        // if (transaction != null)
+        // {
+        //     // Add shipping profit to existing profit amount
+        //     var currentProfit = transaction.ProfitAmount ?? 0;
+        //     transaction.ProfitAmount = currentProfit - shippingDifference;
 
-            _logger.LogInformation($"Transaction for Order {orderId} updated with profit amount {transaction.ProfitAmount} (shipping profit: {shippingDifference})");
+        //     _logger.LogInformation($"Transaction for Order {orderId} updated with profit amount {transaction.ProfitAmount} (shipping profit: {shippingDifference})");
 
-            _unitOfWork.Repository<Transaction>().Update(transaction);
-        }
+        //     _unitOfWork.Repository<Transaction>().Update(transaction);
+        // }
 
         _unitOfWork.Repository<Order>().Update(order);
         await _unitOfWork.CommitAsync();

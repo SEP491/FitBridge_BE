@@ -4,6 +4,7 @@ namespace FitBridge_Application.Dtos.Addresses;
 
 public class AddressResponseDto
 {
+    public Guid Id { get; set; }
     public string ReceiverName { get; set; }
     public string PhoneNumber { get; set; }
     public string City { get; set; }

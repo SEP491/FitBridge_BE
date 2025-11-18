@@ -146,8 +146,7 @@ public class AhamoveService : IAhamoveService
             _logger.LogInformation($"Processing webhook for Ahamove Order ID: {webhookData.Id}, Status: {webhookData.Status}, SubStatus: {webhookData.SubStatus}");
 
             // Find order by Ahamove order ID
-            var order = await _unitOfWork.Repository<Order>().GetBySpecificationAsync(
-                new GetOrderByAhamoveOrderIdSpecification(webhookData.Id), false);
+            var order = await _unitOfWork.Repository<Order>().GetBySpecificationAsync(new GetOrderByAhamoveOrderIdSpecification(webhookData.Id), false);
 
             if (order == null)
             {
@@ -207,8 +206,23 @@ public class AhamoveService : IAhamoveService
                 }
             }
 
+            if (newStatus == OrderStatus.Shipping)
+            {
+                if (oldStatus == OrderStatus.Accepted)
+                {
+                    order.ShippingFeeActualCost += webhookData.TotalPay;
+                    var shippingFeeDifference = order.ShippingFeeActualCost - order.ShippingFee;
+                    order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!.ProfitAmount += shippingFeeDifference;
+                }
+            }
+ 
             order.Status = newStatus;
             order.UpdatedAt = DateTime.UtcNow;
+            var statusHistoryToUpdate = order.OrderStatusHistories.Where(s => s.Status == oldStatus).OrderByDescending(s => s.CreatedAt).FirstOrDefault();
+            if (statusHistoryToUpdate != null)
+            {
+                statusHistoryToUpdate.Description = statusDescription;
+            }
 
             // Only insert status history if status has changed
             if (oldStatus != newStatus)
@@ -264,7 +278,7 @@ public class AhamoveService : IAhamoveService
                     {
                         return (OrderStatus.Shipping, $"Giao hàng thất bại: {deliveryPath.FailComment}. Đang xử lý.");
                     }
-                    return (OrderStatus.Arrived, "Tài xế đã đến nơi giao hàng");
+                    throw new BusinessException("Trạng thái không xác định");
                 }
                 return (OrderStatus.Shipping, "Đang giao hàng");
 
