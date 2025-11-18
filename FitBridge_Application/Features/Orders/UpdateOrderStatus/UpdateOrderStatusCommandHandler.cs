@@ -8,10 +8,11 @@ using MediatR;
 using AutoMapper;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Domain.Entities.Ecommerce;
+using FitBridge_Application.Services;
 
 namespace FitBridge_Application.Features.Orders.UpdateOrderStatus;
 
-public class UpdateOrderStatusCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IScheduleJobServices _scheduleJobServices) : IRequestHandler<UpdateOrderStatusCommand, OrderStatusResponseDto>
+public class UpdateOrderStatusCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IScheduleJobServices _scheduleJobServices, OrderService _orderService) : IRequestHandler<UpdateOrderStatusCommand, OrderStatusResponseDto>
 {
     public async Task<OrderStatusResponseDto> Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
     {
@@ -30,17 +31,17 @@ public class UpdateOrderStatusCommandHandler(IUnitOfWork _unitOfWork, IMapper _m
         }
         if (request.Status == OrderStatus.Cancelled)
         {
-            if (order.Status != OrderStatus.Created && order.Status != OrderStatus.Pending)
+            if (order.Status != OrderStatus.Created && order.Status != OrderStatus.Pending && order.Status != OrderStatus.Returned)
             {
-                throw new WrongStatusSequenceException("Order status is not created or pending");
+                throw new WrongStatusSequenceException("Order status is not created or pending or returned");
             }
-            if (paymentMethod.MethodType != MethodType.COD)
+            if (paymentMethod.MethodType != MethodType.COD && order.Status != OrderStatus.Returned)
             {
                 throw new BusinessException("Payment method is not COD, cannot cancel order");
             }
-            if (order.Status == OrderStatus.Pending)
+            if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Returned)
             {
-                await ReturnQuantityToProductDetail(order);
+                await _orderService.ReturnQuantityToProductDetail(order);
             }
         }
         if (request.Status == OrderStatus.CustomerNotReceived)
@@ -66,19 +67,5 @@ public class UpdateOrderStatusCommandHandler(IUnitOfWork _unitOfWork, IMapper _m
         return _mapper.Map<OrderStatusResponseDto>(orderStatusHistory);
     }
     
-    public async Task<bool> ReturnQuantityToProductDetail(Order order)
-    {
-        foreach (var orderItem in order.OrderItems)
-        {
-            var productDetail = await _unitOfWork.Repository<ProductDetail>().GetByIdAsync(orderItem.ProductDetailId.Value);
-            if (productDetail == null)
-            {
-                throw new NotFoundException("Product detail not found");
-            }
-            productDetail.Quantity += orderItem.Quantity;
-            productDetail.SoldQuantity -= orderItem.Quantity;
-            _unitOfWork.Repository<ProductDetail>().Update(productDetail);
-        }
-        return true;
-    }
+
 }
