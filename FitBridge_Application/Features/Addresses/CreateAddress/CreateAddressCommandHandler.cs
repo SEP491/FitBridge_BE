@@ -19,6 +19,7 @@ public class CreateAddressCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,
             throw new NotFoundException("Customer not found");
         }
         var address = mapper.Map<CreateAddressCommand, Address>(request);
+        address.CustomerId = customerId.Value;
         unitOfWork.Repository<Address>().Insert(address);
         await unitOfWork.CommitAsync();
         return address.Id.ToString();
