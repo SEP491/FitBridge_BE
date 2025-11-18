@@ -19,6 +19,7 @@ public class Address : BaseEntity
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public string? GoogleMapAddressString { get; set; }
+    public bool IsShopDefaultAddress { get; set; }
     public ApplicationUser Customer { get; set; }
     public ICollection<Order> Orders { get; set; } = new List<Order>();
 }
