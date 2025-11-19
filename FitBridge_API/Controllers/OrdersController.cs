@@ -4,10 +4,12 @@ using FitBridge_Application.Dtos.Shippings;
 using FitBridge_Application.Features.Orders.CancelShippingOrder;
 using FitBridge_Application.Features.Orders.CreateOrders;
 using FitBridge_Application.Features.Orders.CreateShippingOrder;
+using FitBridge_Application.Features.Orders.GetAllProductOrder;
 using FitBridge_Application.Features.Orders.GetOrderByCustomerPurchasedId;
 using FitBridge_Application.Features.Orders.GetShippingPrice;
 using FitBridge_Application.Features.Orders.ProcessAhamoveWebhook;
 using FitBridge_Application.Features.Orders.UpdateOrderStatus;
+using FitBridge_Application.Specifications.Orders.GetAllProductOrders;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -103,5 +105,18 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
     {
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<ShippingEstimateDto>(StatusCodes.Status200OK.ToString(), "Shipping price retrieved successfully", result));
+    }
+    
+    /// <summary>
+    /// Get all product orders
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    [HttpGet("product")]
+    public async Task<IActionResult> GetAllProductOrders([FromQuery] GetAllProductOrdersParams parameters)
+    {
+        var result = await _mediator.Send(new GetAllProductOrdersQuery { Params = parameters });
+        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GetAllProductOrderResponseDto>>(StatusCodes.Status200OK.ToString(), "Orders retrieved successfully", pagination));
     }
 }
