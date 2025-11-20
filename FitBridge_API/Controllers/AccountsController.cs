@@ -45,6 +45,11 @@ using FitBridge_Application.Features.Accounts.GetGymOwnerByIdForAdmin;
 using FitBridge_Application.Dtos.Accounts.Customers;
 using FitBridge_Application.Specifications.Accounts.GetAllCustomersForAdmin;
 using FitBridge_Application.Features.Accounts.GetAllCustomersForAdmin;
+using FitBridge_Application.Features.GymSlots.GetGymPtRegisterSlotForGymOwner;
+using FitBridge_Application.Specifications.GymSlotPts.GetGymPtRegisterSlotForGymOwner;
+using FitBridge_Application.Dtos.GymSlots;
+using FitBridge_Application.Specifications.GymSlotPts.GetGymSlotPtBooking;
+using FitBridge_Application.Features.GymSlots.GetGymSlotPtBooking;
 
 namespace FitBridge_API.Controllers;
 
@@ -370,5 +375,31 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
         var response = await _mediator.Send(new GetAllCustomersForAdminQuery { Params = parameters });
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GetAllCustomersForAdminDto>>(StatusCodes.Status200OK.ToString(), "Customers retrieved successfully", pagination));
+    }
+
+    /// <summary>
+    /// Get all gym PT register slots for gym owner to view list of gym PT registered slots in a period of time
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    [HttpGet("gym-owner/gym-pt-register-slots")]
+    public async Task<IActionResult> GetGymPtRegisterSlotsForGymOwner([FromQuery] GetGymPtRegisterSlotForGymOwnerParams parameters)
+    {
+        var response = await _mediator.Send(new GetGymPtRegisterSlotForGymOwnerQuery(parameters));
+        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GymPtRegisterSlot>>(StatusCodes.Status200OK.ToString(), "Gym PT register slots retrieved successfully", pagination));
+    }
+
+    /// <summary>
+    /// Get all gym PT bookings for gym owner to view list of gym PT register slots that are booked by customers
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    [HttpGet("gym-owner/gym-pt-bookings")]
+    public async Task<IActionResult> GetGymPtBookingsForGymOwner([FromQuery] GetGymSlotPtBookingParams parameters)
+    {
+        var response = await _mediator.Send(new GetGymSlotPtBookingQuery(parameters));
+        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<GymSlotPtBookingDto>>(StatusCodes.Status200OK.ToString(), "Gym PT bookings retrieved successfully", pagination));
     }
 }
