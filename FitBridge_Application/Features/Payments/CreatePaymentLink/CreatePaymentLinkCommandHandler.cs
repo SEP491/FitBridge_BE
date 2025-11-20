@@ -24,6 +24,7 @@ using FitBridge_Application.Specifications.Coupons.GetCouponById;
 using FitBridge_Application.Services;
 using FitBridge_Application.Specifications.UserSubscriptions.GetUserSubscriptionByUserId;
 using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedAvailableByPtId;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
@@ -249,7 +250,12 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                     {
                         throw new NotFoundException("Gym PT not found");
                     }
-                    item.Price = gymCoursePT.Price + gymCoursePT.PtPrice;
+                    var currentCourseCount = await _unitOfWork.Repository<CustomerPurchased>().CountAsync(new GetCustomerPurchasedAvailableByPtIdSpec(item.GymPtId.Value, null));
+                    if (currentCourseCount >= gymPt.PtMaxCourse)
+                    {
+                        throw new BusinessException($"Maximum course count reached for PT {gymPt.FullName}, current course count: {currentCourseCount}, maximum course count: {gymPt.PtMaxCourse}");
+                    }
+                        item.Price = gymCoursePT.Price + gymCoursePT.PtPrice;
                 }
                 else
                 {
@@ -275,6 +281,16 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 if (userPackage != null && customerPurchasedIdToExtend == null)
                 {
                     throw new PackageExistException($"Package of this freelance PT still not expired, customer purchased id: {userPackage.Id}, package expiration date: {userPackage.ExpirationDate} please extend the package");
+                }
+                var freelancePt = await _applicationUserService.GetByIdAsync(freelancePTPackage.PtId);
+                if (freelancePt == null)
+                {
+                    throw new NotFoundException("Freelance PT not found");
+                }
+                var currentCourseCount = await _unitOfWork.Repository<CustomerPurchased>().CountAsync(new GetCustomerPurchasedAvailableByPtIdSpec(null, freelancePTPackage.PtId));
+                if (currentCourseCount >= freelancePt.PtMaxCourse)
+                {
+                    throw new BusinessException($"Maximum course count reached for freelance PT {freelancePt.FullName}, current course count: {currentCourseCount}, maximum course count: {freelancePt.PtMaxCourse}");
                 }
             }
             if (item.SubscriptionPlansInformationId != null)
