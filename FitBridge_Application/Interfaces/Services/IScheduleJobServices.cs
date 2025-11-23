@@ -20,4 +20,6 @@ public interface IScheduleJobServices
     Task<bool> ScheduleAutoRejectEditBookingRequestJob(Guid BookingRequestId, DateTime triggerTime);
     Task<bool> ScheduleAutoFinishArrivedOrderJob(Guid OrderId, DateTime triggerTime);
     Task<bool> ScheduleAutoMarkAsFeedbackJob(Guid OrderItemId, DateTime triggerTime);
+    Task<bool> ScheduleAutoCancelCreatedOrderJob(Guid OrderId);
+    Task<bool> ScheduleAutoUpdatePTCurrentCourseJob(Guid OrderItemId, DateOnly expirationDate);
 }

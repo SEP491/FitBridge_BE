@@ -33,6 +33,7 @@ namespace FitBridge_Domain.Entities.Identity
         public string? AvatarUrl { get; set; }
         public Guid? GymOwnerId { get; set; } //To know this gym pt belong to which gym owner
         public int PtMaxCourse { get; set; } // Constraint the maximum number of courses a gym pt or freelance pt can teach
+        public int PtCurrentCourse { get; set; } // Current number of courses a gym pt or freelance pt is teaching
         public int MinimumSlot { get; set; } // Minimum slot register perweek, control by gym owner account
         public DateTime LastSeen { get; set; }
         public bool IsActive { get; set; }

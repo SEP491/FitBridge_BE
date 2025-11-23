@@ -39,6 +39,8 @@ public static class ProjectConstant
         public const string AutoFinishArrivedOrderAfterTime = "AutoFinishArrivedOrderAfterTime";
         public const string AutoMarkAsFeedbackAfterDays = "AutoMarkAsFeedbackAfterDays";
         public const string MaximumReviewImages = "MaximumReviewImages";
+        public const string PaymentLinkExpirationMinutes = "PaymentLinkExpirationMinutes";
+        public const string AutoCancelCreatedOrderAfterTime = "AutoCancelCreatedOrderAfterTime";
     }
     public const int MaxRetries = 3;
     public static class EmailTypes

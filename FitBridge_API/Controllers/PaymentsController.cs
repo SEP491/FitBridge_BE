@@ -12,6 +12,7 @@ using FitBridge_Application.Features.Payments.GetAllWithdrawalRequests;
 using FitBridge_Application.Features.Payments.GetPaymentInfor;
 using FitBridge_Application.Features.Payments.PaymentCallbackWebhook;
 using FitBridge_Application.Features.Payments.RejectWithdrawalRequest;
+using FitBridge_Application.Features.Payments.RePaidOrder;
 using FitBridge_Application.Features.Refund.RefundItem;
 using FitBridge_Application.Specifications.Payments.GetAllWithdrawalRequests;
 using MediatR;
@@ -53,7 +54,7 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
     public async Task<IActionResult> AppleWebhook()
     {
         using var reader = new StreamReader(Request.Body);
-          var webhookData = await reader.ReadToEndAsync();
+        var webhookData = await reader.ReadToEndAsync();
         var spec = new AppleWebhookCommand { WebhookData = webhookData };
         var result = await _mediator.Send(spec);
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Apple webhook processed successfully", result));
@@ -276,5 +277,22 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
             StatusCodes.Status200OK.ToString(),
             "Order item refunded successfully",
             Empty));
+    }
+    /// <summary>
+    /// Check an order checkout url and create new ones with new transaction if old one is expired
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    [HttpPost("re-paid-order")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<EmptyResult>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RePaidOrder([FromBody] RePaidOrderCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "Order re-paid successfully", result));
     }
 }
