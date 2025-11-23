@@ -1,23 +1,27 @@
-using System;
+using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Configurations;
 using FitBridge_Application.Dtos.Jobs;
-using FitBridge_Application.Interfaces.Services;
-using Quartz;
-using Microsoft.Extensions.Logging;
-using FitBridge_Infrastructure.Jobs;
-using FitBridge_Infrastructure.Jobs.Bookings;
-using FitBridge_Domain.Exceptions;
-using FitBridge_Domain.Entities.Trainings;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Build.Framework;
-using FitBridge_Infrastructure.Jobs.BookingRequests;
-using FitBridge_Infrastructure.Jobs.Subscriptions;
 using FitBridge_Application.Features.Jobs.RejectEditBookingRequest;
+using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Services;
+using FitBridge_Domain.Entities.Trainings;
+using FitBridge_Domain.Exceptions;
+using FitBridge_Infrastructure.Jobs;
+using FitBridge_Infrastructure.Jobs.BookingRequests;
+using FitBridge_Infrastructure.Jobs.Bookings;
 using FitBridge_Infrastructure.Jobs.Orders;
 using FitBridge_Infrastructure.Jobs.Reviews;
+using FitBridge_Infrastructure.Jobs.Subscriptions;
+using Microsoft.Build.Framework;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Quartz;
+using System;
 
 namespace FitBridge_Infrastructure.Services.Jobs;
 
-public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<ScheduleJobServices> _logger) : IScheduleJobServices
+public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<ScheduleJobServices> _logger, SystemConfigurationService _systemConfigurationService) : IScheduleJobServices
 {
     public async Task<bool> ScheduleProfitDistributionJob(ProfitJobScheduleDto profitJobScheduleDto)
     {
@@ -178,13 +182,15 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         var exists = await scheduler.CheckExists(jobKey);
         if (!exists)
         {
-            throw new NotFoundException($"Job {jobName} in {jobGroup} does not exist");
+            _logger.LogError("Job {JobName} in {JobGroup} does not exist", jobName, jobGroup);
+            return false;
         }
         var triggerKey = new TriggerKey($"{jobName}_Trigger", jobGroup);
         var checkTriggerExists = await scheduler.CheckExists(triggerKey);
         if (!checkTriggerExists)
         {
-            throw new NotFoundException($"Trigger {triggerKey} does not exist");
+            _logger.LogError("Trigger {TriggerKey} does not exist", triggerKey);
+            return false;
         }
         var newTrigger = TriggerBuilder.Create()
         .WithIdentity(triggerKey)
@@ -296,6 +302,51 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .Build();
         await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
         _logger.LogInformation($"Successfully scheduled auto mark as reviewed job for order item {OrderItemId} at {triggerTime.ToLocalTime}");
+        return true;
+    }
+
+    public async Task<bool> ScheduleAutoCancelCreatedOrderJob(Guid orderId)
+    {
+        var jobKey = new JobKey($"AutoCancelCreatedOrder_{orderId}", "AutoCancelCreatedOrder");
+        var triggerKey = new TriggerKey($"AutoCancelCreatedOrder_{orderId}_Trigger", "AutoCancelCreatedOrder");
+        var jobData = new JobDataMap
+        {
+            { "orderId", orderId.ToString() }
+        };
+        var expirationMinutes = (int)await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.AutoCancelCreatedOrderAfterTime);
+        var triggerTime = DateTime.Now.AddMinutes(expirationMinutes);
+        var job = JobBuilder.Create<CancelCreatedOrderJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled auto return quantity to product detail job for product detail of order Id {orderId} at {triggerTime.ToLocalTime}");
+        return true;
+    }
+
+    public async Task<bool> ScheduleAutoUpdatePTCurrentCourseJob(Guid OrderItemId, DateOnly expirationDate)
+    {
+        var jobKey = new JobKey($"AutoUpdatePTCurrentCourse_{OrderItemId}", "AutoUpdatePTCurrentCourse");
+        var triggerKey = new TriggerKey($"AutoUpdatePTCurrentCourse_{OrderItemId}_Trigger", "AutoUpdatePTCurrentCourse");
+        var jobData = new JobDataMap
+        {
+            { "orderItemId", OrderItemId.ToString() }
+        };
+        var triggerTime = expirationDate.ToDateTime(TimeOnly.MaxValue);
+        var job = JobBuilder.Create<UpdatePTCurrentCourseJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled auto update PT current course job for order item {OrderItemId} at {triggerTime.ToLocalTime}");
         return true;
     }
 }

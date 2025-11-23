@@ -28,7 +28,7 @@ using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchas
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
-public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper, CouponService couponService, SubscriptionService subscriptionService, SystemConfigurationService systemConfigurationService, ITransactionService _transactionService) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
+public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper, CouponService couponService, SubscriptionService subscriptionService, SystemConfigurationService systemConfigurationService, ITransactionService _transactionService, OrderService _orderService, IScheduleJobServices _scheduleJobServices) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
 {
     public async Task<PaymentResponseDto> Handle(CreatePaymentLinkCommand request, CancellationToken cancellationToken)
     {
@@ -170,6 +170,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         order.UpdatedAt = DateTime.UtcNow;
         order.CreatedAt = DateTime.UtcNow;
         _unitOfWork.Repository<Order>().Insert(order);
+        await _scheduleJobServices.ScheduleAutoCancelCreatedOrderJob(order.Id);
         return order.Id;
     }
 
@@ -228,7 +229,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             }
             if(coupon.Type != CouponType.System && OrderItems.Count > 1)
             {
-                throw new NotFoundException("This coupon type only can be used for system or gym owner");
+                throw new NotFoundException("This coupon type only can be used for a freelance PT or gym owner");
             }
         }
 
@@ -245,17 +246,24 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
                 if (item.GymPtId != null)
                 {
-                    var gymPt = await _applicationUserService.GetUserWithSpecAsync(new GetAccountByIdSpecificationForUserProfile(item.GymPtId.Value));
+                    var gymPt = await _applicationUserService.GetUserWithSpecAsync(new GetAccountByIdSpecificationForUserProfile(item.GymPtId.Value), false);
                     if (gymPt == null)
                     {
                         throw new NotFoundException("Gym PT not found");
                     }
-                    var currentCourseCount = await _unitOfWork.Repository<CustomerPurchased>().CountAsync(new GetCustomerPurchasedAvailableByPtIdSpec(item.GymPtId.Value, null));
-                    if (currentCourseCount >= gymPt.PtMaxCourse)
+                    if (customerPurchasedIdToExtend == null)
                     {
-                        throw new BusinessException($"Maximum course count reached for PT {gymPt.FullName}, current course count: {currentCourseCount}, maximum course count: {gymPt.PtMaxCourse}");
+                        var currentCourseCount = gymPt.PtCurrentCourse;
+                        if (currentCourseCount >= gymPt.PtMaxCourse)
+                        {
+                            throw new BusinessException($"Maximum course count reached for PT {gymPt.FullName}, current course count: {currentCourseCount}, maximum course count: {gymPt.PtMaxCourse}");
+                        }
+                        gymPt.PtCurrentCourse++;
+                        gymPt.UpdatedAt = DateTime.UtcNow;
                     }
-                        item.Price = gymCoursePT.Price + gymCoursePT.PtPrice;
+
+                    item.Price = gymCoursePT.Price + gymCoursePT.PtPrice;
+                        
                 }
                 else
                 {
@@ -282,16 +290,24 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 {
                     throw new PackageExistException($"Package of this freelance PT still not expired, customer purchased id: {userPackage.Id}, package expiration date: {userPackage.ExpirationDate} please extend the package");
                 }
-                var freelancePt = await _applicationUserService.GetByIdAsync(freelancePTPackage.PtId);
+                var freelancePt = await _applicationUserService.GetByIdAsync(freelancePTPackage.PtId, null, true);
                 if (freelancePt == null)
                 {
                     throw new NotFoundException("Freelance PT not found");
                 }
-                var currentCourseCount = await _unitOfWork.Repository<CustomerPurchased>().CountAsync(new GetCustomerPurchasedAvailableByPtIdSpec(null, freelancePTPackage.PtId));
-                if (currentCourseCount >= freelancePt.PtMaxCourse)
-                {
-                    throw new BusinessException($"Maximum course count reached for freelance PT {freelancePt.FullName}, current course count: {currentCourseCount}, maximum course count: {freelancePt.PtMaxCourse}");
+                if(customerPurchasedIdToExtend == null) {
+                    var currentCourseCount = freelancePt.PtCurrentCourse;
+                    if (currentCourseCount >= freelancePt.PtMaxCourse)
+                    {
+                        throw new BusinessException($"Maximum course count reached for freelance PT {freelancePt.FullName}, current course count: {currentCourseCount}, maximum course count: {freelancePt.PtMaxCourse}");
+                    }
+                    if(customerPurchasedIdToExtend == null)
+                    {
+                        freelancePt.PtCurrentCourse++;
+                        freelancePt.UpdatedAt = DateTime.UtcNow;
+                    }
                 }
+
             }
             if (item.SubscriptionPlansInformationId != null)
             {
@@ -329,6 +345,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 {
                     throw new BusinessException("Product quantity is not enough");
                 }
+                await _orderService.UpdateProductDetailQuantity(productDetail, item.Quantity);
                 item.Price = productDetail.SalePrice;
                 item.OriginalProductPrice = productDetail.OriginalPrice;
             }

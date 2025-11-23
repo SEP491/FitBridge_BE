@@ -99,8 +99,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
         var profit = await CalculateMerchantProfit(orderItemToExtend, transactionToExtend.Order.Coupon);
         walletToUpdate.PendingBalance += profit;
-        _logger.LogInformation($"Wallet {walletToUpdate.Id} updated with new pending balance {walletToUpdate.PendingBalance} after adding profit {profit}");
-        transactionToExtend.ProfitAmount = profit;
+         transactionToExtend.ProfitAmount = profit;
 
         _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
         await _unitOfWork.CommitAsync();
@@ -110,6 +109,11 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             OrderItemId = orderItemToExtend.Id,
             ProfitDistributionDate = profitDistributionDate
         });
+        var originalCustomerPurchasedOrderItem = customerPurchasedToExtend.OrderItems.OrderBy(o => o.CreatedAt).First();
+
+        await _scheduleJobServices.RescheduleJob($"AutoUpdatePTCurrentCourse_{originalCustomerPurchasedOrderItem.Id}", "AutoUpdatePTCurrentCourse", customerPurchasedToExtend.ExpirationDate.ToDateTime(TimeOnly.MaxValue));
+
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{transactionToExtend.Order.Id}", "AutoCancelCreatedOrder");
         return true;
     }
 
@@ -268,8 +272,12 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                 OrderItemId = orderItem.Id,
                 ProfitDistributionDate = profitDistributionDate
             });
+            await _scheduleJobServices.ScheduleAutoUpdatePTCurrentCourseJob(orderItem.Id, expirationDate);
+
             await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItem.Id, profitDistributionDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MinValue));
         }
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{OrderEntity.Id}", "AutoCancelCreatedOrder");
+
         return true;
     }
 
@@ -332,6 +340,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                         throw new NotFoundException("Gym course PT with gym course id and pt id not found");
                     }
                     numOfSession = gymCoursePT.Session.Value;
+
                 }
 
                 expirationDate = expirationDate.AddDays(orderItem.GymCourse.Duration * orderItem.Quantity);
@@ -341,6 +350,10 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                     AvailableSessions = orderItem.Quantity * numOfSession,
                     ExpirationDate = expirationDate,
                 };
+                if (orderItem.GymPtId != null)
+                {
+                    await _scheduleJobServices.ScheduleAutoUpdatePTCurrentCourseJob(orderItem.Id, expirationDate);
+                }
                 var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.GymCourse.GymOwnerId);
                 if (walletToUpdate == null)
                 {
@@ -357,9 +370,10 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                     OrderItemId = orderItem.Id,
                     ProfitDistributionDate = profitDistributionDate
                 });
-                await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItem.Id, profitDistributionDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MinValue));
+                await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItem.Id, profitDistributionDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MaxValue));
             }
         }
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{OrderEntity.Id}", "AutoCancelCreatedOrder");
         return true;
     }
 
@@ -406,6 +420,12 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             OrderItemId = orderItemToExtend.Id,
             ProfitDistributionDate = profitDistributePlannedDate
         });
+        var originalCustomerPurchasedOrderItem = customerPurchasedToExtend.OrderItems.OrderBy(o => o.CreatedAt).First();
+        
+        await _scheduleJobServices.RescheduleJob($"AutoUpdatePTCurrentCourse_{originalCustomerPurchasedOrderItem.Id}", "AutoUpdatePTCurrentCourse", customerPurchasedToExtend.ExpirationDate.ToDateTime(TimeOnly.MaxValue));
+
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{transactionToExtend.Order.Id}", "AutoCancelCreatedOrder");
+
         await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItemToExtend.Id, profitDistributePlannedDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MinValue));
         return true;
     }
@@ -607,8 +627,8 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             if (orderItem.ProductDetailId != null)
             {
                 profit -= orderItem.OriginalProductPrice.Value * orderItem.Quantity;
-                orderItem.ProductDetail.Quantity -= orderItem.Quantity;
-                orderItem.ProductDetail.SoldQuantity += orderItem.Quantity;
+                // orderItem.ProductDetail.Quantity -= orderItem.Quantity;
+                // orderItem.ProductDetail.SoldQuantity += orderItem.Quantity;
             }
         }
         var previousStatus = transactionToPurchaseProduct.Order.Status;
@@ -621,6 +641,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             Description = "Order status updated to Pending",
             PreviousStatus = previousStatus,
         };
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{transactionToPurchaseProduct.Order.Id}", "AutoCancelCreatedOrder");
         _unitOfWork.Repository<OrderStatusHistory>().Insert(orderStatusHistory);
         await _unitOfWork.CommitAsync();
         return true;
