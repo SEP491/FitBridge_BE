@@ -62,7 +62,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         else
         {
             paymentResponse = await _payOSService.CreatePaymentLinkAsync(request.Request, user);
-            var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl, userId.Value);
+            var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl, userId.Value, OrderStatus.Created);
             await CreateTransaction(paymentResponse, request, orderId);
             await AssignOrderItemProductName(request.Request.OrderItems);
         }
@@ -73,7 +73,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
     public async Task<bool> CreateCodOrder(CreatePaymentRequestDto request, Guid userId)
     {
-        var orderId = await CreateOrder(request, "", userId);
+        var orderId = await CreateOrder(request, "", userId, OrderStatus.Pending);
         var newTransaction = new Transaction
         {
             OrderCode = _payOSService.GenerateOrderCode(),
@@ -106,6 +106,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         _unitOfWork.Repository<OrderStatusHistory>().Insert(createdOrderHistory);
         _unitOfWork.Repository<OrderStatusHistory>().Insert(pendingOrderHistory);
         _unitOfWork.Repository<Transaction>().Insert(newTransaction);
+        await _unitOfWork.CommitAsync();
         await _transactionService.PurchaseProduct(newTransaction.OrderCode);
         return true;
     }
@@ -158,12 +159,12 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         _unitOfWork.Repository<Transaction>().Insert(newTransaction);
     }
 
-    public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl, Guid userId)
+    public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl, Guid userId, OrderStatus status)
     {
         var order = _mapper.Map<Order>(request);
         order.SubTotalPrice = request.SubTotalPrice;
         order.TotalAmount = request.TotalAmountPrice;
-        order.Status = OrderStatus.Created;
+        order.Status = status;
         order.CheckoutUrl = checkoutUrl;
         order.CouponId = request.CouponId ?? null;
         order.CustomerPurchasedIdToExtend = request.CustomerPurchasedIdToExtend ?? null;
