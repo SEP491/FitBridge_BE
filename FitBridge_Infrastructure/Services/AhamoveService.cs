@@ -170,7 +170,10 @@ public class AhamoveService : IAhamoveService
                 await _scheduleJobServices.ScheduleAutoFinishArrivedOrderJob(order.Id, DateTime.UtcNow.AddDays(autoFinishArrivedOrderAfterTime));
 
                 var autoMarkAsFeedbackAfterDays = (int)await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.AutoMarkAsFeedbackAfterDays);
-                await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(transactionToUpdate.OrderItemId.Value, DateTime.UtcNow.AddDays(autoMarkAsFeedbackAfterDays));
+                foreach(var orderItem in order.OrderItems)
+                {
+                    await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItem.Id, DateTime.UtcNow.AddDays(autoMarkAsFeedbackAfterDays));
+                }
             }
             if (newStatus == OrderStatus.Returned)
             {
@@ -232,7 +235,7 @@ public class AhamoveService : IAhamoveService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error processing webhook for Ahamove Order ID: {webhookData.Id}");
-            throw;
+            throw new BusinessException($"Error processing webhook for Ahamove Order ID: {webhookData.Id}: {ex.Message}");
         }
     }
 
