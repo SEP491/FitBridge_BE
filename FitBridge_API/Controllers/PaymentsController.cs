@@ -284,7 +284,6 @@ public class PaymentsController(IMediator _mediator) : _BaseApiController
     /// <param name="command"></param>
     /// <returns></returns>
     [HttpPost("re-paid-order")]
-    [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(BaseResponse<EmptyResult>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
