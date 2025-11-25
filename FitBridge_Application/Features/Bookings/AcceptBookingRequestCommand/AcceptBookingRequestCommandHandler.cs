@@ -68,19 +68,22 @@ public class AcceptBookingRequestCommandHandler(
         var userName = userUtil.GetUserFullName(httpContextAccessor.HttpContext)
                 ?? throw new NotFoundException("User name not found");
         var message = await GetMessageAsync(request.BookingRequestId);
-        var msgContent = $"{userName} has approved the booking request";
-        InsertSystemMessage(message, msgContent, out var newSystemMessage);
-        await _unitOfWork.CommitAsync();
-        await SendAcceptedMessage(
-            message,
-            msgContent,
-            newSystemMessage,
-            bookingRequest,
-            userId);
+        if (message != null)
+        {
+            var msgContent = $"{userName} has approved the booking request";
+            InsertSystemMessage(message, msgContent, out var newSystemMessage);
+            await _unitOfWork.CommitAsync();
+            await SendAcceptedMessage(
+                message,
+                msgContent,
+                newSystemMessage,
+                bookingRequest,
+                userId);
+        }
         return request.BookingRequestId;
     }
 
-    private async Task<Message> GetMessageAsync(Guid bookingRequestId)
+    private async Task<Message?> GetMessageAsync(Guid bookingRequestId)
     {
         var msgSpec = new GetMessageByBookingRequestSpec(bookingRequestId);
         var message = await _unitOfWork.Repository<Message>().GetBySpecificationAsync(msgSpec);
