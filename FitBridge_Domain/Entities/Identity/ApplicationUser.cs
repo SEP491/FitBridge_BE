@@ -42,6 +42,7 @@ namespace FitBridge_Domain.Entities.Identity
         public bool IsContractSigned { get; set; }
         public string? FrontCitizenIdUrl { get; set; }
         public string? BackCitizenIdUrl { get; set; }
+        public string? CitizenIdNumber { get; set; }
         public ApplicationUser? GymOwner { get; set; }
         public ICollection<ApplicationUser> GymPTs { get; set; } = new List<ApplicationUser>();
         public List<string> GymImages { get; set; } = new List<string>();

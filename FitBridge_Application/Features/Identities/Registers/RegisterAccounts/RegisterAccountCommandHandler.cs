@@ -35,6 +35,7 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             Latitude = request.Latitude,
             EmailConfirmed = true,
             IsContractSigned = false,
+            CitizenIdNumber = request.CitizenIdNumber?? null,
         };
         if (request.FrontCitizenIdUrl != null)
         {

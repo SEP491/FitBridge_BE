@@ -18,4 +18,5 @@ public class RegisterAccountCommand : IRequest<RegisterResponseDto>
     public double? Latitude { get; set; }
     public string? FrontCitizenIdUrl { get; set; }
     public string? BackCitizenIdUrl { get; set; }
+    public string? CitizenIdNumber { get; set; }
 }
