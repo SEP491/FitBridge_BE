@@ -4,6 +4,7 @@ public static class ProjectConstant
 {
     public const string defaultAvatar = "https://img.icons8.com/?size=100&id=tZuAOUGm9AuS&format=png&color=000000";
     public const int MaximumAvatarSize = 4;
+    public const int MaximumContractSize = 10;
     public const string DefaultShopAddressId = "8be321e7-ccb9-467c-884b-af1259ec4aaa";
     public const string DefaultAhamoveServiceId = "SGN-ECO";
 
@@ -37,6 +38,10 @@ public static class ProjectConstant
         public const string NearExpiredDateProductWarning = "NearExpiredDateProductWarning";
         public const string AutoHideProductBeforeExpirationDate = "AutoHideProductBeforeExpirationDate";
         public const string AutoFinishArrivedOrderAfterTime = "AutoFinishArrivedOrderAfterTime";
+        public const string AutoMarkAsFeedbackAfterDays = "AutoMarkAsFeedbackAfterDays";
+        public const string MaximumReviewImages = "MaximumReviewImages";
+        public const string PaymentLinkExpirationMinutes = "PaymentLinkExpirationMinutes";
+        public const string AutoCancelCreatedOrderAfterTime = "AutoCancelCreatedOrderAfterTime";
     }
     public const int MaxRetries = 3;
     public static class EmailTypes

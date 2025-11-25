@@ -4,6 +4,7 @@ using FitBridge_Application.Dtos.Orders;
 using FitBridge_Application.Dtos.Shippings;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Specifications.Addresses.GetShopDefaultAddress;
 using FitBridge_Domain.Entities.Accounts;
 using FitBridge_Domain.Exceptions;
 using MediatR;
@@ -19,7 +20,7 @@ public class GetShippingPriceCommandHandler(IUnitOfWork _unitOfWork, IAhamoveSer
         {
             throw new NotFoundException("Address not found");
         }
-        var fromAddress = await _unitOfWork.Repository<Address>().GetByIdAsync(Guid.Parse(ProjectConstant.DefaultShopAddressId));
+        var fromAddress = await _unitOfWork.Repository<Address>().GetBySpecificationAsync(new GetShopDefaultAddressSpec());
         if (fromAddress == null)
         {
             throw new NotFoundException("From address not found");
@@ -28,7 +29,7 @@ public class GetShippingPriceCommandHandler(IUnitOfWork _unitOfWork, IAhamoveSer
         {
             Lat = fromAddress.Latitude,
             Lng = fromAddress.Longitude,
-            Address = fromAddress.Street,
+            Address = fromAddress.GoogleMapAddressString,
             ShortAddress = fromAddress.Ward,
             Name = "Shop",
             Mobile = fromAddress.PhoneNumber
@@ -37,7 +38,7 @@ public class GetShippingPriceCommandHandler(IUnitOfWork _unitOfWork, IAhamoveSer
         {
             Lat = toAddress.Latitude,
             Lng = toAddress.Longitude,
-            Address = toAddress.Street,
+            Address = toAddress.GoogleMapAddressString,
             ShortAddress = toAddress.Ward,
             Name = "Customer",
             Mobile = toAddress.PhoneNumber

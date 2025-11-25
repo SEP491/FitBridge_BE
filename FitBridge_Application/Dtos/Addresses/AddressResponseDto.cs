@@ -4,6 +4,7 @@ namespace FitBridge_Application.Dtos.Addresses;
 
 public class AddressResponseDto
 {
+    public Guid Id { get; set; }
     public string ReceiverName { get; set; }
     public string PhoneNumber { get; set; }
     public string City { get; set; }
@@ -16,4 +17,5 @@ public class AddressResponseDto
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public string? GoogleMapAddressString { get; set; }
+    public bool IsShopDefaultAddress { get; set; }
 }

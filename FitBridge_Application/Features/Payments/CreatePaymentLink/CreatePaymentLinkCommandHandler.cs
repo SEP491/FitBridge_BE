@@ -24,10 +24,11 @@ using FitBridge_Application.Specifications.Coupons.GetCouponById;
 using FitBridge_Application.Services;
 using FitBridge_Application.Specifications.UserSubscriptions.GetUserSubscriptionByUserId;
 using FitBridge_Application.Commons.Constants;
+using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedAvailableByPtId;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
-public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper, CouponService couponService, SubscriptionService subscriptionService, SystemConfigurationService systemConfigurationService) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
+public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUnitOfWork _unitOfWork, IPayOSService _payOSService, IApplicationUserService _applicationUserService, IMapper _mapper, CouponService couponService, SubscriptionService subscriptionService, SystemConfigurationService systemConfigurationService, ITransactionService _transactionService, OrderService _orderService, IScheduleJobServices _scheduleJobServices) : IRequestHandler<CreatePaymentLinkCommand, PaymentResponseDto>
 {
     public async Task<PaymentResponseDto> Handle(CreatePaymentLinkCommand request, CancellationToken cancellationToken)
     {
@@ -61,7 +62,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         else
         {
             paymentResponse = await _payOSService.CreatePaymentLinkAsync(request.Request, user);
-            var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl, userId.Value);
+            var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl, userId.Value, OrderStatus.Created);
             await CreateTransaction(paymentResponse, request, orderId);
             await AssignOrderItemProductName(request.Request.OrderItems);
         }
@@ -72,7 +73,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
     public async Task<bool> CreateCodOrder(CreatePaymentRequestDto request, Guid userId)
     {
-        var orderId = await CreateOrder(request, "", userId);
+        var orderId = await CreateOrder(request, "", userId, OrderStatus.Pending);
         var newTransaction = new Transaction
         {
             OrderCode = _payOSService.GenerateOrderCode(),
@@ -81,13 +82,17 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             TransactionType = TransactionType.ProductOrder,
             Status = TransactionStatus.Pending,
             OrderId = orderId,
-            Amount = request.TotalAmountPrice
+            Amount = request.TotalAmountPrice,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
         };
         var createdOrderHistory = new OrderStatusHistory
         {
             OrderId = orderId,
             Status = OrderStatus.Created,
             Description = "Order created",
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
         };
         var pendingOrderHistory = new OrderStatusHistory
         {
@@ -95,10 +100,14 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             Status = OrderStatus.Pending,
             PreviousStatus = OrderStatus.Created,
             Description = "Order pending",
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
         };
         _unitOfWork.Repository<OrderStatusHistory>().Insert(createdOrderHistory);
         _unitOfWork.Repository<OrderStatusHistory>().Insert(pendingOrderHistory);
         _unitOfWork.Repository<Transaction>().Insert(newTransaction);
+        await _unitOfWork.CommitAsync();
+        await _transactionService.PurchaseProduct(newTransaction.OrderCode);
         return true;
     }
     public async Task CreateTransaction(PaymentResponseDto paymentResponse, CreatePaymentLinkCommand request, Guid orderId)
@@ -133,7 +142,9 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             TransactionType = transactionType,
             Status = TransactionStatus.Pending,
             OrderId = orderId,
-            Amount = paymentResponse.Data.Amount
+            Amount = paymentResponse.Data.Amount,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
         };
         if (transactionType == TransactionType.ProductOrder)
         {
@@ -148,16 +159,19 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         _unitOfWork.Repository<Transaction>().Insert(newTransaction);
     }
 
-    public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl, Guid userId)
+    public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl, Guid userId, OrderStatus status)
     {
         var order = _mapper.Map<Order>(request);
         order.SubTotalPrice = request.SubTotalPrice;
         order.TotalAmount = request.TotalAmountPrice;
-        order.Status = OrderStatus.Created;
+        order.Status = status;
         order.CheckoutUrl = checkoutUrl;
         order.CouponId = request.CouponId ?? null;
         order.CustomerPurchasedIdToExtend = request.CustomerPurchasedIdToExtend ?? null;
+        order.UpdatedAt = DateTime.UtcNow;
+        order.CreatedAt = DateTime.UtcNow;
         _unitOfWork.Repository<Order>().Insert(order);
+        await _scheduleJobServices.ScheduleAutoCancelCreatedOrderJob(order.Id);
         return order.Id;
     }
 
@@ -216,7 +230,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             }
             if(coupon.Type != CouponType.System && OrderItems.Count > 1)
             {
-                throw new NotFoundException("This coupon type only can be used for system or gym owner");
+                throw new NotFoundException("This coupon type only can be used for a freelance PT or gym owner");
             }
         }
 
@@ -233,12 +247,24 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
                 if (item.GymPtId != null)
                 {
-                    var gymPt = await _applicationUserService.GetUserWithSpecAsync(new GetAccountByIdSpecificationForUserProfile(item.GymPtId.Value));
+                    var gymPt = await _applicationUserService.GetUserWithSpecAsync(new GetAccountByIdSpecificationForUserProfile(item.GymPtId.Value), false);
                     if (gymPt == null)
                     {
                         throw new NotFoundException("Gym PT not found");
                     }
+                    if (customerPurchasedIdToExtend == null)
+                    {
+                        var currentCourseCount = gymPt.PtCurrentCourse;
+                        if (currentCourseCount >= gymPt.PtMaxCourse)
+                        {
+                            throw new BusinessException($"Maximum course count reached for PT {gymPt.FullName}, current course count: {currentCourseCount}, maximum course count: {gymPt.PtMaxCourse}");
+                        }
+                        gymPt.PtCurrentCourse++;
+                        gymPt.UpdatedAt = DateTime.UtcNow;
+                    }
+
                     item.Price = gymCoursePT.Price + gymCoursePT.PtPrice;
+                        
                 }
                 else
                 {
@@ -265,6 +291,24 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 {
                     throw new PackageExistException($"Package of this freelance PT still not expired, customer purchased id: {userPackage.Id}, package expiration date: {userPackage.ExpirationDate} please extend the package");
                 }
+                var freelancePt = await _applicationUserService.GetByIdAsync(freelancePTPackage.PtId, null, true);
+                if (freelancePt == null)
+                {
+                    throw new NotFoundException("Freelance PT not found");
+                }
+                if(customerPurchasedIdToExtend == null) {
+                    var currentCourseCount = freelancePt.PtCurrentCourse;
+                    if (currentCourseCount >= freelancePt.PtMaxCourse)
+                    {
+                        throw new BusinessException($"Maximum course count reached for freelance PT {freelancePt.FullName}, current course count: {currentCourseCount}, maximum course count: {freelancePt.PtMaxCourse}");
+                    }
+                    if(customerPurchasedIdToExtend == null)
+                    {
+                        freelancePt.PtCurrentCourse++;
+                        freelancePt.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+
             }
             if (item.SubscriptionPlansInformationId != null)
             {
@@ -302,6 +346,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 {
                     throw new BusinessException("Product quantity is not enough");
                 }
+                await _orderService.UpdateProductDetailQuantity(productDetail, item.Quantity);
                 item.Price = productDetail.SalePrice;
                 item.OriginalProductPrice = productDetail.OriginalPrice;
             }

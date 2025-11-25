@@ -11,6 +11,7 @@ using FitBridge_Domain.Entities.Meetings;
 using FitBridge_Domain.Entities.Reports;
 using FitBridge_Domain.Entities.Systems;
 using FitBridge_Domain.Entities.ServicePackages;
+using FitBridge_Domain.Entities.Contracts;
 
 namespace FitBridge_Domain.Entities.Identity
 {
@@ -33,10 +34,15 @@ namespace FitBridge_Domain.Entities.Identity
         public string? AvatarUrl { get; set; }
         public Guid? GymOwnerId { get; set; } //To know this gym pt belong to which gym owner
         public int PtMaxCourse { get; set; } // Constraint the maximum number of courses a gym pt or freelance pt can teach
+        public int PtCurrentCourse { get; set; } // Current number of courses a gym pt or freelance pt is teaching
         public int MinimumSlot { get; set; } // Minimum slot register perweek, control by gym owner account
         public DateTime LastSeen { get; set; }
         public bool IsActive { get; set; }
         public bool IsEnabled { get; set; }
+        public bool IsContractSigned { get; set; }
+        public string? FrontCitizenIdUrl { get; set; }
+        public string? BackCitizenIdUrl { get; set; }
+        public string? CitizenIdNumber { get; set; }
         public ApplicationUser? GymOwner { get; set; }
         public ICollection<ApplicationUser> GymPTs { get; set; } = new List<ApplicationUser>();
         public List<string> GymImages { get; set; } = new List<string>();
@@ -73,6 +79,7 @@ namespace FitBridge_Domain.Entities.Identity
         public ICollection<ReportCases> ReportCasesReported { get; set; } = new List<ReportCases>();
         public ICollection<SystemConfiguration> SystemConfigurations { get; set; } = new List<SystemConfiguration>();
         public ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
+        public ICollection<ContractRecord> ContractRecords { get; set; } = new List<ContractRecord>();
     }
 
 }

@@ -19,7 +19,7 @@ public class AddressConfiguration : IEntityTypeConfiguration<Address>
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
-
+        builder.Property(e => e.IsShopDefaultAddress).HasDefaultValue(false);
         builder.HasOne(e => e.Customer).WithMany(e => e.Addresses).HasForeignKey(e => e.CustomerId);
     }
 }

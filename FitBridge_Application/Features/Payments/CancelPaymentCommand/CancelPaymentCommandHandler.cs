@@ -17,7 +17,6 @@ public class CancelPaymentCommandHandler(IUnitOfWork _unitOfWork) : IRequestHand
         {
             throw new NotFoundException("Transaction not found");
         }
-        transactionEntity.Order.Status = OrderStatus.Cancelled;
         transactionEntity.Status = TransactionStatus.Failed;
         await _unitOfWork.CommitAsync();
         return true;
