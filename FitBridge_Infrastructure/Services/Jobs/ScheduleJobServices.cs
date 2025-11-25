@@ -103,31 +103,46 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error canceling schedule job for {JobName} in {JobGroup}", jobName, jobGroup);
-            throw new BusinessException($"Failed to cancel job: {ex.Message}");
+            return false;
         }
     }
 
     public async Task<bool> ScheduleAutoCancelBookingJob(Booking booking)
     {
-        var jobKey = new JobKey($"AutoCancelBooking_{booking.Id}", "AutoCancelBooking");
-        var triggerKey = new TriggerKey($"AutoCancelBooking_{booking.Id}_Trigger", "AutoCancelBooking");
-        var jobData = new JobDataMap
+        try
         {
-            { "bookingId", booking.Id.ToString() }
-        };
-        var triggerTime = booking.BookingDate.ToDateTime(booking.PtFreelanceEndTime.Value);
-        var job = JobBuilder.Create<CancelBookingJob>()
-        .WithIdentity(jobKey)
-        .SetJobData(jobData)
-        .Build();
-        var trigger = TriggerBuilder.Create()
-        .WithIdentity(triggerKey)
-        .StartAt(triggerTime)
-        .Build();
-        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+            var scheduler = await _schedulerFactory.GetScheduler();
 
-        _logger.LogInformation($"Successfully scheduled auto cancel job for booking {booking.Id} at {triggerTime}");
-        return true;
+            var jobKey = new JobKey($"AutoCancelBooking_{booking.Id}", "AutoCancelBooking");
+            var triggerKey = new TriggerKey($"AutoCancelBooking_{booking.Id}_Trigger", "AutoCancelBooking");
+            var exists = await scheduler.CheckExists(jobKey);
+            if (exists)
+            {
+                _logger.LogWarning("Job for booking {BookingId} already exists. Deleting old job before creating new one.", booking.Id);
+                await scheduler.DeleteJob(jobKey);
+            }
+            var jobData = new JobDataMap
+            {
+                { "bookingId", booking.Id.ToString() }
+            };
+            var triggerTime = booking.BookingDate.ToDateTime(booking.PtFreelanceEndTime.Value);
+            var job = JobBuilder.Create<CancelBookingJob>()
+            .WithIdentity(jobKey)
+            .SetJobData(jobData)
+            .Build();
+            var trigger = TriggerBuilder.Create()
+            .WithIdentity(triggerKey)
+            .StartAt(triggerTime)
+            .Build();
+            await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+
+            _logger.LogInformation($"Successfully scheduled auto cancel job for booking {booking.Id} at {triggerTime}");
+            return true;
+        } catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error scheduling auto cancel booking job for booking {BookingId}", booking.Id);
+            return false;
+        }
     }
 
     public async Task<bool> ScheduleAutoRejectBookingRequestJob(BookingRequest bookingRequest)

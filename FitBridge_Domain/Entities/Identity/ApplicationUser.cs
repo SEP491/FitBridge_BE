@@ -11,6 +11,7 @@ using FitBridge_Domain.Entities.Meetings;
 using FitBridge_Domain.Entities.Reports;
 using FitBridge_Domain.Entities.Systems;
 using FitBridge_Domain.Entities.ServicePackages;
+using FitBridge_Domain.Entities.Contracts;
 
 namespace FitBridge_Domain.Entities.Identity
 {
@@ -38,6 +39,9 @@ namespace FitBridge_Domain.Entities.Identity
         public DateTime LastSeen { get; set; }
         public bool IsActive { get; set; }
         public bool IsEnabled { get; set; }
+        public bool IsContractSigned { get; set; }
+        public string? FrontCitizenIdUrl { get; set; }
+        public string? BackCitizenIdUrl { get; set; }
         public ApplicationUser? GymOwner { get; set; }
         public ICollection<ApplicationUser> GymPTs { get; set; } = new List<ApplicationUser>();
         public List<string> GymImages { get; set; } = new List<string>();
@@ -74,6 +78,7 @@ namespace FitBridge_Domain.Entities.Identity
         public ICollection<ReportCases> ReportCasesReported { get; set; } = new List<ReportCases>();
         public ICollection<SystemConfiguration> SystemConfigurations { get; set; } = new List<SystemConfiguration>();
         public ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
+        public ICollection<ContractRecord> ContractRecords { get; set; } = new List<ContractRecord>();
     }
 
 }

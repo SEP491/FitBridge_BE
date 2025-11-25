@@ -34,7 +34,16 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             Longitude = request.Longitude,
             Latitude = request.Latitude,
             EmailConfirmed = true,
+            IsContractSigned = false,
         };
+        if (request.FrontCitizenIdUrl != null)
+        {
+            user.FrontCitizenIdUrl = request.FrontCitizenIdUrl;
+        }
+        if (request.BackCitizenIdUrl != null)
+        {
+            user.BackCitizenIdUrl = request.BackCitizenIdUrl;
+        }
         await _applicationUserService.InsertUserAsync(user, request.Password);
 
         switch (request.Role)
