@@ -9,6 +9,7 @@ public class GetContractsSpec : BaseSpecification<ContractRecord>
     public GetContractsSpec(GetContractsParams parameters) : base(x => x.IsEnabled
     &&
     (parameters.CustomerId == null || x.CustomerId == parameters.CustomerId)
+    && (parameters.ContractId == null || x.Id == parameters.ContractId)
     )
     {
         AddInclude(x => x.Customer);
