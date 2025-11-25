@@ -34,6 +34,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(e => e.IsContractSigned).HasDefaultValue(true);
         builder.Property(e => e.FrontCitizenIdUrl).IsRequired(false);
         builder.Property(e => e.BackCitizenIdUrl).IsRequired(false);
+        builder.Property(e => e.CitizenIdNumber).IsRequired(false);
         builder.HasOne(e => e.GymOwner)
         .WithMany(e => e.GymPTs)
         .HasForeignKey(e => e.GymOwnerId)

@@ -147,8 +147,17 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 
     public async Task<bool> ScheduleAutoRejectBookingRequestJob(BookingRequest bookingRequest)
     {
+        var scheduler = await _schedulerFactory.GetScheduler();
         var jobKey = new JobKey($"AutoRejectBookingRequest_{bookingRequest.Id}", "AutoRejectBookingRequest");
         var triggerKey = new TriggerKey($"AutoRejectBookingRequest_{bookingRequest.Id}_Trigger", "AutoRejectBookingRequest");
+
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for booking request {BookingRequestId} already exists. Deleting old job before creating new one.", bookingRequest.Id);
+            await scheduler.DeleteJob(jobKey);
+        }
+
         var jobData = new JobDataMap
         {
             { "bookingRequestId", bookingRequest.Id.ToString() }
@@ -217,8 +226,15 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 
     public async Task<bool> ScheduleExpireUserSubscriptionJob(Guid UserSubscriptionId, DateTime triggerTime)
     {
+        var scheduler = await _schedulerFactory.GetScheduler();
         var jobKey = new JobKey($"ExpireUserSubscription_{UserSubscriptionId}", "ExpireUserSubscription");
         var triggerKey = new TriggerKey($"ExpireUserSubscription_{UserSubscriptionId}_Trigger", "ExpireUserSubscription");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for user subscription {UserSubscriptionId} already exists. Deleting old job before creating new one.", UserSubscriptionId);
+            await scheduler.DeleteJob(jobKey);
+        }
         var jobData = new JobDataMap
         {
             { "userSubscriptionId", UserSubscriptionId.ToString() }
@@ -238,8 +254,15 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 
     public async Task<bool> ScheduleSendRemindExpiredSubscriptionNotiJob(Guid UserSubscriptionId, DateTime triggerTime)
     {
+        var scheduler = await _schedulerFactory.GetScheduler();
         var jobKey = new JobKey($"SendRemindExpiredSubscriptionNoti_{UserSubscriptionId}", "SendRemindExpiredSubscriptionNoti");
         var triggerKey = new TriggerKey($"SendRemindExpiredSubscriptionNoti_{UserSubscriptionId}_Trigger", "SendRemindExpiredSubscriptionNoti");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for user subscription {UserSubscriptionId} already exists. Deleting old job before creating new one.", UserSubscriptionId);
+            await scheduler.DeleteJob(jobKey);
+        }
         var jobData = new JobDataMap
         {
             { "userSubscriptionId", UserSubscriptionId.ToString() }
@@ -259,8 +282,15 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 
     public async Task<bool> ScheduleAutoRejectEditBookingRequestJob(Guid BookingRequestId, DateTime triggerTime)
     {
+        var scheduler = await _schedulerFactory.GetScheduler();
         var jobKey = new JobKey($"AutoRejectEditBookingRequest_{BookingRequestId}", "AutoRejectEditBookingRequest");
         var triggerKey = new TriggerKey($"AutoRejectEditBookingRequest_{BookingRequestId}_Trigger", "AutoRejectEditBookingRequest");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for booking request {BookingRequestId} already exists. Deleting old job before creating new one.", BookingRequestId);
+            await scheduler.DeleteJob(jobKey);
+        }
         var jobData = new JobDataMap
         {
             { "bookingRequestId", BookingRequestId.ToString() }
@@ -280,8 +310,15 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 
     public async Task<bool> ScheduleAutoFinishArrivedOrderJob(Guid OrderId, DateTime triggerTime)
     {
+        var scheduler = await _schedulerFactory.GetScheduler();
         var jobKey = new JobKey($"AutoFinishArrivedOrder_{OrderId}", "AutoFinishArrivedOrder");
         var triggerKey = new TriggerKey($"AutoFinishArrivedOrder_{OrderId}_Trigger", "AutoFinishArrivedOrder");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for order {OrderId} already exists. Deleting old job before creating new one.", OrderId);
+            await scheduler.DeleteJob(jobKey);
+        }
         var jobData = new JobDataMap
         {
             { "orderId", OrderId.ToString() }
@@ -301,8 +338,15 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 
     public async Task<bool> ScheduleAutoMarkAsFeedbackJob(Guid OrderItemId, DateTime triggerTime)
     {
+        var scheduler = await _schedulerFactory.GetScheduler();
         var jobKey = new JobKey($"AutoMarkAsFeedback_{OrderItemId}", "AutoMarkAsFeedback");
         var triggerKey = new TriggerKey($"AutoMarkAsFeedback_{OrderItemId}_Trigger", "AutoMarkAsFeedback");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for order item {OrderItemId} already exists. Deleting old job before creating new one.", OrderItemId);
+            await scheduler.DeleteJob(jobKey);
+        }
         var jobData = new JobDataMap
         {
             { "orderItemId", OrderItemId.ToString() }
@@ -322,8 +366,15 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 
     public async Task<bool> ScheduleAutoCancelCreatedOrderJob(Guid orderId)
     {
+        var scheduler = await _schedulerFactory.GetScheduler();
         var jobKey = new JobKey($"AutoCancelCreatedOrder_{orderId}", "AutoCancelCreatedOrder");
         var triggerKey = new TriggerKey($"AutoCancelCreatedOrder_{orderId}_Trigger", "AutoCancelCreatedOrder");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for order {OrderId} already exists. Deleting old job before creating new one.", orderId);
+            await scheduler.DeleteJob(jobKey);
+        }
         var jobData = new JobDataMap
         {
             { "orderId", orderId.ToString() }
@@ -345,8 +396,15 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 
     public async Task<bool> ScheduleAutoUpdatePTCurrentCourseJob(Guid OrderItemId, DateOnly expirationDate)
     {
+        var scheduler = await _schedulerFactory.GetScheduler();
         var jobKey = new JobKey($"AutoUpdatePTCurrentCourse_{OrderItemId}", "AutoUpdatePTCurrentCourse");
         var triggerKey = new TriggerKey($"AutoUpdatePTCurrentCourse_{OrderItemId}_Trigger", "AutoUpdatePTCurrentCourse");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for order item {OrderItemId} already exists. Deleting old job before creating new one.", OrderItemId);
+            await scheduler.DeleteJob(jobKey);
+        }
         var jobData = new JobDataMap
         {
             { "orderItemId", OrderItemId.ToString() }
