@@ -16,19 +16,29 @@ public class UploadService(IOptions<AppWriteSettings> _appWriteSettings, Storage
     public async Task<string> UploadFileAsync(IFormFile file)
     {
 
-        if (file == null || file.Length == 0) {
+        if (file == null || file.Length == 0)
+        {
             throw new BusinessException("No file uploaded.");
         }
-        
-        if (file.Length > ProjectConstant.MaximumAvatarSize * 1024 * 1024)
+        var fileExtension = Path.GetExtension(file.FileName).ToLower();
+        if (fileExtension == ".pdf")
         {
-            throw new BusinessException($"File size is too large, maximum size is {ProjectConstant.MaximumAvatarSize}MB");
+            if (file.Length > ProjectConstant.MaximumContractSize * 1024 * 1024)
+            {
+                throw new BusinessException($"File size is too large, maximum size is {ProjectConstant.MaximumContractSize}MB");
+            }
+        }
+        else
+        {
+            if (file.Length > ProjectConstant.MaximumAvatarSize * 1024 * 1024)
+            {
+                throw new BusinessException($"File size is too large, maximum size is {ProjectConstant.MaximumAvatarSize}MB");
+            }
         }
 
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"};
-        var fileExtension = Path.GetExtension(file.FileName).ToLower();
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".pdf" };
         if (string.IsNullOrEmpty(fileExtension) || !allowedExtensions.Contains(fileExtension))
-            throw new ArgumentException("Only image files are allowed (.jpg, .jpeg, .png, .gif, .bmp, .webp).");
+            throw new ArgumentException("Only image and pdf files are allowed (.jpg, .jpeg, .png, .gif, .bmp, .webp, .pdf).");
 
         if (string.IsNullOrEmpty(file.FileName))
             throw new ArgumentException("File name cannot be empty.");
@@ -47,7 +57,7 @@ public class UploadService(IOptions<AppWriteSettings> _appWriteSettings, Storage
                 bucketId: _appWriteSettings.Value.Bucket,
                 fileId: Guid.NewGuid().ToString(),
                 file: inputFile,
-                permissions: new List<string> 
+                permissions: new List<string>
                 {
                     Permission.Read(Role.Any())
                 }
@@ -60,5 +70,42 @@ public class UploadService(IOptions<AppWriteSettings> _appWriteSettings, Storage
         {
             throw new BusinessException($"Upload failed: {ex.Message}");
         }
+    }
+
+    public async Task<bool> DeleteFileAsync(string fileUrl)
+    {
+        try
+        {
+            var fileId = ExtractFileIdFromUrl(fileUrl);
+            if (string.IsNullOrEmpty(fileId))
+            {
+                throw new BusinessException("Invalid file URL");
+            }
+
+            await _storage.DeleteFile(
+                bucketId: _appWriteSettings.Value.Bucket,
+                fileId: fileId
+            );
+
+            return true;
+        }
+        catch (AppwriteException ex)
+        {
+            throw new BusinessException($"Delete failed: {ex.Message}");
+        }
+    }
+
+    private string ExtractFileIdFromUrl(string fileUrl)
+    {
+        var parts = fileUrl.Split('/');
+        var filesIndex = Array.IndexOf(parts, "files");
+
+        if (filesIndex >= 0 && filesIndex + 1 < parts.Length)
+        {
+            var fileIdPart = parts[filesIndex + 1];
+            return fileIdPart.Split('?')[0]; // Remove query parameters
+        }
+
+        return string.Empty;
     }
 }

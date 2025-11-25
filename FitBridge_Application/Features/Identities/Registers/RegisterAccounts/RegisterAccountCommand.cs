@@ -16,4 +16,6 @@ public class RegisterAccountCommand : IRequest<RegisterResponseDto>
     public bool IsTestAccount { get; set; } = false;
     public double? Longitude { get; set; }
     public double? Latitude { get; set; }
+    public string? FrontCitizenIdUrl { get; set; }
+    public string? BackCitizenIdUrl { get; set; }
 }
