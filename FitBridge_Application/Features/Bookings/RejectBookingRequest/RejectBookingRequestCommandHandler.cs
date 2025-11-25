@@ -45,12 +45,12 @@ public class RejectBookingRequestCommandHandler(
         var userName = userUtil.GetUserFullName(httpContextAccessor.HttpContext)
                 ?? throw new NotFoundException("User name not found");
         var message = await GetMessageAsync(request.BookingRequestId);
+        await _unitOfWork.CommitAsync();
         if (message != null)
         {
             var msgContent = $"{userName} has rejected the booking request";
-            InsertSystemMessage(message, msgContent, out var newSystemMessage);
-            await _unitOfWork.CommitAsync();
-            await SendRejectedMessage(
+            var newSystemMessage = await InsertSystemMessageAsync(message, msgContent);
+            await SendRejectedMessageAsync(
                 message,
                 msgContent,
                 newSystemMessage,
@@ -67,9 +67,9 @@ public class RejectBookingRequestCommandHandler(
         return message;
     }
 
-    private void InsertSystemMessage(Message message, string msgContent, out Message newSystemMessage)
+    private async Task<Message> InsertSystemMessageAsync(Message message, string msgContent)
     {
-        newSystemMessage = new Message
+        var newSystemMessage = new Message
         {
             Id = Guid.NewGuid(),
             Content = msgContent,
@@ -81,16 +81,20 @@ public class RejectBookingRequestCommandHandler(
         };
 
         _unitOfWork.Repository<Message>().Insert(newSystemMessage);
+        await _unitOfWork.CommitAsync();
+
+        return newSystemMessage;
     }
 
-    private async Task SendRejectedMessage(
+    private async Task SendRejectedMessageAsync(
         Message message,
         string msgContent,
         Message newSystemMessage,
         BookingRequest bookingRequest,
         Guid userId)
     {
-        var convo = await _unitOfWork.Repository<Conversation>().GetByIdAsync(message.ConversationId);
+        var convo = await _unitOfWork.Repository<Conversation>().GetByIdAsync(message.ConversationId)
+            ?? throw new NotFoundException(nameof(Conversation));
         convo.LastMessageMediaType = MediaType.BookingRequest;
         convo.LastMessageContent = msgContent;
         convo.LastMessageId = newSystemMessage.Id;

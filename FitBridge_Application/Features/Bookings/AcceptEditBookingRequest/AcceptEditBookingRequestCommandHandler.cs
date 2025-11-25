@@ -68,12 +68,12 @@ public class AcceptEditBookingRequestCommandHandler(
         var userName = userUtil.GetUserFullName(httpContextAccessor.HttpContext)
                 ?? throw new NotFoundException("User name not found");
         var message = await GetMessageAsync(request.BookingRequestId);
+        await _unitOfWork.CommitAsync();
         if (message != null)
         {
             var msgContent = $"{userName} has approved the booking request";
-            InsertSystemMessage(message, msgContent, out var newSystemMessage);
-            await _unitOfWork.CommitAsync();
-            await SendAcceptedMessage(
+            var newSystemMessage = await InsertSystemMessageAsync(message, msgContent);
+            await SendAcceptedMessageAsync(
                 message,
                 msgContent,
                 newSystemMessage,
@@ -119,9 +119,9 @@ public class AcceptEditBookingRequestCommandHandler(
         return message;
     }
 
-    private void InsertSystemMessage(Message message, string msgContent, out Message newSystemMessage)
+    private async Task<Message> InsertSystemMessageAsync(Message message, string msgContent)
     {
-        newSystemMessage = new Message
+        var newSystemMessage = new Message
         {
             Id = Guid.NewGuid(),
             Content = msgContent,
@@ -133,9 +133,12 @@ public class AcceptEditBookingRequestCommandHandler(
         };
 
         _unitOfWork.Repository<Message>().Insert(newSystemMessage);
+        await _unitOfWork.CommitAsync();
+
+        return newSystemMessage;
     }
 
-    private async Task SendAcceptedMessage(
+    private async Task SendAcceptedMessageAsync(
         Message message,
         string msgContent,
         Message newSystemMessage,
