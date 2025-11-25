@@ -16,7 +16,7 @@ public class UpdateOrderStatusCommandHandler(IUnitOfWork _unitOfWork, IMapper _m
 {
     public async Task<OrderStatusResponseDto> Handle(UpdateOrderStatusCommand request, CancellationToken cancellationToken)
     {
-        var order = await _unitOfWork.Repository<Order>().GetByIdAsync(request.OrderId,false, includes: new List<string> { nameof(Order.OrderItems), "OrderItems.ProductDetail", "Transactions" });
+        var order = await _unitOfWork.Repository<Order>().GetByIdAsync(request.OrderId,false, includes: new List<string> { nameof(Order.OrderItems), "Transactions" });
         var paymentMethod = await _unitOfWork.Repository<PaymentMethod>().GetByIdAsync(order.Transactions.FirstOrDefault(t => t.TransactionType == TransactionType.ProductOrder)!.PaymentMethodId);
         if (order == null)
         {
