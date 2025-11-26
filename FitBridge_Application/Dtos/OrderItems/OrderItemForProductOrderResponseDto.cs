@@ -5,6 +5,7 @@ namespace FitBridge_Application.Dtos.OrderItems;
 
 public class OrderItemForProductOrderResponseDto
 {
+    public Guid Id { get; set; }
     public int Quantity { get; set; }
 
     public decimal Price { get; set; }
