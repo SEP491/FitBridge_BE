@@ -116,7 +116,12 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
     public async Task<IActionResult> GetAllProductOrders([FromQuery] GetAllProductOrdersParams parameters)
     {
         var result = await _mediator.Send(new GetAllProductOrdersQuery { Params = parameters });
-        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
-        return Ok(new BaseResponse<Pagination<GetAllProductOrderResponseDto>>(StatusCodes.Status200OK.ToString(), "Orders retrieved successfully", pagination));
+        var pagination = ResultWithPagination(result.ProductOrders.Items, result.ProductOrders.Total, parameters.Page, parameters.Size);
+        var response = new
+        {
+            result.SummaryProductOrder,
+            ProductOrders = pagination
+        };
+        return Ok(new BaseResponse<object>(StatusCodes.Status200OK.ToString(), "Orders retrieved successfully", response));
     }
 }
