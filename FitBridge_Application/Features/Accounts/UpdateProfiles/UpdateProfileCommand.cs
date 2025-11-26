@@ -8,6 +8,8 @@ namespace FitBridge_Application.Features.Accounts.UpdateProfiles;
 
 public class UpdateProfileCommand : IRequest<UpdateProfileResponseDto>
 {
+    [JsonIgnore]
+    public Guid? Id { get; set; }
     public string? FullName { get; set; }
     public string? AvatarUrl { get; set; }
     public bool? IsMale { get; set; }

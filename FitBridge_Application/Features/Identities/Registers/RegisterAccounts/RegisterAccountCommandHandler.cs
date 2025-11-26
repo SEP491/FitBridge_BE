@@ -30,14 +30,14 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             FullName = request.FullName,
             Password = request.Password,
             GymName = request.GymName ?? "",
-            TaxCode = request.TaxCode ?? "",
+            TaxCode = request.TaxCode ?? null,
             Longitude = request.Longitude,
             Latitude = request.Latitude,
             EmailConfirmed = true,
             IsContractSigned = false,
             CitizenIdNumber = request.CitizenIdNumber?? null,
-            IdentityCardPlace = request.IdentityCardPlace ?? "",
-            CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? "",
+            IdentityCardPlace = request.IdentityCardPlace ?? null,
+            CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? null,
             IdentityCardDate = request.IdentityCardDate ?? null,
         };
         if (request.FrontCitizenIdUrl != null)
