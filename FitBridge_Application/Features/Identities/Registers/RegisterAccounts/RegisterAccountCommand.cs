@@ -19,4 +19,7 @@ public class RegisterAccountCommand : IRequest<RegisterResponseDto>
     public string? FrontCitizenIdUrl { get; set; }
     public string? BackCitizenIdUrl { get; set; }
     public string? CitizenIdNumber { get; set; }
+    public string? IdentityCardPlace { get; set; }
+    public string? CitizenCardPermanentAddress { get; set; }
+    public DateOnly? IdentityCardDate { get; set; }
 }

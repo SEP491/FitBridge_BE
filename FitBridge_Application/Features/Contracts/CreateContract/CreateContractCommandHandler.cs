@@ -35,11 +35,29 @@ public class CreateContractCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapp
         {
             contractRecord.ContractType = ContractType.FreelancePT;
         }
-        var commissionRate =(decimal) await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.CommissionRate);
+        await AggregateContractRecord(contractRecord, customer);
+        var commissionRate = (decimal)await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.CommissionRate);
         contractRecord.CommissionPercentage = (int)(commissionRate * 100);
         contractRecord.ContractStatus = ContractStatus.Created;
         _unitOfWork.Repository<ContractRecord>().Insert(contractRecord);
         await _unitOfWork.CommitAsync();
         return contractRecord.Id;
+    }
+    
+    public async Task AggregateContractRecord(ContractRecord contractRecord, ApplicationUser customer)
+    {
+        contractRecord.FullName = customer.FullName;
+
+        contractRecord.IdentityCardNumber = customer.CitizenIdNumber ?? throw new ContractMissingInfoException("Customer identity card number is required please update profile of customer to complete this contract");
+
+        contractRecord.IdentityCardDate = customer.IdentityCardDate ?? throw new ContractMissingInfoException("Customer identity card date is required please update profile of customer to complete this contract");
+
+        contractRecord.IdentityCardPlace = customer.IdentityCardPlace ?? throw new ContractMissingInfoException("Customer identity card place is required please update profile of customer to complete this contract");
+
+        contractRecord.PermanentAddress = customer.CitizenCardPermanentAddress ?? throw new ContractMissingInfoException("Customer permanent address is required please update profile of customer to complete this contract");
+
+        contractRecord.PhoneNumber = customer.PhoneNumber ?? throw new ContractMissingInfoException("Customer phone number is required please update profile of customer to complete this contract");
+
+        contractRecord.TaxCode = customer.TaxCode ?? throw new ContractMissingInfoException("Customer tax code is required please update profile of customer to complete this contract");
     }
 }

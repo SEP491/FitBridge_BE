@@ -17,5 +17,8 @@ public class UpdateProfileCommand : IRequest<UpdateProfileResponseDto>
     public string? TaxCode { get; set; }
     public string? GymDescription { get; set; }
     public string? GymName { get; set; }
+    public string? IdentityCardPlace { get; set; }
+    public string? CitizenCardPermanentAddress { get; set; }
+    public string? CitizenIdNumber { get; set; }
     public UpdateUserDetailDto? UserDetail { get; set; }
 }
