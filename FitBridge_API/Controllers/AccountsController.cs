@@ -50,6 +50,9 @@ using FitBridge_Application.Specifications.GymSlotPts.GetGymPtRegisterSlotForGym
 using FitBridge_Application.Dtos.GymSlots;
 using FitBridge_Application.Specifications.GymSlotPts.GetGymSlotPtBooking;
 using FitBridge_Application.Features.GymSlots.GetGymSlotPtBooking;
+using FitBridge_Application.Specifications.Accounts.GetExpiredContractUser;
+using FitBridge_Application.Features.Accounts.GetExpiredContractUser;
+using FitBridge_Application.Dtos.Contracts;
 
 namespace FitBridge_API.Controllers;
 
@@ -402,5 +405,14 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
         var response = await _mediator.Send(new GetGymSlotPtBookingQuery(parameters));
         var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<GymSlotPtBookingDto>>(StatusCodes.Status200OK.ToString(), "Gym PT bookings retrieved successfully", pagination));
+    }
+
+    [HttpGet("admin/expired-contract-users")]
+    [Authorize(Roles = ProjectConstant.UserRoles.Admin)]
+    public async Task<IActionResult> GetExpiredContractUsers([FromQuery] GetExpiredContractUserParams parameters)
+    {
+        var response = await _mediator.Send(new GetExpiredContractUserQuery(parameters));
+        var pagination = ResultWithPagination(response.Items, response.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<NonContractUserDto>>(StatusCodes.Status200OK.ToString(), "Expired contract users retrieved successfully", pagination));
     }
 }
