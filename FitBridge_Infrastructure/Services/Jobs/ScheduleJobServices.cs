@@ -9,6 +9,7 @@ using FitBridge_Domain.Exceptions;
 using FitBridge_Infrastructure.Jobs;
 using FitBridge_Infrastructure.Jobs.BookingRequests;
 using FitBridge_Infrastructure.Jobs.Bookings;
+using FitBridge_Infrastructure.Jobs.Contracts;
 using FitBridge_Infrastructure.Jobs.Orders;
 using FitBridge_Infrastructure.Jobs.Reviews;
 using FitBridge_Infrastructure.Jobs.Subscriptions;
@@ -420,6 +421,34 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .Build();
         await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
         _logger.LogInformation($"Successfully scheduled auto update PT current course job for order item {OrderItemId} at {triggerTime.ToLocalTime}");
+        return true;
+    }
+
+    public async Task<bool> ScheduleAutoExpiredContractAccountJob(Guid ContractId, DateTime triggerTime)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+        var jobKey = new JobKey($"AutoExpiredContractAccount_{ContractId}", "AutoExpiredContractAccount");
+        var triggerKey = new TriggerKey($"AutoExpiredContractAccount_{ContractId}_Trigger", "AutoExpiredContractAccount");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for contract {ContractId} already exists. Deleting old job before creating new one.", ContractId);
+            await scheduler.DeleteJob(jobKey);
+        }
+        var jobData = new JobDataMap
+        {
+            { "contractId", ContractId.ToString() }
+        };
+        var job = JobBuilder.Create<ExpireContractAccountJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled auto expired contract account job for contract {ContractId} at {triggerTime.ToLocalTime}");
         return true;
     }
 }

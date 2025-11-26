@@ -8,5 +8,6 @@ public class CreateContractCommand : IRequest<Guid>
 {
     public Guid CustomerId { get; set; }
     public DateOnly StartDate { get; set; }
-    public DateOnly EndDate { get; set; }
+    public DateOnly EndDate { get; set; }    
+    public List<string>? ExtraRules { get; set; } = new List<string>();
 }

@@ -43,7 +43,7 @@ public class CreateContractCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapp
         await _unitOfWork.CommitAsync();
         return contractRecord.Id;
     }
-    
+
     public async Task AggregateContractRecord(ContractRecord contractRecord, ApplicationUser customer)
     {
         contractRecord.FullName = customer.FullName;
@@ -59,5 +59,11 @@ public class CreateContractCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapp
         contractRecord.PhoneNumber = customer.PhoneNumber ?? throw new ContractMissingInfoException("Customer phone number is required please update profile of customer to complete this contract");
 
         contractRecord.TaxCode = customer.TaxCode ?? throw new ContractMissingInfoException("Customer tax code is required please update profile of customer to complete this contract");
+
+        contractRecord.BusinessAddress = customer.BusinessAddress ?? throw new ContractMissingInfoException("Customer business address is required please update profile of customer to complete this contract");
+
+        contractRecord.ContactEmail = customer.Email ?? throw new ContractMissingInfoException("Customer contact email is required please update profile of customer to complete this contract");
+
+        contractRecord.GymName = customer.GymName;
     }
 }

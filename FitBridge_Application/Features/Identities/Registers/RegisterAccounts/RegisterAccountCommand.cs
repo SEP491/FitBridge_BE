@@ -1,5 +1,7 @@
 using FitBridge_Application.Dtos;
+using FitBridge_Application.Dtos.Addresses;
 using FitBridge_Application.Dtos.Identities;
+using FitBridge_Application.Features.Addresses.CreateAddress;
 using MediatR;
 
 namespace FitBridge_Application.Features.Identities.Registers.RegisterAccounts;
@@ -22,4 +24,5 @@ public class RegisterAccountCommand : IRequest<RegisterResponseDto>
     public string? IdentityCardPlace { get; set; }
     public string? CitizenCardPermanentAddress { get; set; }
     public DateOnly? IdentityCardDate { get; set; }
+    public string? BusinessAddress { get; set; }
 }

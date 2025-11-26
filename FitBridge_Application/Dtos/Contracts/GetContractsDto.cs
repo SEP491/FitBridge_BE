@@ -21,6 +21,10 @@ public class GetContractsDto
     public string? ContractUrl { get; set; }
     public string? CompanySignatureUrl { get; set; }
     public string? CustomerSignatureUrl { get; set; }
+    public string? BusinessAddress { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? GymName { get; set; }
+    public List<string>? ExtraRules { get; set; } = new List<string>();
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public ContractStatus ContractStatus { get; set; }
