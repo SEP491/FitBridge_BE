@@ -128,6 +128,23 @@ namespace FitBridge_Infrastructure.Services
                 throw new DuplicateUserException($"A user with the email {user.Email} already exists.");
             }
 
+            if(!string.IsNullOrWhiteSpace(user.TaxCode))
+            {
+                var existingUserByTaxCode = await userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.TaxCode == user.TaxCode);
+                if (existingUserByTaxCode != null)
+                {
+                    throw new DuplicateUserException($"A user with the tax code {user.TaxCode} already exists.");
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(user.CitizenIdNumber))
+            {
+                var existingUserByCitizenIdNumber = await userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.CitizenIdNumber == user.CitizenIdNumber);
+                if (existingUserByCitizenIdNumber != null)
+                {
+                    throw new DuplicateUserException($"A user with the citizen id number {user.CitizenIdNumber} already exists.");
+                }
+            }
+
             var result = await userManager.CreateAsync(user, password);
             if (!result.Succeeded)
             {
