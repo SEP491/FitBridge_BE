@@ -36,6 +36,9 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             EmailConfirmed = true,
             IsContractSigned = false,
             CitizenIdNumber = request.CitizenIdNumber?? null,
+            IdentityCardPlace = request.IdentityCardPlace ?? "",
+            CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? "",
+            IdentityCardDate = request.IdentityCardDate ?? null,
         };
         if (request.FrontCitizenIdUrl != null)
         {

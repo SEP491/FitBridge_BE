@@ -42,6 +42,9 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             account.TaxCode = request.TaxCode ?? account.TaxCode;
             account.GymDescription = request.GymDescription ?? account.GymDescription;
             account.GymName = request.GymName ?? account.GymName;
+            account.IdentityCardPlace = request.IdentityCardPlace ?? account.IdentityCardPlace;
+            account.CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? account.CitizenCardPermanentAddress;
+            account.CitizenIdNumber = request.CitizenIdNumber ?? account.CitizenIdNumber;
             account.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.CommitAsync();
         }

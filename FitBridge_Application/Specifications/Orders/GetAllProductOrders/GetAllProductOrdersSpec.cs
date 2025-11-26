@@ -21,6 +21,8 @@ public class GetAllProductOrdersSpec : BaseSpecification<Order>
         AddInclude(x => x.Coupon);
         AddInclude(x => x.OrderItems);
         AddInclude("OrderItems.ProductDetail");
+        AddInclude("OrderItems.ProductDetail.Weight");
+        AddInclude("OrderItems.ProductDetail.Flavour");
         AddInclude(x => x.OrderStatusHistories);
         AddInclude(x => x.Transactions);
         if(parameters.SortOrder == "asc")
