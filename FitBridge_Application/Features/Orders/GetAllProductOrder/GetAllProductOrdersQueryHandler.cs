@@ -67,6 +67,9 @@ public class GetAllProductOrdersQueryHandler(IUnitOfWork unitOfWork, IMapper map
                 case OrderStatus.CustomerNotReceived:
                     summaryProductOrder.totalCustomerNotReceived++;
                     break;
+                case OrderStatus.Assigning:
+                    summaryProductOrder.totalAssigning++;
+                    break;
                 default:
                     break;
             }

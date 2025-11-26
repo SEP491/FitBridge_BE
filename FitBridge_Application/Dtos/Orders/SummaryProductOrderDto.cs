@@ -19,4 +19,5 @@ public class SummaryProductOrderDto
     public int totalCreated { get; set; }
     public int totalAccepted { get; set; }
     public int totalCustomerNotReceived { get; set; }
+    public int totalAssigning { get; set; }
 }
