@@ -15,5 +15,4 @@ public class ProductDetailForSaleResponseDto
     public string CountryOfOrigin { get; set; }
     public string Description { get; set; }
     public List<ProductDetailForAdminResponseDto> ProductDetails { get; set; }
-    public List<ReviewProductResponseDto>? Reviews { get; set; }
 }
