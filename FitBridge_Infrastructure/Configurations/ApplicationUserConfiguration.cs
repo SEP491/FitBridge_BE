@@ -38,6 +38,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(e => e.IdentityCardPlace).IsRequired(false);
         builder.Property(e => e.CitizenCardPermanentAddress).IsRequired(false);
         builder.Property(e => e.IdentityCardDate).IsRequired(false);
+        builder.Property(e => e.BusinessAddress).IsRequired(false);
         builder.HasOne(e => e.GymOwner)
         .WithMany(e => e.GymPTs)
         .HasForeignKey(e => e.GymOwnerId)

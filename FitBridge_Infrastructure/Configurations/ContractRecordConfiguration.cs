@@ -21,11 +21,13 @@ public class ContractRecordConfiguration : IEntityTypeConfiguration<ContractReco
         builder.Property(e => e.PermanentAddress).IsRequired();
         builder.Property(e => e.PhoneNumber).IsRequired();
         builder.Property(e => e.TaxCode).IsRequired();
+        builder.Property(e => e.BusinessAddress).IsRequired(false);
         builder.Property(e => e.CommissionPercentage).IsRequired();
         builder.Property(e => e.ContractUrl).IsRequired(false);
         builder.Property(e => e.CompanySignatureUrl).IsRequired(false);
         builder.Property(e => e.CustomerSignatureUrl).IsRequired(false);
         builder.Property(e => e.ContractStatus).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<ContractStatus>(s));
+        builder.Property(e => e.ExtraRules).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);

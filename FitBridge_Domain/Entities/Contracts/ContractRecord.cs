@@ -17,10 +17,14 @@ public class ContractRecord : BaseEntity
     public string PermanentAddress { get; set; }
     public string PhoneNumber { get; set; }
     public string TaxCode { get; set; }
+    public string BusinessAddress { get; set; }
     public int CommissionPercentage { get; set; }
     public string? ContractUrl { get; set; }
     public string? CompanySignatureUrl { get; set; }
     public string? CustomerSignatureUrl { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? GymName { get; set; }
+    public List<string>? ExtraRules { get; set; } = new List<string>();
     public ContractStatus ContractStatus { get; set; }
     public ApplicationUser Customer { get; set; }
 }

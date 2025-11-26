@@ -39,6 +39,7 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             IdentityCardPlace = request.IdentityCardPlace ?? null,
             CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? null,
             IdentityCardDate = request.IdentityCardDate ?? null,
+            BusinessAddress = request.BusinessAddress ?? null,
         };
         if (request.FrontCitizenIdUrl != null)
         {

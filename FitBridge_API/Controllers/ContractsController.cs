@@ -3,6 +3,7 @@ using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Contracts;
 using FitBridge_Application.Features.Contracts.ConfirmContract;
 using FitBridge_Application.Features.Contracts.CreateContract;
+using FitBridge_Application.Features.Contracts.DeleteContract;
 using FitBridge_Application.Features.Contracts.GetContract;
 using FitBridge_Application.Features.Contracts.UpdateContract;
 using FitBridge_Application.Specifications.Contracts.GetContract;
@@ -63,5 +64,13 @@ public class ContractsController(IMediator mediator) : _BaseApiController
         var result = await mediator.Send(new GetContractsQuery { Params = query });
         var pagination = ResultWithPagination(result.Items, result.Total, query.Page, query.Size);
         return Ok(new BaseResponse<Pagination<GetContractsDto>>(StatusCodes.Status200OK.ToString(), "Contracts retrieved successfully", pagination));
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteContract([FromRoute] Guid id)
+    {
+        var command = new DeleteContractCommand { Id = id };
+        var result = await mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Contract deleted successfully", result));
     }
 }

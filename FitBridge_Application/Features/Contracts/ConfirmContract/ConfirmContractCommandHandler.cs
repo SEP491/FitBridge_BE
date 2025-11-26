@@ -8,7 +8,7 @@ using FitBridge_Application.Interfaces.Services;
 
 namespace FitBridge_Application.Features.Contracts.ConfirmContract;
 
-public class ConfirmContractCommandHandler(IUnitOfWork _unitOfWork, IApplicationUserService _applicationUserService) : IRequestHandler<ConfirmContractCommand, Guid>
+public class ConfirmContractCommandHandler(IUnitOfWork _unitOfWork, IApplicationUserService _applicationUserService, IScheduleJobServices _scheduleJobServices) : IRequestHandler<ConfirmContractCommand, Guid>
 {
     public async Task<Guid> Handle(ConfirmContractCommand request, CancellationToken cancellationToken)
     {
@@ -29,7 +29,7 @@ public class ConfirmContractCommandHandler(IUnitOfWork _unitOfWork, IApplication
         customer.IsContractSigned = true;
         contract.ContractStatus = ContractStatus.Finished;
         contract.UpdatedAt = DateTime.UtcNow;
-        
+        await _scheduleJobServices.ScheduleAutoExpiredContractAccountJob(contract.Id, contract.EndDate.ToDateTime(TimeOnly.MaxValue));
         _unitOfWork.Repository<ContractRecord>().Update(contract);
         await _unitOfWork.CommitAsync();
         return contract.Id;

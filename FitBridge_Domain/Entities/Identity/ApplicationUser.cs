@@ -46,6 +46,7 @@ namespace FitBridge_Domain.Entities.Identity
         public string? IdentityCardPlace { get; set; }
         public string? CitizenCardPermanentAddress { get; set; }
         public DateOnly? IdentityCardDate { get; set; }
+        public string? BusinessAddress { get; set; }
         public ApplicationUser? GymOwner { get; set; }
         public ICollection<ApplicationUser> GymPTs { get; set; } = new List<ApplicationUser>();
         public List<string> GymImages { get; set; } = new List<string>();
