@@ -7,7 +7,6 @@ namespace FitBridge_Application.Dtos.Orders;
 
 public class GetAllProductOrderResponseDto
 {
-    public SummaryProductOrderDto SummaryProductOrder { get; set; }
     public Guid Id { get; set; }
     public string CheckoutUrl { get; set; }
     public decimal SubTotalPrice { get; set; }

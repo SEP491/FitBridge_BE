@@ -2,6 +2,7 @@ using System;
 using AutoMapper;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Dtos.ProductDetails;
+using FitBridge_Application.Dtos.Reviews;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Services;
 using FitBridge_Application.Specifications.Products.GetProductDetailForSale;
@@ -23,7 +24,8 @@ public class GetProductDetailForSaleQueryHandler(IUnitOfWork _unitOfWork, IMappe
         }
         var productDetailForSaleDto = _mapper.Map<ProductDetailForSaleResponseDto>(product);
         var productDetailDtos = new List<ProductDetailForAdminResponseDto>();
-        foreach (var productDetail in product.ProductDetails) {
+        foreach (var productDetail in product.ProductDetails)
+        {
             var productDetailDto = _mapper.Map<ProductDetailForAdminResponseDto>(productDetail);
             productDetailDto.DaysToExpire = productDetail.ExpirationDate.DayNumber - DateOnly.FromDateTime(DateTime.UtcNow).DayNumber;
             productDetailDto.IsNearExpired = productDetailDto.DaysToExpire <= nearExpiredDateProductWarning;

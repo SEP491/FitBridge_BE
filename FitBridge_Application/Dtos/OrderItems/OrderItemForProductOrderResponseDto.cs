@@ -7,12 +7,11 @@ public class OrderItemForProductOrderResponseDto
 {
     public Guid Id { get; set; }
     public int Quantity { get; set; }
-
     public decimal Price { get; set; }
-
     public bool IsFeedback { get; set; }
     public Guid OrderId { get; set; }
     public Guid? ProductDetailId { get; set; }
+    public string ProductName { get; set; }
     public ProductDetailForAdminResponseDto ProductDetail { get; set; }
     public decimal? OriginalProductPrice { get; set; }
     public bool IsRefunded { get; set; }
