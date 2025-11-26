@@ -20,6 +20,7 @@ public class GetAllProductOrdersSpec : BaseSpecification<Order>
         AddInclude(x => x.Address);
         AddInclude(x => x.Coupon);
         AddInclude(x => x.OrderItems);
+        AddInclude("OrderItems.ProductDetail.Product");
         AddInclude("OrderItems.ProductDetail");
         AddInclude("OrderItems.ProductDetail.Weight");
         AddInclude("OrderItems.ProductDetail.Flavour");
