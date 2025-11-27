@@ -22,5 +22,8 @@ public class UpdateProfileCommand : IRequest<UpdateProfileResponseDto>
     public string? IdentityCardPlace { get; set; }
     public string? CitizenCardPermanentAddress { get; set; }
     public string? CitizenIdNumber { get; set; }
+    public DateOnly? GymFoundationDate { get; set; }
+    public DateOnly? IdentityCardDate { get; set; }
+    public string? BusinessAddress { get; set; }
     public UpdateUserDetailDto? UserDetail { get; set; }
 }

@@ -18,6 +18,7 @@ namespace FitBridge_Domain.Entities.Identity
     public class ApplicationUser : IdentityUser<Guid>
     {
         public string FullName { get; set; }
+        public DateOnly? GymFoundationDate { get; set; }
         public bool IsMale { get; set; }
         public DateTime Dob { get; set; }
         public string Password { get; set; }

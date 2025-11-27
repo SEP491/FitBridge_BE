@@ -118,5 +118,14 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
             .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
+
+        CreateMap<ApplicationUser, GetUserProfileResponse>()
+            .ForMember(dest => dest.FrontCitizenIdUrl, opt => opt.MapFrom(src => src.FrontCitizenIdUrl))
+            .ForMember(dest => dest.BackCitizenIdUrl, opt => opt.MapFrom(src => src.BackCitizenIdUrl))
+            .ForMember(dest => dest.CitizenIdNumber, opt => opt.MapFrom(src => src.CitizenIdNumber))
+            .ForMember(dest => dest.IdentityCardPlace, opt => opt.MapFrom(src => src.IdentityCardPlace))
+            .ForMember(dest => dest.CitizenCardPermanentAddress, opt => opt.MapFrom(src => src.CitizenCardPermanentAddress))
+            .ForMember(dest => dest.IdentityCardDate, opt => opt.MapFrom(src => src.IdentityCardDate))
+            .ForMember(dest => dest.BusinessAddress, opt => opt.MapFrom(src => src.BusinessAddress));
     }
 }

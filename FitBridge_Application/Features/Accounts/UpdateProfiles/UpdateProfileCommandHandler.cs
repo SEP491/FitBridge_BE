@@ -29,6 +29,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             }
             account.FullName = request.FullName ?? account.FullName;
             account.AvatarUrl = request.AvatarUrl ?? account.AvatarUrl;
+            account.GymFoundationDate = request.GymFoundationDate ?? account.GymFoundationDate;
             account.IsMale = request.IsMale ?? account.IsMale;
             account.Longitude = request.Longitude ?? account.Longitude;
             account.Latitude = request.Latitude ?? account.Latitude;
@@ -42,6 +43,9 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             account.IdentityCardPlace = request.IdentityCardPlace ?? account.IdentityCardPlace;
             account.CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? account.CitizenCardPermanentAddress;
             account.CitizenIdNumber = request.CitizenIdNumber ?? account.CitizenIdNumber;
+            account.GymFoundationDate = request.GymFoundationDate ?? account.GymFoundationDate;
+            account.IdentityCardDate = request.IdentityCardDate ?? account.IdentityCardDate;
+            account.BusinessAddress = request.BusinessAddress ?? account.BusinessAddress;
             account.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.CommitAsync();
         }
@@ -55,7 +59,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
 
     public async Task validateUpdateProfile(UpdateProfileCommand request)
     {
-        if(request.TaxCode != null)
+    if(request.TaxCode != null)
         {
             var spec = new CheckAccountUpdateSpec(request.Id.Value, request.TaxCode, null);
             var existingUser = await applicationUserService.CountAsync(spec);
