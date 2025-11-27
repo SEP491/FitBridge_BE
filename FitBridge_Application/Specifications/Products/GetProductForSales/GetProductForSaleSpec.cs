@@ -18,6 +18,7 @@ public class GetProductForSaleSpec : BaseSpecification<Product>
     && (parameters.CategoryId == null || x.SubCategory.CategoryId == parameters.CategoryId.Value))
     {
         AddInclude(x => x.ProductDetails);
+        AddInclude("ProductDetails.Reviews");
         if (parameters.SortOrder.ToLower() == "asc")
         {
             AddOrderBy(x => x.ProductDetails.Min(pd => pd.SalePrice));
