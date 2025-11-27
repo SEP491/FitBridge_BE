@@ -28,15 +28,15 @@ namespace FitBridge_Application.Features.Messaging.GetMessagesInRange
             if (request.CurrentPage <= 0) request.CurrentPage = 1;
 
             var targetMessageIndex = await messagingService.GetMessageIndexAsync(request.ConversationId, request.TargetMessageId);
-            var targetPageNumber = (targetMessageIndex / BaseParams.PAGE_SIZE) + 1;
+            var targetPageNumber = (targetMessageIndex / BaseParams.DefaultPageSize) + 1;
 
             if (targetPageNumber <= request.CurrentPage) return [];
 
             var spec = new GetMessagesSpec(
                 request.ConversationId,
                 userId,
-                skip: BaseParams.PAGE_SIZE * request.CurrentPage,
-                take: BaseParams.PAGE_SIZE * (targetPageNumber - request.CurrentPage),
+                skip: BaseParams.DefaultPageSize * request.CurrentPage,
+                take: BaseParams.DefaultPageSize * (targetPageNumber - request.CurrentPage),
                 includeBookingRequest: true,
                 includeConversationMembers: true,
                 includeOwnMessageStatus: true,
@@ -75,6 +75,5 @@ namespace FitBridge_Application.Features.Messaging.GetMessagesInRange
 
             return dtos;
         }
-
-           }
+    }
 }
