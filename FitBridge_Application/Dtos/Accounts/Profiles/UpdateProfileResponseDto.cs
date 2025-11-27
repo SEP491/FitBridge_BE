@@ -18,5 +18,8 @@ public class UpdateProfileResponseDto
     public string? TaxCode { get; set; }
     public string? GymDescription { get; set; }
     public string? GymName { get; set; }
+    public DateOnly? GymFoundationDate { get; set; }
+    public DateOnly? IdentityCardDate { get; set; }
+    public string? BusinessAddress { get; set; }
     public UpdateUserDetailDto? UserDetail { get; set; }
 }
