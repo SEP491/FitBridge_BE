@@ -46,7 +46,12 @@ public class ProductMappingProfile : Profile
         .ForMember(dest => dest.TotalSoldQuantity, opt => opt.MapFrom(src => src.ProductDetails.Sum(pd => pd.SoldQuantity)))
         .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.CoverImageUrl))
         .ForMember(dest => dest.PriceFrom, opt => opt.MapFrom(src => src.ProductDetails.Min(pd => pd.SalePrice)))
-        .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.ProductDetails.SelectMany(pd => pd.Reviews).Any() ? src.ProductDetails.Average(pd => pd.Reviews.Average(r => r.Rating)) : 0))
+        .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.ProductDetails
+            .Where(pd => pd.Reviews.Any())
+            .SelectMany(pd => pd.Reviews)
+            .Select(r => r.Rating)
+            .DefaultIfEmpty(0)
+            .Average()))
         .ForMember(dest => dest.TotalReviews, opt => opt.MapFrom(src => src.ProductDetails.Sum(pd => pd.Reviews.Count)))
         .ForMember(dest => dest.CountryOfOrigin, opt => opt.MapFrom(src => src.CountryOfOrigin));
 

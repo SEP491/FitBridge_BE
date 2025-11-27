@@ -35,7 +35,7 @@ public class GetAllReviewByTargetIdQueryHandler(IUnitOfWork _unitOfWork, IMapper
             {
                 throw new NotFoundException("Freelance pt package not found");
             }
-            return (freelancePTPackage.PtId, new GetAllReviewByTargetIdSpec(request.Params, FreelancePtId: freelancePtCourseId.Value));
+            return (freelancePTPackage.PtId, new GetAllReviewByTargetIdSpec(request.Params, FreelancePtId: freelancePTPackage.PtId));
         }
         if(productId != null)
         {
@@ -48,7 +48,7 @@ public class GetAllReviewByTargetIdQueryHandler(IUnitOfWork _unitOfWork, IMapper
             {
                 throw new NotFoundException("Gym course not found");
             }
-            return (gymCourse.GymOwnerId, new GetAllReviewByTargetIdSpec(request.Params, GymId: gymCourseId.Value));
+            return (gymCourse.GymOwnerId, new GetAllReviewByTargetIdSpec(request.Params, GymId: gymCourse.GymOwnerId));
         }
         throw new NotFoundException("Target not found");
     }

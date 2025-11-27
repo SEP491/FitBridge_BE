@@ -15,7 +15,9 @@ public class GetAllReviewByTargetIdSpec : BaseSpecification<Review>
         AddInclude(x => x.Gym);
         AddInclude(x => x.FreelancePt);
         AddInclude(x => x.ProductDetail);
-        if(queryParams.SortOrder.ToLower() == "asc")
+        AddInclude(x => x.ProductDetail.Flavour);
+        AddInclude(x => x.ProductDetail.Weight);
+        if (queryParams.SortOrder.ToLower() == "asc")
         {
             AddOrderBy(x => x.CreatedAt);
         }

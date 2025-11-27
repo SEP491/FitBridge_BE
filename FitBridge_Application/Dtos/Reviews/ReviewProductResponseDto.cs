@@ -1,4 +1,5 @@
 using System;
+using FitBridge_Application.Dtos.ProductDetails;
 
 namespace FitBridge_Application.Dtos.Reviews;
 
@@ -14,4 +15,5 @@ public class ReviewProductResponseDto
     public List<string>? ImageUrls { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public ProductDetailForReviewDto? ProductDetail { get; set; }
 }

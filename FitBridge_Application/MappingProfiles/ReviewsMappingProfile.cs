@@ -16,6 +16,9 @@ public class ReviewsMappingProfile : Profile
         .ForMember(dest => dest.IsEdited, opt => opt.MapFrom(src => src.IsEdited))
         .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
         .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName))
-        .ForMember(dest => dest.UserAvatarUrl, opt => opt.MapFrom(src => src.User.AvatarUrl));
+        .ForMember(dest => dest.UserAvatarUrl, opt => opt.MapFrom(src => src.User.AvatarUrl))
+        .ForPath(dest => dest.ProductDetail.FlavourName, opt => opt.MapFrom(src => src.ProductDetail != null ? src.ProductDetail.Flavour.Name : null))
+        .ForPath(dest => dest.ProductDetail.WeightUnit, opt => opt.MapFrom(src => src.ProductDetail != null ? src.ProductDetail.Weight.Unit : null))
+        .ForPath(dest => dest.ProductDetail.WeightValue, opt => opt.MapFrom(src => src.ProductDetail != null ? (double)src.ProductDetail.Weight.Value : 0));
     }
 }
