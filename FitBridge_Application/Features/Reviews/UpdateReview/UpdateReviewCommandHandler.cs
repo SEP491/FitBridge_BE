@@ -27,6 +27,10 @@ public class UpdateReviewCommandHandler(IUnitOfWork _unitOfWork, IUserUtil _user
         {
             throw new NotFoundException($"Review {request.ReviewId} not found");
         }
+        if(review.IsEdited)
+        {
+            throw new BusinessException("Review already edited");
+        }
         // if (review.UserId != userId.Value)
         // {
         //     throw new BusinessException("You are not allowed to update this review");
