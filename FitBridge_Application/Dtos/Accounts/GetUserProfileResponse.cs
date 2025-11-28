@@ -18,6 +18,9 @@ public class GetUserProfileResponse
 
     public string? AvatarUrl { get; set; }
     public DateOnly? GymFoundationDate { get; set; }
+    public string? TaxCode { get; set; }
+    public string? GymDescription { get; set; }
+    public string? GymName { get; set; }
 
     public string? IsActive { get; set; }
 
