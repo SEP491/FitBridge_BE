@@ -46,6 +46,8 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             account.GymFoundationDate = request.GymFoundationDate ?? account.GymFoundationDate;
             account.IdentityCardDate = request.IdentityCardDate ?? account.IdentityCardDate;
             account.BusinessAddress = request.BusinessAddress ?? account.BusinessAddress;
+            account.FrontCitizenIdUrl = request.FrontCitizenIdUrl ?? account.FrontCitizenIdUrl;
+            account.BackCitizenIdUrl = request.BackCitizenIdUrl ?? account.BackCitizenIdUrl;
             await _unitOfWork.CommitAsync();
         }
         catch (Exception ex)
