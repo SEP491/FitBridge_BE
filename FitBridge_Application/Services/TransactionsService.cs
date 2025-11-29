@@ -631,6 +631,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                 // orderItem.ProductDetail.SoldQuantity += orderItem.Quantity;
             }
         }
+        profit -= transactionToPurchaseProduct.Order.ShippingFee;
         var previousStatus = transactionToPurchaseProduct.Order.Status;
         transactionToPurchaseProduct.Order.Status = OrderStatus.Pending;
         transactionToPurchaseProduct.ProfitAmount = profit;
