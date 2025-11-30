@@ -12,6 +12,7 @@ using FitBridge_Domain.Entities.Reports;
 using FitBridge_Domain.Entities.Systems;
 using FitBridge_Domain.Entities.ServicePackages;
 using FitBridge_Domain.Entities.Contracts;
+using FitBridge_Domain.Entities.Certificates;
 
 namespace FitBridge_Domain.Entities.Identity
 {
@@ -85,6 +86,8 @@ namespace FitBridge_Domain.Entities.Identity
         public ICollection<SystemConfiguration> SystemConfigurations { get; set; } = new List<SystemConfiguration>();
         public ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
         public ICollection<ContractRecord> ContractRecords { get; set; } = new List<ContractRecord>();
+        public ICollection<PtCertificates> PtCertificates { get; set; } = new List<PtCertificates>();
+        public ICollection<GymAsset> GymAssets { get; set; } = new List<GymAsset>();
     }
 
 }
