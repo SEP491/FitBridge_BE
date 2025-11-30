@@ -27,7 +27,7 @@ public class ProductDetailMappingProfile : Profile
         .ForMember(dest => dest.WeightUnit, opt => opt.MapFrom(src => src.Weight.Unit))
         .ForMember(dest => dest.WeightValue, opt => opt.MapFrom(src => src.Weight.Value))
         .ForMember(dest => dest.FlavourName, opt => opt.MapFrom(src => src.Flavour.Name));
-        
+
         CreateMap<CreateProductDetailCommand, ProductDetail>()
         .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
         .ForMember(dest => dest.OriginalPrice, opt => opt.MapFrom(src => src.OriginalPrice))
@@ -38,5 +38,11 @@ public class ProductDetailMappingProfile : Profile
         .ForMember(dest => dest.FlavourId, opt => opt.MapFrom(src => src.FlavourId))
         .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
         .ForMember(dest => dest.IsDisplayed, opt => opt.MapFrom(src => src.IsDisplayed));
+        CreateMap<ProductDetail, ProductDetailForReviewDto>()
+        .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+        .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+        .ForMember(dest => dest.FlavourName, opt => opt.MapFrom(src => src.Flavour.Name))
+        .ForMember(dest => dest.WeightUnit, opt => opt.MapFrom(src => src.Weight.Unit))
+        .ForMember(dest => dest.WeightValue, opt => opt.MapFrom(src => src.Weight.Value));
     }
 }

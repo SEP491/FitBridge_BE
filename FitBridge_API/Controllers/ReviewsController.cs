@@ -10,6 +10,8 @@ using FitBridge_Application.Features.Reviews.UpdateReview;
 using FitBridge_Application.Features.Reviews.DeleteReview;
 using FitBridge_Application.Specifications.Reviews.GetAllReviewForAdmin;
 using FitBridge_Application.Features.Reviews.GetAllReviewForAdmin;
+using FitBridge_Application.Specifications.Reviews.GetAllReviewForCustomer;
+using FitBridge_Application.Features.Reviews.GetCustomerReviews;
 namespace FitBridge_API.Controllers;
 
 public class ReviewsController(IMediator mediator) : _BaseApiController
@@ -53,5 +55,13 @@ public class ReviewsController(IMediator mediator) : _BaseApiController
     {
         var result = await mediator.Send(new GetAllReviewsForAdminQuery { Params = queryParams });
         return Ok(new BaseResponse<List<ReviewProductResponseDto>>(StatusCodes.Status200OK.ToString(), "Reviews retrieved successfully", result));
+    }
+
+    [HttpGet("customer")]
+    public async Task<IActionResult> GetAllCustomerReviews([FromQuery] GetCustomerReviewParams parameters)
+    {
+        var result = await mediator.Send(new GetCustomerReviewQuery(parameters));
+        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<UserReviewResponseDto>>(StatusCodes.Status200OK.ToString(), "Customer reviews retrieved successfully", pagination));
     }
 }

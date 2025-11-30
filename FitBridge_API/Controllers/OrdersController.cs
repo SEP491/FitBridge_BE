@@ -1,5 +1,6 @@
 using FitBridge_API.Helpers.RequestHelpers;
 using FitBridge_Application.Dtos.Orders;
+using FitBridge_Application.Dtos.Reviews;
 using FitBridge_Application.Dtos.Shippings;
 using FitBridge_Application.Features.Orders.CancelShippingOrder;
 using FitBridge_Application.Features.Orders.CreateOrders;
@@ -10,8 +11,10 @@ using FitBridge_Application.Features.Orders.GetOrderByCustomerPurchasedId;
 using FitBridge_Application.Features.Orders.GetShippingPrice;
 using FitBridge_Application.Features.Orders.ProcessAhamoveWebhook;
 using FitBridge_Application.Features.Orders.UpdateOrderStatus;
+using FitBridge_Application.Features.Reviews.GetCustomerReviews;
 using FitBridge_Application.Specifications.Orders.GetAllProductOrders;
 using FitBridge_Application.Specifications.Orders.GetCourseOrders;
+using FitBridge_Application.Specifications.Reviews.GetAllReviewForCustomer;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -126,7 +129,7 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
         };
         return Ok(new BaseResponse<object>(StatusCodes.Status200OK.ToString(), "Orders retrieved successfully", response));
     }
-    
+
     /// <summary>
     /// Get all course orders, can be freelance pt course or gym course of a customer
     /// </summary>
@@ -139,4 +142,6 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
         var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
         return Ok(new BaseResponse<Pagination<CourseOrderResponseDto>>(StatusCodes.Status200OK.ToString(), "Course orders retrieved successfully", pagination));
     }
+    
+
 }
