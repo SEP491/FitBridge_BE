@@ -28,9 +28,11 @@ public class GetCourseOrderQueryHandler(IUnitOfWork unitOfWork, IMapper mapper) 
             foreach (var order in orders)
             {
                 var orderDto = mapper.Map<CourseOrderResponseDto>(order);
+                var manualOrderItems = new List<OrderItemForCourseOrderResponseDto>();
                 foreach (var orderItem in order.OrderItems)
                 {
                     var orderItemDto = mapper.Map<OrderItemForCourseOrderResponseDto>(orderItem);
+
                     var gymCourseDto = mapper.Map<GymCourseResponse>(orderItem.GymCourse);
                     if (orderItem.GymPtId != null)
                     {
@@ -48,8 +50,9 @@ public class GetCourseOrderQueryHandler(IUnitOfWork unitOfWork, IMapper mapper) 
                     }
                     orderItemDto.GymCourse = gymCourseDto;
                     orderItemDto.FreelancePTPackage = null;
-                    orderDto.OrderItems.Add(orderItemDto);
+                    manualOrderItems.Add(orderItemDto);
                 }
+                orderDto.OrderItems = manualOrderItems;
                 orderDtos.Add(orderDto);              
             }
         } else {
