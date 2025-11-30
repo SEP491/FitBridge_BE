@@ -5,11 +5,13 @@ using FitBridge_Application.Features.Orders.CancelShippingOrder;
 using FitBridge_Application.Features.Orders.CreateOrders;
 using FitBridge_Application.Features.Orders.CreateShippingOrder;
 using FitBridge_Application.Features.Orders.GetAllProductOrder;
+using FitBridge_Application.Features.Orders.GetCourseOrders;
 using FitBridge_Application.Features.Orders.GetOrderByCustomerPurchasedId;
 using FitBridge_Application.Features.Orders.GetShippingPrice;
 using FitBridge_Application.Features.Orders.ProcessAhamoveWebhook;
 using FitBridge_Application.Features.Orders.UpdateOrderStatus;
 using FitBridge_Application.Specifications.Orders.GetAllProductOrders;
+using FitBridge_Application.Specifications.Orders.GetCourseOrders;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -106,7 +108,7 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<ShippingEstimateDto>(StatusCodes.Status200OK.ToString(), "Shipping price retrieved successfully", result));
     }
-    
+
     /// <summary>
     /// Get all product orders
     /// </summary>
@@ -123,5 +125,18 @@ public class OrdersController(IMediator _mediator) : _BaseApiController
             ProductOrders = pagination
         };
         return Ok(new BaseResponse<object>(StatusCodes.Status200OK.ToString(), "Orders retrieved successfully", response));
+    }
+    
+    /// <summary>
+    /// Get all course orders, can be freelance pt course or gym course of a customer
+    /// </summary>
+    /// <param name="parameters"></param>
+    /// <returns></returns>
+    [HttpGet("course")]
+    public async Task<IActionResult> GetAllCourseOrders([FromQuery] GetCourseOrderParams parameters)
+    {
+        var result = await _mediator.Send(new GetCourseOrderQuery(parameters));
+        var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+        return Ok(new BaseResponse<Pagination<CourseOrderResponseDto>>(StatusCodes.Status200OK.ToString(), "Course orders retrieved successfully", pagination));
     }
 }

@@ -20,5 +20,9 @@ public class OrderItemMappingProfile : Profile
         .ForMember(dest => dest.GymPtId, opt => opt.MapFrom(src => src.GymPtId));
         CreateMap<OrderItem, OrderItemForProductOrderResponseDto>()
         .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductDetail.Product.Name));
+
+        CreateMap<OrderItem, OrderItemForCourseOrderResponseDto>()
+        .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.GymCourse.Name))
+        .ForMember(dest => dest.FreelancePTPackage, opt => opt.MapFrom(src => src.FreelancePTPackage));
     }
 }

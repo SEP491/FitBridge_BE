@@ -10,4 +10,5 @@ public class GetAllProductOrdersParams : BaseParams
     public DateTime? FromTime { get; set; }
     public DateTime? ToTime { get; set; }
     public string? ShippingTrackingId { get; set; }
+    public List<TransactionType>? TransactionTypes { get; set; }
 }
