@@ -10,6 +10,7 @@ using FitBridge_Application.Dtos.GymCourses;
 using FitBridge_Application.Dtos.Gym;
 using FitBridge_Application.Dtos.ProductDetails;
 using FitBridge_Application.Dtos.FreelancePTPackages;
+using FitBridge_Domain.Enums.Reviews;
 
 namespace FitBridge_Application.Features.Reviews.GetCustomerReviews;
 
@@ -24,16 +25,22 @@ public class GetCustomerReviewQueryHandler(IUnitOfWork _unitOfWork, IMapper _map
             var reviewDto = _mapper.Map<UserReviewResponseDto>(review);
             if (review.GymId != null)
             {
+                reviewDto.ReviewType = ReviewType.GymCourse;
                 reviewDto.GymBrief = new GymReviewBriefDto();
                 reviewDto.GymBrief.Id = review.GymId.Value;
                 reviewDto.GymBrief.GymName = review.Gym.GymName;
             }
             else if (review.FreelancePtId != null)
             {
+                reviewDto.ReviewType = ReviewType.FreelancePTPackage;
                 reviewDto.FreelancePtBrief = new FreelancePtReviewBriefDto();
                 reviewDto.FreelancePtBrief.Id = review.FreelancePtId.Value;
                 reviewDto.FreelancePtBrief.FullName = review.FreelancePt.FullName;
                 reviewDto.FreelancePtBrief.ImageUrl = review.FreelancePt.AvatarUrl;
+            }
+            else if (review.ProductDetailId != null)
+            {
+                reviewDto.ReviewType = ReviewType.ProductDetail;
             }
             reviewDtos.Add(reviewDto);
         }
