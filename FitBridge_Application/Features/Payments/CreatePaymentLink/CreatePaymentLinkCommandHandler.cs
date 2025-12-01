@@ -47,7 +47,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         {
             throw new NotFoundException("User not found");
         }
-        await GetAndValidateOrderItems(request.Request.OrderItems, userId.Value, request.Request.CouponId, request.Request.CustomerPurchasedIdToExtend);
+        await GetAndValidateOrderItems(request.Request.OrderItems, userId.Value, request.Request.CustomerPurchasedIdToExtend);
         var SubTotalPrice = CalculateSubTotalPrice(request.Request.OrderItems);
         request.Request.SubTotalPrice = SubTotalPrice;
         request.Request.AccountId = userId;
@@ -65,8 +65,8 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             var orderId = await CreateOrder(request.Request, paymentResponse.Data.CheckoutUrl, userId.Value, OrderStatus.Created);
             await CreateTransaction(paymentResponse, request, orderId);
             await AssignOrderItemProductName(request.Request.OrderItems);
+            await _unitOfWork.CommitAsync();
         }
-        await _unitOfWork.CommitAsync();
 
         return paymentResponse;
     }
@@ -94,17 +94,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
             UpdatedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,
         };
-        var pendingOrderHistory = new OrderStatusHistory
-        {
-            OrderId = orderId,
-            Status = OrderStatus.Pending,
-            PreviousStatus = OrderStatus.Created,
-            Description = "Order pending",
-            UpdatedAt = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow,
-        };
         _unitOfWork.Repository<OrderStatusHistory>().Insert(createdOrderHistory);
-        _unitOfWork.Repository<OrderStatusHistory>().Insert(pendingOrderHistory);
         _unitOfWork.Repository<Transaction>().Insert(newTransaction);
         await _unitOfWork.CommitAsync();
         await _transactionService.PurchaseProduct(newTransaction.OrderCode);
@@ -219,21 +209,8 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         }
     }
 
-    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid userId, Guid? couponId, Guid? customerPurchasedIdToExtend)
+    public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid userId, Guid? customerPurchasedIdToExtend)
     {
-        if (couponId != null)
-        {
-            var coupon = await _unitOfWork.Repository<Coupon>().GetByIdAsync(couponId.Value);
-            if (coupon == null)
-            {
-                throw new NotFoundException("Coupon not found");
-            }
-            if(coupon.Type != CouponType.System && OrderItems.Count > 1)
-            {
-                throw new NotFoundException("This coupon type only can be used for a freelance PT or gym owner");
-            }
-        }
-
         foreach (var item in OrderItems)
         {
             if (item.GymCourseId != null)
@@ -367,7 +344,38 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
     {
         if (request.CouponId != null)
         {
-            var priceAfterDiscount = await couponService.ApplyCouponAsync(userId, request.CouponId.Value, request.SubTotalPrice);
+            var itemsIds = new List<Guid>();
+            var productType = string.Empty;
+            if (request.OrderItems.Any(x => x.ProductDetailId != null))
+            {
+                itemsIds = request.OrderItems.Where(x => x.ProductDetailId != null).Select(x => x.ProductDetailId!.Value).ToList();
+                productType = nameof(Product);
+            }
+            else if (request.OrderItems.Any(x => x.GymCourseId != null))
+            {
+                itemsIds = request.OrderItems.Where(x => x.GymCourseId != null).Select(x => x.GymCourseId!.Value).ToList();
+                productType = nameof(GymCourse);
+            }
+            else if (request.OrderItems.Any(x => x.FreelancePTPackageId != null))
+            {
+                itemsIds = request.OrderItems.Where(x => x.FreelancePTPackageId != null).Select(x => x.FreelancePTPackageId!.Value).ToList();
+                productType = nameof(FreelancePTPackage);
+            }
+            else if (request.OrderItems.Any(x => x.SubscriptionPlansInformationId != null))
+            {
+                itemsIds = request.OrderItems.Where(x => x.SubscriptionPlansInformationId != null).Select(x => x.SubscriptionPlansInformationId!.Value).ToList();
+                productType = nameof(SubscriptionPlansInformation);
+            }
+            var coupon = await _unitOfWork.Repository<Coupon>().GetByIdAsync(request.CouponId.Value);
+            if (coupon == null)
+            {
+                throw new NotFoundException("Coupon not found");
+            }
+            var priceAfterDiscount = await couponService.ApplyCouponWithValidationAsync(coupon.CouponCode,
+            userId,
+            itemsIds,
+            productType,
+            request.SubTotalPrice);
             return priceAfterDiscount.DiscountAmount + request.ShippingFee;
         }
 
