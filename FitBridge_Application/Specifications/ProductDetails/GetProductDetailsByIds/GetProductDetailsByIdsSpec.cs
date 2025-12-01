@@ -5,10 +5,10 @@ namespace FitBridge_Application.Specifications.ProductDetails.GetProductDetailsB
 {
     public class GetProductDetailsByIdsSpec : BaseSpecification<ProductDetail>
     {
-        public GetProductDetailsByIdsSpec(IEnumerable<Guid> productIds)
+        public GetProductDetailsByIdsSpec(IEnumerable<Guid> ids)
             : base(x =>
             x.IsEnabled
-            && productIds.Contains(x.ProductId))
+            && ids.Contains(x.Id))
         {
         }
     }

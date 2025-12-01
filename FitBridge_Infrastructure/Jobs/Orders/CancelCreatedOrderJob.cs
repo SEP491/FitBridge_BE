@@ -34,6 +34,14 @@ public class CancelCreatedOrderJob(ILogger<CancelCreatedOrderJob> _logger, IUnit
             await orderService.ReturnQuantityToPT(order);
         }
         order.Status = OrderStatus.Cancelled;
+        var statusHistory = new OrderStatusHistory
+        {
+            OrderId = order.Id,
+            Status = OrderStatus.Cancelled,
+            Description = "Order cancelled by system",
+            PreviousStatus = OrderStatus.Created,
+        };
+        _unitOfWork.Repository<OrderStatusHistory>().Insert(statusHistory);
         var transactionToUpdate = order.Transactions.FirstOrDefault(t => t.Status == TransactionStatus.Pending);
         if(transactionToUpdate != null)
         {

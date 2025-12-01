@@ -621,6 +621,11 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         {
             throw new NotFoundException("Transaction not found with order code " + orderCode);
         }
+        if (transactionToPurchaseProduct.Order.Coupon != null)
+        {
+            transactionToPurchaseProduct.Order.Coupon.Quantity--;
+            transactionToPurchaseProduct.Order.Coupon.NumberOfUsedCoupon++;
+        }
         var profit = transactionToPurchaseProduct.Order.TotalAmount;
         foreach (var orderItem in transactionToPurchaseProduct.Order.OrderItems)
         {
