@@ -191,6 +191,11 @@ public class AhamoveService : IAhamoveService
                         Description = $"Đã hoàn trả hàng. Lý do: {webhookData.CancelComment}",
                         PreviousStatus = OrderStatus.InReturn,
                     };
+                    foreach (var orderItem in order.OrderItems)
+                    {
+                        orderItem.ProductDetail.Quantity += orderItem.Quantity;
+                        orderItem.ProductDetail.SoldQuantity -= orderItem.Quantity;
+                    }
                     oldStatus = OrderStatus.Returned;
                     newStatus = OrderStatus.Cancelled;
                     _unitOfWork.Repository<OrderStatusHistory>().Insert(returnStatusHistory);
