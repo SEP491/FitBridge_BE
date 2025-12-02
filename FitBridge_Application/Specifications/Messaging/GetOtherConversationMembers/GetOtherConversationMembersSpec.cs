@@ -4,10 +4,14 @@ namespace FitBridge_Application.Specifications.Messaging.GetOtherConversationMem
 {
     public class GetOtherConversationMembersSpec : BaseSpecification<ConversationMember>
     {
-        public GetOtherConversationMembersSpec(Guid conversationId, Guid userId) : base(x =>
+        public GetOtherConversationMembersSpec(Guid conversationId, Guid userId, bool includeUser = false) : base(x =>
             x.ConversationId == conversationId
             && x.UserId != userId)
         {
+            if (includeUser)
+            {
+                AddInclude(x => x.User);
+            }
         }
     }
 }

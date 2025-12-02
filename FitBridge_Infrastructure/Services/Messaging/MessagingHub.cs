@@ -1,4 +1,6 @@
 ﻿using FitBridge_Application.Dtos.Messaging;
+using FitBridge_Application.Interfaces.Repositories;
+using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Services.Messaging;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -6,7 +8,8 @@ using Microsoft.Extensions.Logging;
 namespace FitBridge_Infrastructure.Services.Messaging
 {
     public class MessagingHub(
-        ILogger<MessagingHub> logger) : Hub<IMessagingClient>
+        ILogger<MessagingHub> logger,
+        IApplicationUserService applicationUserService) : Hub<IMessagingClient>
     {
         public override async Task OnConnectedAsync()
         {
@@ -15,14 +18,14 @@ namespace FitBridge_Infrastructure.Services.Messaging
                 Context.UserIdentifier, Context.ConnectionId);
 
             Guid.TryParse(Context.UserIdentifier, out var userId);
-            //await messagingContext.UpdateUserPresence(userId);
+            await applicationUserService.UpdateUserPresence(userId, isOnline: true);
 
-            //var dto = new UserPresenceUpdateDto
-            //{
-            //    Id = userId,
-            //    IsOnline = true
-            //};
-            //await Clients.Others.UserPresenceUpdate(dto);
+            var dto = new UserPresenceUpdateDto
+            {
+                UserId = userId,
+                IsOnline = true
+            };
+            await Clients.Others.UserPresenceUpdate(dto);
             await base.OnConnectedAsync();
         }
 
@@ -33,23 +36,14 @@ namespace FitBridge_Infrastructure.Services.Messaging
                 Context.UserIdentifier, Context.ConnectionId);
 
             Guid.TryParse(Context.UserIdentifier, out var userId);
-            //await messagingContext.UpdateUserPresence(userId);
+            await applicationUserService.UpdateUserPresence(userId, isOnline: true);
 
-            //var messageDecorator = new MessageDecorator<BaseDecorator>
-            //{
-            //    Payload = new UserPresenceUpdate
-            //    {
-            //        UserId = userId,
-            //        IsOnline = false,
-            //        LastSeen = DateTime.UtcNow
-            //    }
-            //};
-            //var dto = new UserPresenceUpdateDto
-            //{
-            //    Id = userId,
-            //    IsOnline = false
-            //};
-            //await Clients.Others.UserPresenceUpdate(dto);
+            var dto = new UserPresenceUpdateDto
+            {
+                UserId = userId,
+                IsOnline = false
+            };
+            await Clients.Others.UserPresenceUpdate(dto);
             await base.OnDisconnectedAsync(exception);
         }
 
