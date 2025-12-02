@@ -52,6 +52,10 @@ public class MessagingController(IMediator _mediator) : _BaseApiController
     /// <term>SortOrder</term>
     /// <description>Sort order: "asc" or "desc" (default: "asc").</description>
     /// </item>
+    /// <item>
+    /// <term>RoleFilter</term>
+    /// <description>Optional list of roles to filter by (e.g., ["Customer", "FreelancePT"]). If not provided, returns all roles except the current user's role.</description>
+    /// </item>
     /// </list>
     /// </param>
     /// <returns>A paginated list of users with their basic information and roles.</returns>
@@ -61,9 +65,16 @@ public class MessagingController(IMediator _mediator) : _BaseApiController
     /// - Avatar URL
     /// - User role (Customer, FreelancePT, GymPT, GymOwner, Admin)
     ///
-    /// Sample request:
+    /// By default, users with the same role as the current user are excluded.
+    /// If RoleFilter is specified, only users with those roles are returned (still excluding current user's role).
+    ///
+    /// Sample request (all eligible users):
     ///
     ///     GET /api/v1/messaging/users?page=1&amp;size=10&amp;searchTerm=john
+    ///
+    /// Sample request (specific roles):
+    ///
+    ///     GET /api/v1/messaging/users?page=1&amp;size=10&amp;RoleFilter=Customer&amp;RoleFilter=FreelancePT
     ///
     /// </remarks>
     /// <response code="200">Users retrieved successfully</response>
