@@ -22,6 +22,10 @@ public class GetConversationsDto
 
     public bool IsRead { get; set; }
 
+    public bool IsActive { get; set; }
+
+    public DateTime? LastActiveAt { get; set; }
+
     public string ConversationImg { get; set; }
 
     public IEnumerable<GetConversationMembersDto> Members { get; set; }

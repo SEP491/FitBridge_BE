@@ -3,7 +3,9 @@ using FitBridge_Application.Dtos.Messaging;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Utils;
+using FitBridge_Application.Specifications.Messaging.GetConversationMembers;
 using FitBridge_Application.Specifications.Messaging.GetConversations;
+using FitBridge_Application.Specifications.Messaging.GetOtherConversationMembers;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.MessageAndReview;
 using FitBridge_Domain.Exceptions;
@@ -48,6 +50,33 @@ internal class GetConversationsQueryHandler(
                 });
             }
 
+            var isRead = false;
+            if (x.LastMessageId.HasValue)
+            {
+                var lastMessage = x.Messages.FirstOrDefault(m => m.Id == x.LastMessageId.Value);
+                if (lastMessage != null)
+                {
+                    var convoMember = await unitOfWork.Repository<ConversationMember>()
+                        .GetBySpecificationAsync(new GetConversationMembersSpec(lastMessage.ConversationId, userId))
+                        ?? throw new NotFoundException(nameof(ConversationMember));
+                    var messageStatus = lastMessage.MessageStatuses.FirstOrDefault(ms => ms.UserId == convoMember.Id);
+
+                    isRead = messageStatus?.ReadAt != null;
+                }
+            }
+
+            var isActive = false;
+            var convoMembers = await unitOfWork.Repository<ConversationMember>()
+                .GetAllWithSpecificationAsync(new GetOtherConversationMembersSpec(x.Id, userId), asNoTracking: true);
+
+            DateTime lastActiveAt = DateTime.UtcNow; // default to now if members are active
+            var convoMemberUsers = convoMembers.Select(cm => cm.User).ToList();
+            isActive = convoMemberUsers.Any(u => u.IsActive);
+            if (!isActive && convoMemberUsers.Count > 0)
+            {
+                lastActiveAt = convoMemberUsers.Max(u => u.LastSeen);
+            }
+
             dtos.Add(new GetConversationsDto
             {
                 Id = x.Id,
@@ -59,9 +88,9 @@ internal class GetConversationsQueryHandler(
                 LastMessageMediaType = x.LastMessageMediaType.ToString(),
                 LastMessageSenderName = x.LastMessageSenderName,
                 LastMessageSenderId = x.LastMessageSenderId,
-                IsRead = !x.Messages.Any(m => m.Id == x.LastMessageId)
-                    || x.Messages.FirstOrDefault(m => m.Id == x.LastMessageId)?
-                    .MessageStatuses.FirstOrDefault(ms => ms.UserId == userId)?.ReadAt != null,
+                IsRead = isRead,
+                IsActive = isActive,
+                LastActiveAt = lastActiveAt,
                 ConversationImg = x.ConversationMembers.First(cm => cm.UserId == userId).ConversationImage,
                 Members = members
             });

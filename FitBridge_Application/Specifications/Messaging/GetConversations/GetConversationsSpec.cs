@@ -15,6 +15,7 @@ public class GetConversationsSpec : BaseSpecification<Conversation>
         AddInclude(c => c.ConversationMembers);
         AddInclude($"{nameof(Conversation.ConversationMembers)}.{nameof(ConversationMember.User)}");
         AddInclude(c => c.Messages);
+        AddInclude($"{nameof(Conversation.Messages)}.{nameof(Message.MessageStatuses)}");
 
         AddOrderByDesc(c => c.UpdatedAt);
 

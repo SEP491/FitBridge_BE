@@ -12,8 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace FitBridge_Infrastructure.Services
 {
     internal class ApplicationUserService(
-        UserManager<ApplicationUser> userManager,
-        IUnitOfWork unitOfWork) : IApplicationUserService
+        UserManager<ApplicationUser> userManager) : IApplicationUserService
     {
         public async Task<IReadOnlyList<ApplicationUser>> GetAllUsersAsync()
         {
@@ -95,7 +94,8 @@ namespace FitBridge_Infrastructure.Services
 
         public async Task<string> GetUserRoleAsync(ApplicationUser user)
         {
-            return (await userManager.GetRolesAsync(user)).FirstOrDefault() ?? string.Empty;
+            var roleList = await userManager.GetRolesAsync(user);
+            return roleList.FirstOrDefault() ?? string.Empty;
         }
 
         public async Task<List<string>> GetUserRolesAsync(ApplicationUser user)
@@ -128,7 +128,7 @@ namespace FitBridge_Infrastructure.Services
                 throw new DuplicateUserException($"A user with the email {user.Email} already exists.");
             }
 
-            if(!string.IsNullOrWhiteSpace(user.TaxCode))
+            if (!string.IsNullOrWhiteSpace(user.TaxCode))
             {
                 var existingUserByTaxCode = await userManager.Users.AsNoTracking().FirstOrDefaultAsync(u => u.TaxCode == user.TaxCode);
                 if (existingUserByTaxCode != null)
@@ -144,7 +144,6 @@ namespace FitBridge_Infrastructure.Services
                     throw new DuplicateUserException($"A user with the citizen id number {user.CitizenIdNumber} already exists.");
                 }
             }
-
             var result = await userManager.CreateAsync(user, password);
             if (!result.Succeeded)
             {
@@ -227,6 +226,16 @@ namespace FitBridge_Infrastructure.Services
                 throw new UpdateFailedException($"Failed to update password: {string.Join(", ", result.Errors.Select(e => e.Description))}");
             }
             return true;
+        }
+
+        public async Task UpdateUserPresence(Guid userId, bool isOnline)
+        {
+            var user = await userManager.FindByIdAsync(userId.ToString())
+                ?? throw new NotFoundException(nameof(ApplicationUser));
+            user.IsActive = isOnline;
+            if (!isOnline) user.LastSeen = DateTime.UtcNow;
+
+            await userManager.UpdateAsync(user);
         }
     }
 }

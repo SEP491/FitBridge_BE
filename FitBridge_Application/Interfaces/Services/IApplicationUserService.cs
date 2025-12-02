@@ -118,5 +118,7 @@ namespace FitBridge_Application.Interfaces.Services
         Task<bool> UpdatePasswordAsync(ApplicationUser user, string currentPassword, string newPassword);
 
         #endregion Core methods
+
+        Task UpdateUserPresence(Guid userId, bool isOnline);
     }
 }
