@@ -25,6 +25,10 @@ namespace FitBridge_Application.Features.Messaging.CreateConversation
             var senderAvatar = userUtil.GetAvatarUrl(httpContextAccessor.HttpContext)
                 ?? throw new NotFoundException("User avatar");
             var now = DateTime.UtcNow;
+            if (request.Members.Count < 2)
+            {
+                throw new DataValidationFailedException("Need at least 2 members");
+            }
             if (request.Members.Count > 2 && !request.IsGroup)
             {
                 throw new DataValidationFailedException("A conversation with more than 2 members must be a group.");

@@ -67,7 +67,7 @@ internal class GetConversationsQueryHandler(
 
             var isActive = false;
             var convoMembers = await unitOfWork.Repository<ConversationMember>()
-                .GetAllWithSpecificationAsync(new GetOtherConversationMembersSpec(x.Id, userId), asNoTracking: true);
+                .GetAllWithSpecificationAsync(new GetOtherConversationMembersSpec(x.Id, userId, includeUser: true), asNoTracking: true);
 
             DateTime lastActiveAt = DateTime.UtcNow; // default to now if members are active
             var convoMemberUsers = convoMembers.Select(cm => cm.User).ToList();
