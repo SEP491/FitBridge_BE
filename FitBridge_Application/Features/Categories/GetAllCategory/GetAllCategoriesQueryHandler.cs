@@ -15,5 +15,4 @@ public class GetAllCategoriesQueryHandler(IUnitOfWork _unitOfWork, IMapper _mapp
         var categories = await _unitOfWork.Repository<Category>().GetAllWithSpecificationProjectedAsync<CategoryResponseDto>(new GetAllCategoriesSpecification(), _mapper.ConfigurationProvider);
         return categories.ToList();
     }
-
 }

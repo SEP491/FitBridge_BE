@@ -30,11 +30,25 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             FullName = request.FullName,
             Password = request.Password,
             GymName = request.GymName ?? "",
-            TaxCode = request.TaxCode ?? "",
+            TaxCode = request.TaxCode ?? null,
             Longitude = request.Longitude,
             Latitude = request.Latitude,
             EmailConfirmed = true,
+            IsContractSigned = false,
+            CitizenIdNumber = request.CitizenIdNumber?? null,
+            IdentityCardPlace = request.IdentityCardPlace ?? null,
+            CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? null,
+            IdentityCardDate = request.IdentityCardDate ?? null,
+            BusinessAddress = request.BusinessAddress ?? null,
         };
+        if (request.FrontCitizenIdUrl != null)
+        {
+            user.FrontCitizenIdUrl = request.FrontCitizenIdUrl;
+        }
+        if (request.BackCitizenIdUrl != null)
+        {
+            user.BackCitizenIdUrl = request.BackCitizenIdUrl;
+        }
         await _applicationUserService.InsertUserAsync(user, request.Password);
 
         switch (request.Role)

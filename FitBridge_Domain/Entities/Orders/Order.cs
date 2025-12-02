@@ -14,6 +14,8 @@ public class Order : BaseEntity
     public decimal SubTotalPrice { get; set; }
     public Guid? AddressId { get; set; }
     public decimal ShippingFee { get; set; }
+    public decimal? ShippingFeeActualCost { get; set; }
+    public string? ShippingTrackingId { get; set; }
     public decimal TotalAmount { get; set; }
     public Guid? CustomerPurchasedIdToExtend { get; set; }
     public Guid? GymCoursePTIdToAssign { get; set; }
@@ -32,4 +34,5 @@ public class Order : BaseEntity
 
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public ICollection<OrderStatusHistory> OrderStatusHistories { get; set; } = new List<OrderStatusHistory>();
 }

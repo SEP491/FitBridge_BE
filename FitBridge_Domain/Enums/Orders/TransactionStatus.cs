@@ -5,6 +5,7 @@
         Success,
 
         Failed,
-        Pending
+        Pending,
+        Expired
     }
 }

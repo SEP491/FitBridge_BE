@@ -22,13 +22,14 @@ using FitBridge_Application.Commons.Constants;
 using Quartz;
 using FitBridge_Infrastructure.Jobs;
 using JsonSerializerOptions = System.Text.Json.JsonSerializerOptions;
+using FitBridge_Application.Services;
 
 namespace FitBridge_Infrastructure.Services;
 
 public class PayOSService : IPayOSService
 {
     private readonly PayOSSettings _settings;
-
+    private readonly SystemConfigurationService _systemConfigurationService;
     private readonly ILogger<PayOSService> _logger;
 
     private readonly IUnitOfWork _unitOfWork;
@@ -44,7 +45,8 @@ public class PayOSService : IPayOSService
         ILogger<PayOSService> logger,
         IUnitOfWork unitOfWork,
         ITransactionService transactionService,
-        ISchedulerFactory schedulerFactory)
+        ISchedulerFactory schedulerFactory,
+        SystemConfigurationService systemConfigurationService)
     {
         _settings = settings.Value;
         _logger = logger;
@@ -53,6 +55,7 @@ public class PayOSService : IPayOSService
         // Initialize PayOS SDK
         _payOS = new PayOS(_settings.ClientId, _settings.ApiKey, _settings.ChecksumKey);
         _schedulerFactory = schedulerFactory;
+        _systemConfigurationService = systemConfigurationService;
     }
 
     public async Task<PaymentResponseDto> CreatePaymentLinkAsync(CreatePaymentRequestDto request, ApplicationUser user)
@@ -72,6 +75,7 @@ public class PayOSService : IPayOSService
                 }
                 address = $"{addressEntity.Street}, {addressEntity.Ward}, {addressEntity.District}, {addressEntity.City}";
             }
+            var expirationMinutes =(int) await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.PaymentLinkExpirationMinutes);
             var paymentData = new PaymentData(
                 orderCode: orderCode,
                 //amount: (int)request.TotalAmount,
@@ -80,7 +84,7 @@ public class PayOSService : IPayOSService
                 items: items,
                 cancelUrl: $"{_settings.CancelUrl}?code=01&message&orderCode={orderCode}&amount={request.TotalAmountPrice}",
                 returnUrl: $"{_settings.ReturnUrl}?code=00&message&orderCode={orderCode}&amount={request.TotalAmountPrice}",
-                expiredAt: DateTimeOffset.UtcNow.AddMinutes(_settings.ExpirationMinutes).ToUnixTimeSeconds(),
+                expiredAt: DateTimeOffset.UtcNow.AddMinutes(expirationMinutes).ToUnixTimeSeconds(),
                 buyerName: user.UserName,
                 buyerEmail: user.Email,
                 buyerPhone: user.PhoneNumber,
@@ -261,6 +265,10 @@ public class PayOSService : IPayOSService
             {
                 return await _transactionService.PurchaseSubscriptionPlans(verifiedWebhookData.orderCode);
             }
+            if(transaction.TransactionType == TransactionType.ProductOrder)
+            {
+                return await _transactionService.PurchaseProduct(verifiedWebhookData.orderCode);
+            }
 
             return false;
         }
@@ -271,7 +279,7 @@ public class PayOSService : IPayOSService
         }
     }
 
-    private long GenerateOrderCode()
+    public long GenerateOrderCode()
     {
         // Generate a unique order code using timestamp and random number
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

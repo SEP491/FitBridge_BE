@@ -5,10 +5,11 @@ using FitBridge_Application.Dtos.Products;
 using FitBridge_Domain.Exceptions;
 using MediatR;
 using AutoMapper;
+using FitBridge_Application.Interfaces.Services;
 
 namespace FitBridge_Application.Features.Products.UpdateProduct;
 
-public class UpdateProductCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper) : IRequestHandler<UpdateProductCommand, ProductResponseDto>
+public class UpdateProductCommandHandler(IUnitOfWork _unitOfWork, IMapper _mapper, IUploadService _uploadService) : IRequestHandler<UpdateProductCommand, ProductResponseDto>
 {
     public async Task<ProductResponseDto> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
@@ -16,6 +17,11 @@ public class UpdateProductCommandHandler(IUnitOfWork _unitOfWork, IMapper _mappe
         if (product == null)
         {
             throw new BusinessException("Product not found");
+        }
+        if (request.CoverImage != null)
+        {
+            var coverImageUrl = await _uploadService.UploadFileAsync(request.CoverImage);
+            product.CoverImageUrl = coverImageUrl;
         }
         product.Name = request.Name ?? product.Name;
         product.Description = request.Description ?? product.Description;

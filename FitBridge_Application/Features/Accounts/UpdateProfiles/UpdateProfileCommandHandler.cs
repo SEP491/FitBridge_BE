@@ -7,6 +7,7 @@ using FitBridge_Application.Interfaces.Repositories;
 using MediatR;
 using FitBridge_Application.Interfaces.Utils;
 using Microsoft.AspNetCore.Http;
+using FitBridge_Application.Specifications.Accounts.CheckAccountUpdateData;
 
 namespace FitBridge_Application.Features.Accounts.UpdateProfiles;
 
@@ -14,16 +15,12 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
 {
     public async Task<UpdateProfileResponseDto> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
-        var userId = _userUtil.GetAccountId(_httpContextAccessor.HttpContext);
-        if (userId == null)
-        {
-            throw new NotFoundException("User not found");
-        }
-        var account = await applicationUserService.GetByIdAsync(userId.Value, includes: new List<string> { "UserDetail" }, true);
+        var account = await applicationUserService.GetByIdAsync(request.Id.Value, includes: new List<string> { "UserDetail" }, true);
         if (account == null)
         {
             throw new NotFoundException("Account not found");
         }
+        await validateUpdateProfile(request);
         try
         {
             if (request.UserDetail != null)
@@ -35,14 +32,22 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             account.IsMale = request.IsMale ?? account.IsMale;
             account.Longitude = request.Longitude ?? account.Longitude;
             account.Latitude = request.Latitude ?? account.Latitude;
-            if(request.Dob != null)
+            if (request.Dob != null)
             {
                 account.Dob = DateTime.SpecifyKind(request.Dob.Value, DateTimeKind.Utc);
             }
             account.TaxCode = request.TaxCode ?? account.TaxCode;
             account.GymDescription = request.GymDescription ?? account.GymDescription;
             account.GymName = request.GymName ?? account.GymName;
+            account.IdentityCardPlace = request.IdentityCardPlace ?? account.IdentityCardPlace;
+            account.CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? account.CitizenCardPermanentAddress;
+            account.CitizenIdNumber = request.CitizenIdNumber ?? account.CitizenIdNumber;
             account.UpdatedAt = DateTime.UtcNow;
+            account.GymFoundationDate = request.GymFoundationDate ?? account.GymFoundationDate;
+            account.IdentityCardDate = request.IdentityCardDate ?? account.IdentityCardDate;
+            account.BusinessAddress = request.BusinessAddress ?? account.BusinessAddress;
+            account.FrontCitizenIdUrl = request.FrontCitizenIdUrl ?? account.FrontCitizenIdUrl;
+            account.BackCitizenIdUrl = request.BackCitizenIdUrl ?? account.BackCitizenIdUrl;
             await _unitOfWork.CommitAsync();
         }
         catch (Exception ex)
@@ -51,5 +56,27 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
         }
 
         return _mapper.Map<UpdateProfileResponseDto>(account);
+    }
+
+    public async Task validateUpdateProfile(UpdateProfileCommand request)
+    {
+        if(request.TaxCode != null)
+        {
+            var spec = new CheckAccountUpdateSpec(request.Id.Value, request.TaxCode, null);
+            var existingUser = await applicationUserService.CountAsync(spec);
+            if (existingUser > 0)
+            {
+                throw new DuplicateUserException("Tax code already exists");
+            }
+        }
+        if(request.CitizenIdNumber != null)
+        {
+            var spec = new CheckAccountUpdateSpec(request.Id.Value, null, request.CitizenIdNumber);
+            var existingUser = await applicationUserService.CountAsync(spec);
+            if (existingUser > 0)
+            {
+                throw new DuplicateUserException("Citizen id number already exists");
+            }
+        }
     }
 }

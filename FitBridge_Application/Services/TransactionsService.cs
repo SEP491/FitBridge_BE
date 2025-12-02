@@ -20,6 +20,7 @@ using Microsoft.VisualBasic;
 using FitBridge_Domain.Entities.ServicePackages;
 using FitBridge_Domain.Enums.SubscriptionPlans;
 using FitBridge_Application.Dtos.Payments.ApplePaymentDto;
+using FitBridge_Domain.Entities.Ecommerce;
 
 namespace FitBridge_Application.Services;
 
@@ -27,6 +28,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 {
     private int defaultProfitDistributionDays;
     private decimal defaultCommissionRate;
+    private int autoMarkAsFeedbackAfterDays;
     public async Task<int> GetProfitDistributionDays()
     {
         if (defaultProfitDistributionDays == 0)
@@ -43,8 +45,17 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
         return defaultCommissionRate;
     }
+    public async Task<int> GetAutoMarkAsFeedbackAfterDays()
+    {
+        if (autoMarkAsFeedbackAfterDays == 0)
+        {
+            autoMarkAsFeedbackAfterDays = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.AutoMarkAsFeedbackAfterDays);
+        }
+        return autoMarkAsFeedbackAfterDays;
+    }
     public async Task<bool> ExtendCourse(long orderCode)
     {
+        autoMarkAsFeedbackAfterDays = await GetAutoMarkAsFeedbackAfterDays();
         defaultProfitDistributionDays = await GetProfitDistributionDays();
         var transactionToExtend = await _unitOfWork.Repository<FitBridge_Domain.Entities.Orders.Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
         if (transactionToExtend == null)
@@ -88,8 +99,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         }
         var profit = await CalculateMerchantProfit(orderItemToExtend, transactionToExtend.Order.Coupon);
         walletToUpdate.PendingBalance += profit;
-        _logger.LogInformation($"Wallet {walletToUpdate.Id} updated with new pending balance {walletToUpdate.PendingBalance} after adding profit {profit}");
-        transactionToExtend.ProfitAmount = profit;
+         transactionToExtend.ProfitAmount = profit;
 
         _unitOfWork.Repository<Wallet>().Update(walletToUpdate);
         await _unitOfWork.CommitAsync();
@@ -99,6 +109,11 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             OrderItemId = orderItemToExtend.Id,
             ProfitDistributionDate = profitDistributionDate
         });
+        var originalCustomerPurchasedOrderItem = customerPurchasedToExtend.OrderItems.OrderBy(o => o.CreatedAt).First();
+
+        await _scheduleJobServices.RescheduleJob($"AutoUpdatePTCurrentCourse_{originalCustomerPurchasedOrderItem.Id}", "AutoUpdatePTCurrentCourse", customerPurchasedToExtend.ExpirationDate.ToDateTime(TimeOnly.MaxValue));
+
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{transactionToExtend.Order.Id}", "AutoCancelCreatedOrder");
         return true;
     }
 
@@ -198,6 +213,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<bool> PurchaseFreelancePTPackage(long orderCode)
     {
+        autoMarkAsFeedbackAfterDays = await GetAutoMarkAsFeedbackAfterDays();
         var OrderEntity = await _unitOfWork.Repository<Order>()
             .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(orderCode), false);
         if (OrderEntity == null)
@@ -256,7 +272,12 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                 OrderItemId = orderItem.Id,
                 ProfitDistributionDate = profitDistributionDate
             });
+            await _scheduleJobServices.ScheduleAutoUpdatePTCurrentCourseJob(orderItem.Id, expirationDate);
+
+            await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItem.Id, profitDistributionDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MinValue));
         }
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{OrderEntity.Id}", "AutoCancelCreatedOrder");
+
         return true;
     }
 
@@ -281,6 +302,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
     public async Task<bool> PurchaseGymCourse(long orderCode)
     {
         defaultProfitDistributionDays = await GetProfitDistributionDays();
+        autoMarkAsFeedbackAfterDays = await GetAutoMarkAsFeedbackAfterDays();
         var OrderEntity = await _unitOfWork.Repository<Order>()
                 .GetBySpecificationAsync(new GetOrderByOrderCodeSpecification(orderCode), false);
         if (OrderEntity == null)
@@ -318,6 +340,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                         throw new NotFoundException("Gym course PT with gym course id and pt id not found");
                     }
                     numOfSession = gymCoursePT.Session.Value;
+
                 }
 
                 expirationDate = expirationDate.AddDays(orderItem.GymCourse.Duration * orderItem.Quantity);
@@ -327,6 +350,10 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                     AvailableSessions = orderItem.Quantity * numOfSession,
                     ExpirationDate = expirationDate,
                 };
+                if (orderItem.GymPtId != null)
+                {
+                    await _scheduleJobServices.ScheduleAutoUpdatePTCurrentCourseJob(orderItem.Id, expirationDate);
+                }
                 var walletToUpdate = await _unitOfWork.Repository<Wallet>().GetByIdAsync(orderItem.GymCourse.GymOwnerId);
                 if (walletToUpdate == null)
                 {
@@ -343,13 +370,16 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
                     OrderItemId = orderItem.Id,
                     ProfitDistributionDate = profitDistributionDate
                 });
+                await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItem.Id, profitDistributionDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MaxValue));
             }
         }
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{OrderEntity.Id}", "AutoCancelCreatedOrder");
         return true;
     }
 
     public async Task<bool> ExtendFreelancePTPackage(long orderCode)
     {
+        autoMarkAsFeedbackAfterDays = await GetAutoMarkAsFeedbackAfterDays();
         var transactionToExtend = await _unitOfWork.Repository<Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
         if (transactionToExtend == null)
         {
@@ -390,6 +420,13 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             OrderItemId = orderItemToExtend.Id,
             ProfitDistributionDate = profitDistributePlannedDate
         });
+        var originalCustomerPurchasedOrderItem = customerPurchasedToExtend.OrderItems.OrderBy(o => o.CreatedAt).First();
+        
+        await _scheduleJobServices.RescheduleJob($"AutoUpdatePTCurrentCourse_{originalCustomerPurchasedOrderItem.Id}", "AutoUpdatePTCurrentCourse", customerPurchasedToExtend.ExpirationDate.ToDateTime(TimeOnly.MaxValue));
+
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{transactionToExtend.Order.Id}", "AutoCancelCreatedOrder");
+
+        await _scheduleJobServices.ScheduleAutoMarkAsFeedbackJob(orderItemToExtend.Id, profitDistributePlannedDate.AddDays(autoMarkAsFeedbackAfterDays).ToDateTime(TimeOnly.MinValue));
         return true;
     }
 
@@ -452,7 +489,7 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
             throw new NotFoundException("Transaction not found with order code " + orderCode);
         }
         var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(transactionToPurchaseSubscriptionPlans.Order!.OrderItems.First().SubscriptionPlansInformationId!.Value, includes: new List<string> { "FeatureKey" });
-        if(subscriptionPlansInformation == null)
+        if (subscriptionPlansInformation == null)
         {
             throw new NotFoundException("Subscription plans information not found");
         }
@@ -495,6 +532,58 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         _logger.LogInformation($"Successfully scheduled expire user subscription job for user subscription {newUserSubscription.Id} at {endDate.ToLocalTime}");
         return true;
     }
+
+    public async Task<bool> UpdateOrderShippingDetails(Guid orderId, decimal shippingActualCost, string shippingTrackingId)
+    {
+        var order = await _unitOfWork.Repository<Order>().GetByIdAsync(orderId, includes: new List<string> { "Transactions", "OrderStatusHistories" });
+        if (order == null)
+        {
+            throw new NotFoundException($"Order with ID {orderId} not found");
+        }
+
+        // Update order shipping actual cost and Ahamove order ID
+        // order.ShippingFeeActualCost += shippingActualCost;
+        order.ShippingTrackingId = shippingTrackingId;
+        var oldStatus = order.Status;
+        order.Status = OrderStatus.Assigning;
+        var orderStatusHistory = new OrderStatusHistory
+        {
+            OrderId = orderId,
+            Status = OrderStatus.Assigning,
+            Description = "Order status updated to Assigning",
+            PreviousStatus = oldStatus,
+        };
+        _unitOfWork.Repository<OrderStatusHistory>().Insert(orderStatusHistory);
+
+        _logger.LogInformation($"Order {orderId} updated with shipping actual cost {shippingActualCost}, Shipping Tracking ID {shippingTrackingId}, and status changed to Assigning");
+
+        // // Calculate profit from shipping fee difference
+        // var shippingDifference = shippingActualCost - order.ShippingFee;
+        // if(order.OrderStatusHistories.Any(o => o.Status == OrderStatus.Returned))
+        // {
+        //     shippingDifference = shippingActualCost; // If the order is returned, and the admin send the shipping order again the profit will be minus by the new shipping actual cost
+        // }
+
+        // Update transaction profit amount
+        // var transaction = order.Transactions.FirstOrDefault();
+        // if (transaction != null)
+        // {
+        //     // Add shipping profit to existing profit amount
+        //     var currentProfit = transaction.ProfitAmount ?? 0;
+        //     transaction.ProfitAmount = currentProfit - shippingDifference;
+
+        //     _logger.LogInformation($"Transaction for Order {orderId} updated with profit amount {transaction.ProfitAmount} (shipping profit: {shippingDifference})");
+
+        //     _unitOfWork.Repository<Transaction>().Update(transaction);
+        // }
+
+        _unitOfWork.Repository<Order>().Update(order);
+        await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation($"Successfully updated Order {orderId} with Shipping Tracking ID {shippingTrackingId}");
+
+        return true;
+    }
     public async Task<bool> PurchaseAppleSubscriptionPlans(AsnDecodedPayload asnDecodedPayload, JwsTransactionDecoded jwsTransactionDecoded)
     {
         // var orderItemToInsert = new OrderItem
@@ -523,6 +612,44 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         // }
         // var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(transactionToPurchaseSubscriptionPlans.Order!.OrderItems.First().SubscriptionPlansInformationId!.Value, includes: new List<string> { "FeatureKey" });
         // if(subscriptionPlansInformation == null)
+        return true;
+    }
+    public async Task<bool> PurchaseProduct(long orderCode)
+    {
+        var transactionToPurchaseProduct = await _unitOfWork.Repository<Transaction>().GetBySpecificationAsync(new GetTransactionByOrderCodeWithIncludeSpec(orderCode), false);
+        if (transactionToPurchaseProduct == null)
+        {
+            throw new NotFoundException("Transaction not found with order code " + orderCode);
+        }
+        if (transactionToPurchaseProduct.Order.Coupon != null)
+        {
+            transactionToPurchaseProduct.Order.Coupon.Quantity--;
+            transactionToPurchaseProduct.Order.Coupon.NumberOfUsedCoupon++;
+        }
+        var profit = transactionToPurchaseProduct.Order.TotalAmount;
+        foreach (var orderItem in transactionToPurchaseProduct.Order.OrderItems)
+        {
+            if (orderItem.ProductDetailId != null)
+            {
+                profit -= orderItem.OriginalProductPrice.Value * orderItem.Quantity;
+                // orderItem.ProductDetail.Quantity -= orderItem.Quantity;
+                // orderItem.ProductDetail.SoldQuantity += orderItem.Quantity;
+            }
+        }
+        profit -= transactionToPurchaseProduct.Order.ShippingFee;
+        var previousStatus = transactionToPurchaseProduct.Order.Status;
+        transactionToPurchaseProduct.Order.Status = OrderStatus.Pending;
+        transactionToPurchaseProduct.ProfitAmount = profit;
+        var orderStatusHistory = new OrderStatusHistory
+        {
+            OrderId = transactionToPurchaseProduct.OrderId!.Value,
+            Status = OrderStatus.Pending,
+            Description = "Order status updated to Pending",
+            PreviousStatus = previousStatus,
+        };
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{transactionToPurchaseProduct.Order.Id}", "AutoCancelCreatedOrder");
+        _unitOfWork.Repository<OrderStatusHistory>().Insert(orderStatusHistory);
+        await _unitOfWork.CommitAsync();
         return true;
     }
 }

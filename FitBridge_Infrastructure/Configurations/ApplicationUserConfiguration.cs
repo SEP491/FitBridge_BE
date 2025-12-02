@@ -31,6 +31,15 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(e => e.MinimumSlot).HasDefaultValue(1);
         builder.Property(e => e.IsActive).HasDefaultValue(true);
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
+        builder.Property(e => e.IsContractSigned).HasDefaultValue(true);
+        builder.Property(e => e.FrontCitizenIdUrl).IsRequired(false);
+        builder.Property(e => e.BackCitizenIdUrl).IsRequired(false);
+        builder.Property(e => e.CitizenIdNumber).IsRequired(false);
+        builder.Property(e => e.IdentityCardPlace).IsRequired(false);
+        builder.Property(e => e.CitizenCardPermanentAddress).IsRequired(false);
+        builder.Property(e => e.IdentityCardDate).IsRequired(false);
+        builder.Property(e => e.BusinessAddress).IsRequired(false);
+        builder.Property(e => e.GymFoundationDate).IsRequired(false);
         builder.HasOne(e => e.GymOwner)
         .WithMany(e => e.GymPTs)
         .HasForeignKey(e => e.GymOwnerId)

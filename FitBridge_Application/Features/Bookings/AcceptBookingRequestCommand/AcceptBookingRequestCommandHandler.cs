@@ -68,28 +68,31 @@ public class AcceptBookingRequestCommandHandler(
         var userName = userUtil.GetUserFullName(httpContextAccessor.HttpContext)
                 ?? throw new NotFoundException("User name not found");
         var message = await GetMessageAsync(request.BookingRequestId);
-        var msgContent = $"{userName} has approved the booking request";
-        InsertSystemMessage(message, msgContent, out var newSystemMessage);
         await _unitOfWork.CommitAsync();
-        await SendAcceptedMessage(
-            message,
-            msgContent,
-            newSystemMessage,
-            bookingRequest,
-            userId);
+        if (message != null)
+        {
+            var msgContent = $"{userName} has approved the booking request";
+            var newSystemMessage = await InsertSystemMessageAsync(message, msgContent);
+            await SendAcceptedMessageAsync(
+                message,
+                msgContent,
+                newSystemMessage,
+                bookingRequest,
+                userId);
+        }
         return request.BookingRequestId;
     }
 
-    private async Task<Message> GetMessageAsync(Guid bookingRequestId)
+    private async Task<Message?> GetMessageAsync(Guid bookingRequestId)
     {
         var msgSpec = new GetMessageByBookingRequestSpec(bookingRequestId);
         var message = await _unitOfWork.Repository<Message>().GetBySpecificationAsync(msgSpec);
         return message;
     }
 
-    private void InsertSystemMessage(Message message, string msgContent, out Message newSystemMessage)
+    private async Task<Message> InsertSystemMessageAsync(Message message, string msgContent)
     {
-        newSystemMessage = new Message
+        var newSystemMessage = new Message
         {
             Id = Guid.NewGuid(),
             Content = msgContent,
@@ -101,16 +104,20 @@ public class AcceptBookingRequestCommandHandler(
         };
 
         _unitOfWork.Repository<Message>().Insert(newSystemMessage);
+        await _unitOfWork.CommitAsync();
+
+        return newSystemMessage;
     }
 
-    private async Task SendAcceptedMessage(
+    private async Task SendAcceptedMessageAsync(
         Message message,
         string msgContent,
         Message newSystemMessage,
         BookingRequest bookingRequest,
         Guid userId)
     {
-        var convo = await _unitOfWork.Repository<Conversation>().GetByIdAsync(message.ConversationId);
+        var convo = await _unitOfWork.Repository<Conversation>().GetByIdAsync(message.ConversationId)
+            ?? throw new NotFoundException(nameof(Conversation));
         convo.LastMessageMediaType = MediaType.BookingRequest;
         convo.LastMessageContent = msgContent;
         convo.LastMessageId = newSystemMessage.Id;

@@ -8,6 +8,8 @@ namespace FitBridge_Application.Features.Accounts.UpdateProfiles;
 
 public class UpdateProfileCommand : IRequest<UpdateProfileResponseDto>
 {
+    [JsonIgnore]
+    public Guid? Id { get; set; }
     public string? FullName { get; set; }
     public string? AvatarUrl { get; set; }
     public bool? IsMale { get; set; }
@@ -17,5 +19,13 @@ public class UpdateProfileCommand : IRequest<UpdateProfileResponseDto>
     public string? TaxCode { get; set; }
     public string? GymDescription { get; set; }
     public string? GymName { get; set; }
+    public string? IdentityCardPlace { get; set; }
+    public string? CitizenCardPermanentAddress { get; set; }
+    public string? CitizenIdNumber { get; set; }
+    public DateOnly? GymFoundationDate { get; set; }
+    public DateOnly? IdentityCardDate { get; set; }
+    public string? BusinessAddress { get; set; }
+    public string? FrontCitizenIdUrl { get; set; }
+    public string? BackCitizenIdUrl { get; set; }
     public UpdateUserDetailDto? UserDetail { get; set; }
 }

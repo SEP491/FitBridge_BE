@@ -13,4 +13,5 @@ public class GetAllCustomersForAdminDto
     public DateTime CreatedAt { get; set; }
     public string? AvatarUrl { get; set; }
     public bool IsActive { get; set; }
+    public bool IsContractSigned { get; set; }
 }

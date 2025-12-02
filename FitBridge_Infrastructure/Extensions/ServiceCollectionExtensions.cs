@@ -103,6 +103,7 @@ namespace FitBridge_Infrastructure.Extensions
             services.Configure<RedisSettings>(configuration.GetSection(RedisSettings.SectionName));
             services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
             services.Configure<MeetingSettings>(configuration.GetSection(MeetingSettings.SectionName));
+            services.Configure<AhamoveSettings>(configuration.GetSection(AhamoveSettings.SectionName));
             var channel = Channel.CreateUnbounded<NotificationMessage>(new UnboundedChannelOptions
             {
                 SingleWriter = false,
@@ -197,6 +198,9 @@ namespace FitBridge_Infrastructure.Extensions
             services.AddScoped<SystemConfigurationService>();
             services.AddScoped<SubscriptionService>();
             services.AddScoped<BookingService>();
+            services.AddScoped<OrderService>();
+            // Register HttpClient for Ahamove Service
+            services.AddHttpClient<IAhamoveService, AhamoveService>();
         }
     }
 }

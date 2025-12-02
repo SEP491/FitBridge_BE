@@ -2,6 +2,7 @@
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Services;
+using FitBridge_Application.Specifications.Messaging.GetConversationMembers;
 using FitBridge_Application.Specifications.Messaging.GetMessages;
 using FitBridge_Domain.Entities.MessageAndReview;
 using FitBridge_Domain.Exceptions;
@@ -13,11 +14,18 @@ namespace FitBridge_Application.Features.Messaging.GetMessages
 {
     internal class GetMessagesQueryHandler(
         IUnitOfWork unitOfWork,
+        IUserUtil userUtil,
+        IHttpContextAccessor httpContextAccessor,
         MessagingService messagingService) : IRequestHandler<GetMessagesQuery, IEnumerable<GetMessagesDto>>
     {
         public async Task<IEnumerable<GetMessagesDto>> Handle(GetMessagesQuery request, CancellationToken cancellationToken)
         {
+            var userId = userUtil.GetAccountId(httpContextAccessor.HttpContext);
+            var memberSpec = new GetConversationMembersSpec(request.ConversationId, userId);
+            var convoMember = await unitOfWork.Repository<ConversationMember>().GetBySpecificationAsync(memberSpec)
+                ?? throw new NotFoundException("User is not a member of this conversation");
             var spec = new GetMessagesSpec(request.ConversationId,
+                userId: convoMember.Id,
                 parameters: request.Params,
                 includeOwnMessageStatus: true,
                 includeBookingRequest: true,
@@ -43,30 +51,14 @@ namespace FitBridge_Application.Features.Messaging.GetMessages
                 ReplyToMessageId = x.ReplyToMessageId,
                 ReplyToMessageContent = x.ReplyToMessage?.Content,
                 ReplyToMessageMediaType = x.ReplyToMessage?.MediaType.ToString(),
-                SenderId = x.Sender.UserId,
+                SenderId = x.Sender?.UserId,
                 Reaction = x.Reaction ?? string.Empty,
-                SenderName = x.Sender?.User.UserName,
+                SenderName = x.Sender?.User.FullName,
                 SenderAvatarUrl = x.Sender?.User.AvatarUrl,
-                BookingRequest = x.BookingRequest != null ? MapBookingRequestDto(x.BookingRequest) : null
+                BookingRequest = x.BookingRequest != null ? BookingRequestDto.FromEntity(x.BookingRequest) : null
             });
 
             return dtos;
-        }
-
-        private static BookingRequestDto MapBookingRequestDto(FitBridge_Domain.Entities.Trainings.BookingRequest bookingRequest)
-        {
-            return new BookingRequestDto
-            {
-                TargetBookingId = bookingRequest.TargetBookingId,
-                CustomerPurchasedId = bookingRequest.CustomerPurchasedId,
-                Note = bookingRequest.Note,
-                StartTime = bookingRequest.StartTime,
-                EndTime = bookingRequest.EndTime,
-                BookingName = bookingRequest.BookingName,
-                RequestStatus = bookingRequest.RequestStatus.ToString(),
-                BookingDate = bookingRequest.BookingDate,
-                RequestType = bookingRequest.RequestType.ToString()
-            };
         }
     }
 }

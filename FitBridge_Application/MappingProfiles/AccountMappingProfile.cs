@@ -118,5 +118,28 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
             .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
+
+        CreateMap<ApplicationUser, GetUserProfileResponse>()
+            .ForMember(dest => dest.FrontCitizenIdUrl, opt => opt.MapFrom(src => src.FrontCitizenIdUrl))
+            .ForMember(dest => dest.BackCitizenIdUrl, opt => opt.MapFrom(src => src.BackCitizenIdUrl))
+            .ForMember(dest => dest.CitizenIdNumber, opt => opt.MapFrom(src => src.CitizenIdNumber))
+            .ForMember(dest => dest.IdentityCardPlace, opt => opt.MapFrom(src => src.IdentityCardPlace))
+            .ForMember(dest => dest.CitizenCardPermanentAddress, opt => opt.MapFrom(src => src.CitizenCardPermanentAddress))
+            .ForMember(dest => dest.IdentityCardDate, opt => opt.MapFrom(src => src.IdentityCardDate))
+            .ForMember(dest => dest.BusinessAddress, opt => opt.MapFrom(src => src.BusinessAddress))
+            .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.IsMale ? "Male" : "Female"))
+            .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
+            .ForMember(dest => dest.GymFoundationDate, opt => opt.MapFrom(src => src.GymFoundationDate))
+            .ForMember(dest => dest.TaxCode, opt => opt.MapFrom(src => src.TaxCode))
+            .ForMember(dest => dest.GymDescription, opt => opt.MapFrom(src => src.GymDescription))
+            .ForMember(dest => dest.GymName, opt => opt.MapFrom(src => src.GymName))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+            .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.PhoneNumber))
+            .ForMember(dest => dest.DOB, opt => opt.MapFrom(src => src.Dob))
+            .ForMember(dest => dest.Weight, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Weight : 0))
+            .ForMember(dest => dest.Height, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Height : 0));
     }
 }

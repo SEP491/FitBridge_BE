@@ -9,7 +9,6 @@ public class CategoriesMappingProfile : Profile
 {
     public CategoriesMappingProfile()
     {
-        CreateProjection<Category, CategoryResponseDto>();
-        CreateProjection<SubCategory, SubCategoryResponseDto>();
+        CreateProjection<Category, CategoryResponseDto>();        CreateProjection<SubCategory, SubCategoryResponseDto>();
     }
 }

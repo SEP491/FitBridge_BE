@@ -4,7 +4,7 @@
     {
         private const int _maxPageSize = 20;
 
-        public static int PAGE_SIZE = 10;
+        private int _pageSize = 10;
 
         public bool DoApplyPaging { get; set; } = true;
 
@@ -12,8 +12,8 @@
 
         public int Size
         {
-            get { return PAGE_SIZE; }
-            set { PAGE_SIZE = value > _maxPageSize ? _maxPageSize : value; }
+            get { return _pageSize; }
+            set { _pageSize = value > _maxPageSize ? _maxPageSize : value; }
         }
 
         public string SortBy { get; set; } = "Id";
@@ -21,5 +21,10 @@
         public string SortOrder { get; set; } = "asc";
 
         public string SearchTerm { get; set; } = string.Empty;
+
+        public static int DefaultPageSize
+        {
+            get;
+        } = 10;
     }
 }

@@ -11,7 +11,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
     public void Configure(EntityTypeBuilder<Message> builder)
     {
         builder.ToTable("Messages");
-        
+
         // Property configurations
         builder.Property(e => e.Content).IsRequired(true);
         builder.Property(e => e.MessageType)
@@ -32,7 +32,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
         builder.Property(e => e.ReplyToMessageId).IsRequired(false);
         builder.Property(e => e.BookingRequestId).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
-        builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
+        builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NULL");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
 
         // Relationship configurations

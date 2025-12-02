@@ -27,7 +27,7 @@ namespace FitBridge_Application.Features.Messaging.CreateConversation
             var now = DateTime.UtcNow;
             if (request.Members.Count > 2 && !request.IsGroup)
             {
-                throw new InvalidDataException("A conversation with more than 2 members must be a group.");
+                throw new DataValidationFailedException("A conversation with more than 2 members must be a group.");
             }
 
             var memberIds = request.Members.Select(m => m.MemberId).ToList();

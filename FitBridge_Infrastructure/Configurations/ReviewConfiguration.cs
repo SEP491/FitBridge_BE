@@ -17,6 +17,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.Property(e => e.GymId).IsRequired(false);
         builder.Property(e => e.FreelancePtId).IsRequired(false);
         builder.Property(e => e.ProductDetailId).IsRequired(false);
+        builder.Property(e => e.ImageUrls).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);

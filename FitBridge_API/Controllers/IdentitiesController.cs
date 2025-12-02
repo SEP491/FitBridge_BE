@@ -31,7 +31,7 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
 
     [AllowAnonymous]
     [HttpPost("register-other-accounts")]
-    public async Task<IActionResult> RegisterAccounts([FromBody] RegisterAccountCommand command)
+    public async Task<IActionResult> RegisterAccounts([FromForm] RegisterAccountCommand command)
     {
         try
         {

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Specifications.SystemConfigs;
 using FitBridge_Domain.Entities.Systems;
@@ -37,11 +38,11 @@ public class SystemConfigurationService(IUnitOfWork _unitOfWork)
             case SystemConfigurationDataType.String:
                 return systemConfiguration.Value;
             case SystemConfigurationDataType.Int:
-                return int.Parse(systemConfiguration.Value);
+                return int.Parse(systemConfiguration.Value, CultureInfo.InvariantCulture);
             case SystemConfigurationDataType.Decimal:
-                return decimal.Parse(systemConfiguration.Value);
+                return decimal.Parse(systemConfiguration.Value, CultureInfo.InvariantCulture);
             case SystemConfigurationDataType.Double:
-                return double.Parse(systemConfiguration.Value);
+                return double.Parse(systemConfiguration.Value, CultureInfo.InvariantCulture);
             default:
                 throw new NotFoundException("System configuration data type not found");
         }

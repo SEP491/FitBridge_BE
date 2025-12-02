@@ -7,10 +7,16 @@
         Pending,
 
         Processing,
+        Shipping,
 
         Arrived,
 
         Cancelled,
-        Finished
+        Finished,
+        Assigning,
+        Accepted,
+        CustomerNotReceived,
+        InReturn,
+        Returned
     }
 }

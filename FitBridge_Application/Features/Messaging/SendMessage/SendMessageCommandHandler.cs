@@ -42,7 +42,7 @@ namespace FitBridge_Application.Features.Messaging.SendMessage
 
             var spec = new GetConversationMembersSpec(request.ConversationId);
             var conversationMembers = await unitOfWork.Repository<ConversationMember>().GetAllWithSpecificationAsync(spec);
-            
+
             // Get the sender's ConversationMember record
             var senderMember = conversationMembers.FirstOrDefault(x => x.UserId == senderId)
                 ?? throw new NotFoundException("Sender is not a member of this conversation");
@@ -69,11 +69,11 @@ namespace FitBridge_Application.Features.Messaging.SendMessage
             {
                 if (request.CreateBookingRequest == null)
                 {
-                    throw new InvalidDataException("CreateBookingRequest data must be provided for BookingRequest media type");
+                    throw new DataValidationFailedException("CreateBookingRequest data must be provided for BookingRequest media type");
                 }
                 if (request.CustomerPurchasedId == null)
                 {
-                    throw new InvalidDataException("CustomerPurchasedId must be provided for BookingRequest media type");
+                    throw new DataValidationFailedException("CustomerPurchasedId must be provided for BookingRequest media type");
                 }
                 newSystemMessage = new Message
                 {
