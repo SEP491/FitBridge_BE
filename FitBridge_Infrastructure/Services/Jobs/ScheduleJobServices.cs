@@ -9,6 +9,7 @@ using FitBridge_Domain.Exceptions;
 using FitBridge_Infrastructure.Jobs;
 using FitBridge_Infrastructure.Jobs.BookingRequests;
 using FitBridge_Infrastructure.Jobs.Bookings;
+using FitBridge_Infrastructure.Jobs.Certificates;
 using FitBridge_Infrastructure.Jobs.Contracts;
 using FitBridge_Infrastructure.Jobs.Orders;
 using FitBridge_Infrastructure.Jobs.Reviews;
@@ -449,6 +450,34 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .Build();
         await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
         _logger.LogInformation($"Successfully scheduled auto expired contract account job for contract {ContractId} at {triggerTime.ToLocalTime}");
+        return true;
+    }
+
+    public async Task<bool> ScheduleAutoExpiredCertificateJob(Guid CertificateId, DateTime triggerTime)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+        var jobKey = new JobKey($"AutoExpiredCertificate_{CertificateId}", "AutoExpiredCertificate");
+        var triggerKey = new TriggerKey($"AutoExpiredCertificate_{CertificateId}_Trigger", "AutoExpiredCertificate");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for certificate {CertificateId} already exists. Deleting old job before creating new one.", CertificateId);
+            await scheduler.DeleteJob(jobKey);
+        }
+        var jobData = new JobDataMap
+        {
+            { "certificateId", CertificateId.ToString() }
+        };
+        var job = JobBuilder.Create<AutoExpiredCertificateJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled auto expired certificate job for certificate {CertificateId} at {triggerTime.ToLocalTime}");
         return true;
     }
 }

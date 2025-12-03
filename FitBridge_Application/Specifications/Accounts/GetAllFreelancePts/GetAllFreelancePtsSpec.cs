@@ -13,6 +13,8 @@ public class GetAllFreelancePtsSpec : BaseSpecification<ApplicationUser>
         AddInclude(x => x.GoalTrainings);
         AddInclude(x => x.FreelancePtReviews);
         AddInclude(x => x.PTFreelancePackages);
+        AddInclude(x => x.PtCertificates);
+        AddInclude("PtCertificates.CertificateMetadata");
         if (queryParams.DoApplyPaging)
         {
             AddPaging(queryParams.Size * (queryParams.Page - 1), queryParams.Size);

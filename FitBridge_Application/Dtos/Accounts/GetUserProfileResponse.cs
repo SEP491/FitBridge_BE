@@ -20,6 +20,7 @@ public class GetUserProfileResponse
     public string? AvatarUrl { get; set; }
     public DateOnly? GymFoundationDate { get; set; }
     public string? TaxCode { get; set; }
+    public string? Bio { get; set; }
     public string? GymDescription { get; set; }
     public string? GymName { get; set; }
 
@@ -32,4 +33,6 @@ public class GetUserProfileResponse
     public string? CitizenCardPermanentAddress { get; set; }
     public DateOnly? IdentityCardDate { get; set; }
     public string? BusinessAddress { get; set; }
+    public TimeOnly? OpenTime { get; set; }
+    public TimeOnly? CloseTime { get; set; }
 }

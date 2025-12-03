@@ -9,10 +9,11 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using FitBridge_Domain.Entities.Orders;
 using FitBridge_Application.Dtos.Emails;
+using FitBridge_Domain.Exceptions;
 
 namespace FitBridge_Application.Features.Identities.Registers.RegisterAccounts;
 
-public class RegisterAccountCommandHandler(IApplicationUserService _applicationUserService, IConfiguration _configuration, IEmailService _emailService, IUnitOfWork _unitOfWork) : IRequestHandler<RegisterAccountCommand, RegisterResponseDto>
+public class RegisterAccountCommandHandler(IApplicationUserService _applicationUserService, IConfiguration _configuration, IEmailService _emailService, IUnitOfWork _unitOfWork, IUploadService _uploadService) : IRequestHandler<RegisterAccountCommand, RegisterResponseDto>
 {
     public async Task<RegisterResponseDto> Handle(RegisterAccountCommand request, CancellationToken cancellationToken)
     {
@@ -20,8 +21,24 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
         && request.Role != ProjectConstant.UserRoles.FreelancePT
         && request.Role != ProjectConstant.UserRoles.GymOwner)
         {
-            throw new Exception("Role not found, only Admin, FreelancePT and GymOwner are allowed to register");
+            throw new BusinessException("Role not found, only Admin, FreelancePT and GymOwner are allowed to register");
         }
+        if(request.OpenTime != null && request.CloseTime == null)
+        {
+            throw new BusinessException("Close time is required if open time is provided");
+        }
+        if(request.OpenTime == null && request.CloseTime != null)
+        {
+            throw new BusinessException("Open time is required if close time is provided");
+        }
+        if (request.OpenTime != null && request.CloseTime != null)
+        {
+            if (request.OpenTime >= request.CloseTime)
+            {
+                throw new BusinessException("Open time must be before close time");
+            }
+        }
+
         var user = new ApplicationUser
         {
             UserName = request.Email,
@@ -40,14 +57,16 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? null,
             IdentityCardDate = request.IdentityCardDate ?? null,
             BusinessAddress = request.BusinessAddress ?? null,
+            OpenTime = request.OpenTime ?? null,
+            CloseTime = request.CloseTime ?? null,
         };
-        if (request.FrontCitizenIdUrl != null)
+        if (request.FrontCitizenIdFile != null)
         {
-            user.FrontCitizenIdUrl = request.FrontCitizenIdUrl;
+            user.FrontCitizenIdUrl = await _uploadService.UploadFileAsync(request.FrontCitizenIdFile);
         }
-        if (request.BackCitizenIdUrl != null)
+        if (request.BackCitizenIdFile != null)
         {
-            user.BackCitizenIdUrl = request.BackCitizenIdUrl;
+            user.BackCitizenIdUrl = await _uploadService.UploadFileAsync(request.BackCitizenIdFile);
         }
         await _applicationUserService.InsertUserAsync(user, request.Password);
 

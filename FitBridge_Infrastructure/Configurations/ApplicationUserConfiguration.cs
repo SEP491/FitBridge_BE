@@ -21,6 +21,8 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(e => e.Longitude).IsRequired(false);
         builder.Property(e => e.Latitude).IsRequired(false);
         builder.Property(e => e.hotResearch).HasDefaultValue(false);
+        builder.Property(e => e.OpenTime).IsRequired(false);
+        builder.Property(e => e.CloseTime).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.AccountStatus)
@@ -40,6 +42,7 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.Property(e => e.IdentityCardDate).IsRequired(false);
         builder.Property(e => e.BusinessAddress).IsRequired(false);
         builder.Property(e => e.GymFoundationDate).IsRequired(false);
+        builder.Property(e => e.FreelancePtImages).IsRequired(true).HasDefaultValueSql("'{}'");
         builder.HasOne(e => e.GymOwner)
         .WithMany(e => e.GymPTs)
         .HasForeignKey(e => e.GymOwnerId)

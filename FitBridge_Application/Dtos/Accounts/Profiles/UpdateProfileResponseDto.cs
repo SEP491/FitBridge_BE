@@ -21,5 +21,10 @@ public class UpdateProfileResponseDto
     public DateOnly? GymFoundationDate { get; set; }
     public DateOnly? IdentityCardDate { get; set; }
     public string? BusinessAddress { get; set; }
+    public string? Bio { get; set; }
+    public List<string> FreelancePtImages { get; set; } = new List<string>();
+    public List<string> GymImages { get; set; } = new List<string>();
+    public TimeOnly? OpenTime { get; set; }
+    public TimeOnly? CloseTime { get; set; }
     public UpdateUserDetailDto? UserDetail { get; set; }
 }

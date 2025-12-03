@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Enums.Gyms;
+using FitBridge_Domain.Enums.SessionActivities;
 
 namespace FitBridge_Domain.Entities.Gyms;
 

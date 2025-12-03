@@ -3,13 +3,14 @@ using System.Text.Json.Serialization;
 using FitBridge_Application.Dtos.Accounts.Profiles;
 using FitBridge_Application.Dtos.Accounts.UserDetails;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace FitBridge_Application.Features.Accounts.UpdateProfiles;
 
 public class UpdateProfileCommand : IRequest<UpdateProfileResponseDto>
 {
-    [JsonIgnore]
     public Guid? Id { get; set; }
+    public string? Bio { get; set; }
     public string? FullName { get; set; }
     public string? AvatarUrl { get; set; }
     public bool? IsMale { get; set; }
@@ -25,7 +26,10 @@ public class UpdateProfileCommand : IRequest<UpdateProfileResponseDto>
     public DateOnly? GymFoundationDate { get; set; }
     public DateOnly? IdentityCardDate { get; set; }
     public string? BusinessAddress { get; set; }
-    public string? FrontCitizenIdUrl { get; set; }
-    public string? BackCitizenIdUrl { get; set; }
-    public UpdateUserDetailDto? UserDetail { get; set; }
+    public TimeOnly? OpenTime { get; set; }
+    public TimeOnly? CloseTime { get; set; }
+    public IFormFile? FrontCitizenIdFile { get; set; }
+    public IFormFile? BackCitizenIdFile { get; set; }
+    public List<IFormFile> ImagesToAdd { get; set; } = new List<IFormFile>();
+    public List<string> ImagesToRemove { get; set; } = new List<string>();
 }

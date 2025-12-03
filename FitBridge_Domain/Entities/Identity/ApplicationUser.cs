@@ -20,6 +20,8 @@ namespace FitBridge_Domain.Entities.Identity
     {
         public string FullName { get; set; }
         public DateOnly? GymFoundationDate { get; set; }
+        public TimeOnly? OpenTime { get; set; }
+        public TimeOnly? CloseTime { get; set; }
         public bool IsMale { get; set; }
         public DateTime Dob { get; set; }
         public string Password { get; set; }
@@ -48,6 +50,7 @@ namespace FitBridge_Domain.Entities.Identity
         public string? IdentityCardPlace { get; set; }
         public string? CitizenCardPermanentAddress { get; set; }
         public DateOnly? IdentityCardDate { get; set; }
+        public List<string> FreelancePtImages { get; set; } = new List<string>();
         public string? BusinessAddress { get; set; }
         public ApplicationUser? GymOwner { get; set; }
         public ICollection<ApplicationUser> GymPTs { get; set; } = new List<ApplicationUser>();
