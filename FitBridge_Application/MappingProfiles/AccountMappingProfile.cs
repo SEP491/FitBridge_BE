@@ -20,11 +20,10 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
             .ForMember(dest => dest.AvatarUrl, opt => opt.MapFrom(src => src.AvatarUrl))
-            .ForMember(dest => dest.GoalTrainings, opt => opt.MapFrom(src => src.GoalTrainings.Select(x => x.Name).ToList()))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Bio : null))
             .ForMember(dest => dest.PriceFrom, opt => opt.MapFrom(src => src.PTFreelancePackages.Count > 0 ? src.PTFreelancePackages.Min(x => x.Price) : 0))
             .ForMember(dest => dest.ExperienceYears, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Experience : 0))
-            .ForMember(dest => dest.Certifications, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Certificates : new List<string>()))
+            .ForMember(dest => dest.Certifications, opt => opt.MapFrom(src => src.PtCertificates))
             .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.Reviews.Count > 0 ? src.Reviews.Average(x => x.Rating) : 0))
             .ForMember(dest => dest.Latitude, opt => opt.MapFrom(src => src.Latitude))
             .ForMember(dest => dest.Longitude, opt => opt.MapFrom(src => src.Longitude));
@@ -53,7 +52,8 @@ public class AccountMappingProfile : Profile
 
         CreateMap<UpdateProfileCommand, ApplicationUser>();
 
-        CreateMap<ApplicationUser, UpdateProfileResponseDto>();
+        CreateMap<ApplicationUser, UpdateProfileResponseDto>()
+            .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Bio : null));
 
         CreateProjection<ApplicationUser, GetAllGymPtsForAdminResponseDto>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
@@ -120,6 +120,7 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
         CreateMap<ApplicationUser, GetUserProfileResponse>()
+            .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.UserDetail != null ? src.UserDetail.Bio : null))
             .ForMember(dest => dest.FrontCitizenIdUrl, opt => opt.MapFrom(src => src.FrontCitizenIdUrl))
             .ForMember(dest => dest.BackCitizenIdUrl, opt => opt.MapFrom(src => src.BackCitizenIdUrl))
             .ForMember(dest => dest.CitizenIdNumber, opt => opt.MapFrom(src => src.CitizenIdNumber))

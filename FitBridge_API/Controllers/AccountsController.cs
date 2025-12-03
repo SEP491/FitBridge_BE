@@ -240,10 +240,9 @@ public class AccountsController(IMediator _mediator, IUserUtil _userUtil) : _Bas
     /// <param name="taxCode">The tax code of the account to update, it is unique.</param>
     /// <param name="command">The command containing the updated profile information.</param>
     /// <returns>The updated profile information.</returns>
-    [HttpPut("update-profile/{id}")]
-    public async Task<IActionResult> UpdateProfile([FromRoute] Guid id, [FromBody] UpdateProfileCommand command)
+    [HttpPut("update-profile")]
+    public async Task<IActionResult> UpdateProfile([FromForm] UpdateProfileCommand command)
     {
-        command.Id = id;
         var response = await _mediator.Send(command);
         return Ok(new BaseResponse<UpdateProfileResponseDto>(StatusCodes.Status200OK.ToString(), "Profile updated successfully", response));
     }

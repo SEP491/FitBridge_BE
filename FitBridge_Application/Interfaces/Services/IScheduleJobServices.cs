@@ -23,4 +23,5 @@ public interface IScheduleJobServices
     Task<bool> ScheduleAutoCancelCreatedOrderJob(Guid OrderId);
     Task<bool> ScheduleAutoUpdatePTCurrentCourseJob(Guid OrderItemId, DateOnly expirationDate);
     Task<bool> ScheduleAutoExpiredContractAccountJob(Guid ContractId, DateTime triggerTime);
+    Task<bool> ScheduleAutoExpiredCertificateJob(Guid CertificateId, DateTime triggerTime);
 }

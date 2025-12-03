@@ -32,6 +32,8 @@ public class GetAccountForSearchingSpec : BaseSpecification<ApplicationUser>
         AddInclude(x => x.FreelancePtReviews);
         AddInclude(x => x.GymReviews);
         AddInclude(x => x.PTFreelancePackages);
+        AddInclude(x => x.PtCertificates);
+        AddInclude("PtCertificates.CertificateMetadata");
         if (parameters.DoApplyPaging)
         {
             AddPaging((parameters.Page - 1) * parameters.Size, parameters.Size);

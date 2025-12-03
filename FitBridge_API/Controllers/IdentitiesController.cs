@@ -17,6 +17,7 @@ using System.Security.Claims;
 using FitBridge_Application.Features.Identities.Registers.RegisterCustomer;
 using FitBridge_Application.Features.Accounts.UpdateLoginInfo;
 using FitBridge_Application.Features.Accounts.UpdatePassword;
+using FitBridge_Application.Features.Identities.Registers.ResendEmail;
 
 namespace FitBridge_API.Controllers;
 
@@ -55,9 +56,11 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
         }
 
         var result = await _applicationUserService.ConfirmEmailAsync(user, token);
+        result.Errors.Select(e => e.Description).ToList();
         if (!result.Succeeded)
         {
-            return BadRequest(new BaseResponse<string>(StatusCodes.Status400BadRequest.ToString(), "Email confirmation failed", user.Id.ToString()));
+            var errors = result.Errors.Select(e => e.Description).ToList();
+            return BadRequest(new BaseResponse<List<string>>(StatusCodes.Status400BadRequest.ToString(), "Email confirmation failed", errors));
         }
 
         return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "Email confirmed successfully", user.Id.ToString()));
@@ -127,5 +130,12 @@ public class IdentitiesController(IMediator _mediator, IApplicationUserService _
     {
         var result = await _mediator.Send(command);
         return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Password updated successfully", result));
+    }
+
+    [HttpPost("resend-email-confirmation")]
+    public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Email confirmation sent successfully", result));
     }
 }

@@ -89,6 +89,10 @@ namespace FitBridge_Infrastructure.Extensions
                 return client;
             });
 
+            services.Configure<DataProtectionTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromHours(2);
+            });
             // Register Appwrite Storage Service
             services.AddSingleton(sp =>
             {

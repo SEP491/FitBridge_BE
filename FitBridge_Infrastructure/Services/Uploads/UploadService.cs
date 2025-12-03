@@ -7,11 +7,12 @@ using FitBridge_Application.Configurations;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Domain.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FitBridge_Infrastructure.Services.Uploads;
 
-public class UploadService(IOptions<AppWriteSettings> _appWriteSettings, Storage _storage) : IUploadService
+public class UploadService(IOptions<AppWriteSettings> _appWriteSettings, Storage _storage, ILogger<UploadService> _logger) : IUploadService
 {
     public async Task<string> UploadFileAsync(IFormFile file)
     {
@@ -79,7 +80,8 @@ public class UploadService(IOptions<AppWriteSettings> _appWriteSettings, Storage
             var fileId = ExtractFileIdFromUrl(fileUrl);
             if (string.IsNullOrEmpty(fileId))
             {
-                throw new BusinessException("Invalid file URL");
+                _logger.LogError("Invalid file URL: {fileUrl}", fileUrl);
+                return false;
             }
 
             await _storage.DeleteFile(
@@ -91,7 +93,8 @@ public class UploadService(IOptions<AppWriteSettings> _appWriteSettings, Storage
         }
         catch (AppwriteException ex)
         {
-            throw new BusinessException($"Delete failed: {ex.Message}");
+            _logger.LogError("Delete failed: {ex.Message}", ex.Message);
+            return false;
         }
     }
 
