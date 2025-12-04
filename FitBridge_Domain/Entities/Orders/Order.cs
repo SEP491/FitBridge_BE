@@ -9,6 +9,7 @@ namespace FitBridge_Domain.Entities.Orders;
 
 public class Order : BaseEntity
 {
+    public decimal CommissionRate { get; set; }
     public OrderStatus Status { get; set; }
     public string CheckoutUrl { get; set; }
     public decimal SubTotalPrice { get; set; }

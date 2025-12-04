@@ -9,11 +9,8 @@ namespace FitBridge_Domain.Entities.Orders;
 public class OrderItem : BaseEntity
 {
     public int Quantity { get; set; }
-
     public decimal Price { get; set; }
-
     public bool IsFeedback { get; set; }
-
     public Guid OrderId { get; set; }
     public Guid? GymPtId { get; set; }
     public Guid? CustomerPurchasedId { get; set; }

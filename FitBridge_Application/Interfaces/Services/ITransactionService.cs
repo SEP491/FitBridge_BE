@@ -20,4 +20,5 @@ public interface ITransactionService
     Task<bool> PurchaseSubscriptionPlans(long orderCode);
     Task<bool> PurchaseAppleSubscriptionPlans(AsnDecodedPayload asnDecodedPayload, JwsTransactionDecoded jwsTransactionDecoded);
     Task<bool> PurchaseProduct(long orderCode);
+    Task<decimal> CalculateCommissionAmount(OrderItem orderItem, Coupon? coupon);
 }

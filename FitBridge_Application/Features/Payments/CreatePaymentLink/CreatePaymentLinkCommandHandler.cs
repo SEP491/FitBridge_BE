@@ -151,6 +151,11 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
     public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl, Guid userId, OrderStatus status)
     {
+        var commissionRate = await GetCurrentCommissionRate();
+        if (request.OrderItems.Any(oi => oi.ProductDetailId != null))
+        {
+            commissionRate = 0;
+        }
         var order = _mapper.Map<Order>(request);
         order.SubTotalPrice = request.SubTotalPrice;
         order.TotalAmount = request.TotalAmountPrice;
@@ -160,6 +165,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         order.CustomerPurchasedIdToExtend = request.CustomerPurchasedIdToExtend ?? null;
         order.UpdatedAt = DateTime.UtcNow;
         order.CreatedAt = DateTime.UtcNow;
+        order.CommissionRate = commissionRate;
         _unitOfWork.Repository<Order>().Insert(order);
         await _scheduleJobServices.ScheduleAutoCancelCreatedOrderJob(order.Id);
         return order.Id;
@@ -209,6 +215,12 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         }
     }
 
+    public async Task<decimal> GetCurrentCommissionRate()
+    {
+        var currentCommissionRate = (decimal)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(
+        ProjectConstant.SystemConfigurationKeys.CommissionRate);
+        return currentCommissionRate;
+    }
     public async Task GetAndValidateOrderItems(List<OrderItemDto> OrderItems, Guid userId, Guid? customerPurchasedIdToExtend)
     {
         foreach (var item in OrderItems)
@@ -239,7 +251,6 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                         gymPt.PtCurrentCourse++;
                         gymPt.UpdatedAt = DateTime.UtcNow;
                     }
-
                     item.Price = gymCoursePT.Price + gymCoursePT.PtPrice;
                         
                 }
@@ -247,7 +258,6 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 {
                     item.Price = gymCoursePT.Price;
                 }
-
                 var userPackage = await _unitOfWork.Repository<CustomerPurchased>().GetBySpecificationAsync(new GetCustomerPurchasedByGymIdSpec(gymCoursePT.GymOwnerId, userId));
                 if (userPackage != null && customerPurchasedIdToExtend == null)
                 {

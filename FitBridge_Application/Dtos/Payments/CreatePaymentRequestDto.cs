@@ -19,4 +19,6 @@ public class CreatePaymentRequestDto
     public Guid? AddressId { get; set; }
     public Guid PaymentMethodId { get; set; }
     public List<OrderItemDto> OrderItems { get; set; }
+    [JsonIgnore]
+    public decimal? CommissionRate { get; set; }
 }

@@ -119,21 +119,40 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<decimal> CalculateSystemProfit(Order order)
     {
-        defaultCommissionRate = await GetCommissionRate();
-        var systemProfit = order.SubTotalPrice * defaultCommissionRate;
+        var commissionRate = order.CommissionRate;
+        var systemProfit = order.SubTotalPrice * commissionRate;
         if (order.Coupon != null)
         {
             if (order.Coupon.Type == CouponType.FreelancePT || order.Coupon.Type == CouponType.GymOwner)
             {
-                systemProfit = order.TotalAmount * defaultCommissionRate;
+                systemProfit = order.TotalAmount * commissionRate;
             }
             else if (order.Coupon.Type == CouponType.System)
             {
                 var discountAmount = order.SubTotalPrice * (decimal)(order.Coupon.DiscountPercent / 100) > order.Coupon.MaxDiscount ? order.Coupon.MaxDiscount : order.SubTotalPrice * (decimal)(order.Coupon.DiscountPercent / 100);
-                systemProfit = (order.SubTotalPrice * defaultCommissionRate) - discountAmount;
+                systemProfit = (order.SubTotalPrice * commissionRate) - discountAmount;
             }
         }
         return Math.Round(systemProfit, 0, MidpointRounding.AwayFromZero);
+    }
+
+    public async Task<decimal> CalculateCommissionAmount(OrderItem orderItem, Coupon? coupon)
+    {
+        var subTotalPrice = orderItem.Price * orderItem.Quantity;
+        var commissionAmount = subTotalPrice * orderItem.Order.CommissionRate;
+        if (coupon != null)
+        {
+            if (coupon.Type != CouponType.System)
+            {
+                var discountAmount = subTotalPrice * (decimal)(coupon.DiscountPercent / 100) > coupon.MaxDiscount ? coupon.MaxDiscount : subTotalPrice * (decimal)(coupon.DiscountPercent / 100);
+                commissionAmount = (subTotalPrice - discountAmount) * orderItem.Order.CommissionRate;
+            }
+            else
+            {
+                commissionAmount = subTotalPrice * orderItem.Order.CommissionRate;
+            }
+        }
+        return Math.Round(commissionAmount, 0, MidpointRounding.AwayFromZero);
     }
 
     public async Task<bool> PurchasePt(long orderCode)
@@ -283,19 +302,18 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
 
     public async Task<decimal> CalculateMerchantProfit(OrderItem orderItem, Coupon? coupon)
     {
-        defaultCommissionRate = await GetCommissionRate();
         var subTotalOrderItemPrice = orderItem.Price * orderItem.Quantity;
-        var commissionAmount = subTotalOrderItemPrice * defaultCommissionRate;
+        var commissionAmount = subTotalOrderItemPrice * orderItem.Order.CommissionRate;
         var merchantPtProfit = Math.Round(subTotalOrderItemPrice - commissionAmount, 0, MidpointRounding.AwayFromZero);
         if (coupon != null) // If there is a voucher, recalculate the profit
         {
             if (coupon.Type != CouponType.System) // If voucher is system, the discount amount is deducted from system profit
             {
                 var discountAmount = subTotalOrderItemPrice * (decimal)(coupon.DiscountPercent / 100) > coupon.MaxDiscount ? coupon.MaxDiscount : subTotalOrderItemPrice * (decimal)(coupon.DiscountPercent / 100);
-                merchantPtProfit = merchantPtProfit - discountAmount;
+                commissionAmount = (subTotalOrderItemPrice - discountAmount) * orderItem.Order.CommissionRate;
+                merchantPtProfit = subTotalOrderItemPrice - discountAmount - commissionAmount;
             }
         }
-
         return Math.Round(merchantPtProfit, 0, MidpointRounding.AwayFromZero);
     }
 
