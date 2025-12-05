@@ -140,7 +140,8 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
 
             _logger.LogInformation($"Successfully scheduled auto cancel job for booking {booking.Id} at {triggerTime}");
             return true;
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error scheduling auto cancel booking job for booking {BookingId}", booking.Id);
             return false;
@@ -478,6 +479,37 @@ public class ScheduleJobServices(ISchedulerFactory _schedulerFactory, ILogger<Sc
         .Build();
         await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
         _logger.LogInformation($"Successfully scheduled auto expired certificate job for certificate {CertificateId} at {triggerTime.ToLocalTime}");
+        return true;
+    }
+
+    public async Task<bool> ScheduleDeleteTempUserSubscriptionJob(Guid UserSubscriptionId)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+        var jobKey = new JobKey($"DeleteTempUserSubscription_{UserSubscriptionId}", "DeleteTempUserSubscription");
+        var triggerKey = new TriggerKey($"DeleteTempUserSubscription_{UserSubscriptionId}_Trigger", "DeleteTempUserSubscription");
+        var exists = await scheduler.CheckExists(jobKey);
+        if (exists)
+        {
+            _logger.LogWarning("Job for user subscription {UserSubscriptionId} already exists. Deleting old job before creating new one.", UserSubscriptionId);
+            await scheduler.DeleteJob(jobKey);
+        }
+        var expirationMinutes = (int)await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.AutoCancelCreatedOrderAfterTime);
+
+        var triggerTime = DateTime.Now.AddMinutes(expirationMinutes);
+        var jobData = new JobDataMap
+        {
+            { "userSubscriptionId", UserSubscriptionId.ToString() }
+        };
+        var job = JobBuilder.Create<DeleteTempUserSubscriptionJob>()
+        .WithIdentity(jobKey)
+        .SetJobData(jobData)
+        .Build();
+        var trigger = TriggerBuilder.Create()
+        .WithIdentity(triggerKey)
+        .StartAt(triggerTime)
+        .Build();
+        await _schedulerFactory.GetScheduler().Result.ScheduleJob(job, trigger);
+        _logger.LogInformation($"Successfully scheduled delete temp user subscription job for user subscription {UserSubscriptionId} at {triggerTime.ToLocalTime}");
         return true;
     }
 }

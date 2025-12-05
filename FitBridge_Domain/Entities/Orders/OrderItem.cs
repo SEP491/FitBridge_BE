@@ -14,17 +14,16 @@ public class OrderItem : BaseEntity
     public Guid OrderId { get; set; }
     public Guid? GymPtId { get; set; }
     public Guid? CustomerPurchasedId { get; set; }
-
+    public Guid? UserSubscriptionId { get; set; }
     public Order Order { get; set; }
-
     public Guid? ProductDetailId { get; set; }
     public Guid? GymCourseId { get; set; }
-    public Guid? SubscriptionPlansInformationId { get; set; }
     public Guid? FreelancePTPackageId { get; set; }
     public DateOnly? ProfitDistributePlannedDate { get; set; }
     public DateOnly? ProfitDistributeActualDate { get; set; }
     public decimal? OriginalProductPrice { get; set; }
     public bool IsRefunded { get; set; }
+    public UserSubscription? UserSubscription { get; set; }
     public SubscriptionPlansInformation? SubscriptionPlansInformation { get; set; }
     public ProductDetail? ProductDetail { get; set; }
     public GymCourse? GymCourse { get; set; }

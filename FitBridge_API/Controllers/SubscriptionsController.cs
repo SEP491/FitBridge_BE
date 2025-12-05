@@ -8,15 +8,15 @@ using Microsoft.AspNetCore.Mvc;
 using FitBridge_Application.Dtos.Subscriptions;
 using FitBridge_Application.Features.Subscriptions.CancelSubscription;
 using FitBridge_Application.Features.Subscriptions.CheckMaximumHotResearchSubscription;
+using FitBridge_Application.Features.Subscriptions.UpdateSubscriptionPlan;
 
 namespace FitBridge_API.Controllers;
 
 public class SubscriptionsController(IMediator mediator) : _BaseApiController
 {
     [HttpGet("plans")]
-    public async Task<IActionResult> GetSubscriptionPlans()
+    public async Task<IActionResult> GetSubscriptionPlans([FromQuery] GetSubscriptionPlansQuery query)
     {
-        var query = new GetSubscriptionPlansQuery();
         var result = await mediator.Send(query);
         return Ok(new BaseResponse<List<SubscriptionPlanResponseDto>>(StatusCodes.Status200OK.ToString(), "Subscription plans retrieved successfully", result));
     }
@@ -41,5 +41,12 @@ public class SubscriptionsController(IMediator mediator) : _BaseApiController
     {
         var result = await mediator.Send(new CheckHotResearchSubscriptionQuery());
         return Ok(new BaseResponse<CheckHotResearchDto>(StatusCodes.Status200OK.ToString(), "Maximum hot research subscription checked successfully", result));
+    }
+
+    [HttpPut("admin")]
+    public async Task<IActionResult> UpdateSubscriptionPlan([FromForm] UpdateSubscriptionPlanCommand command)
+    {
+        var result = await mediator.Send(command);
+        return Ok(new BaseResponse<bool>(StatusCodes.Status200OK.ToString(), "Subscription plan updated successfully", result));
     }
 }

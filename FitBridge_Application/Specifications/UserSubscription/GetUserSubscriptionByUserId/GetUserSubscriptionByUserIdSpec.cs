@@ -6,7 +6,7 @@ namespace FitBridge_Application.Specifications.UserSubscriptions.GetUserSubscrip
 
 public class GetUserSubscriptionByUserIdSpec : BaseSpecification<UserSubscription>
 {
-    public GetUserSubscriptionByUserIdSpec(Guid userId, Guid subscriptionPlanId) : base(x => x.UserId == userId && x.Status == SubScriptionStatus.Active && x.SubscriptionPlanId == subscriptionPlanId)
+    public GetUserSubscriptionByUserIdSpec(Guid userId, Guid subscriptionPlanId) : base(x => x.UserId == userId && (x.Status == SubScriptionStatus.Active || x.Status == SubScriptionStatus.Created) && x.SubscriptionPlanId == subscriptionPlanId)
     {
     }
 }

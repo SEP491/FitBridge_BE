@@ -8,7 +8,7 @@ namespace FitBridge_Application.Specifications.Subscriptions.GetHotResearchSubsc
 
 public class GetHotResearchSubscriptionSpecification : BaseSpecification<UserSubscription>
 {
-    public GetHotResearchSubscriptionSpecification() : base(x => x.SubscriptionPlansInformation.FeatureKey.FeatureName == ProjectConstant.FeatureKeyNames.HotResearch && x.Status == SubScriptionStatus.Active)
+    public GetHotResearchSubscriptionSpecification() : base(x => x.SubscriptionPlansInformation.FeatureKey.FeatureName == ProjectConstant.FeatureKeyNames.HotResearch && (x.Status == SubScriptionStatus.Active || x.Status == SubScriptionStatus.Created))
     {
     }
 }

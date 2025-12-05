@@ -6,6 +6,7 @@ using Quartz;
 using Microsoft.Extensions.Logging;
 using FitBridge_Domain.Enums.Orders;
 using FitBridge_Application.Services;
+using FitBridge_Domain.Entities.ServicePackages;
 
 namespace FitBridge_Infrastructure.Jobs.Orders;
 
@@ -15,17 +16,23 @@ public class CancelCreatedOrderJob(ILogger<CancelCreatedOrderJob> _logger, IUnit
     {
         var orderId = Guid.Parse(context.JobDetail.JobDataMap.GetString("orderId")
             ?? throw new NotFoundException($"{nameof(CancelCreatedOrderJob)}_orderId"));
-        var order = await _unitOfWork.Repository<Order>().GetByIdAsync(orderId, includes: new List<string> { nameof(Order.OrderItems), "Transactions", "OrderItems.GymCourse", "OrderItems.FreelancePTPackage" });
+        var order = await _unitOfWork.Repository<Order>().GetByIdAsync(orderId, includes: new List<string> { nameof(Order.OrderItems), "Transactions", "OrderItems.GymCourse", "OrderItems.FreelancePTPackage", "OrderItems.UserSubscription" });
         if (order == null)
         {
             throw new NotFoundException("Order not found");
         }
-        if(order.Status != OrderStatus.Created)
+        if (order.Status != OrderStatus.Created)
         {
             _logger.LogError("Order is not created, current status: {OrderStatus}", order.Status);
             return;
         }
-        if(order.Transactions.Any(t => t.TransactionType == TransactionType.ProductOrder))
+        if (order.Transactions.Any(t => t.TransactionType == TransactionType.SubscriptionPlansOrder))
+        {
+            _unitOfWork.Repository<UserSubscription>().Delete(order.OrderItems.First().UserSubscription);
+            await _unitOfWork.CommitAsync();
+            return;
+        }
+        if (order.Transactions.Any(t => t.TransactionType == TransactionType.ProductOrder))
         {
             await orderService.ReturnQuantityToProductDetail(order);
         }

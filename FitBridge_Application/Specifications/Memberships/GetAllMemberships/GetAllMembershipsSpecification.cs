@@ -12,10 +12,6 @@ namespace FitBridge_Application.Specifications.Memberships.GetAllMemberships
             {
                 AddPaging(param.Size * (param.Page - 1), param.Size);
             }
-            if (isIncludeOrderItems)
-            {
-                AddInclude(x => x.OrderItems);
-            }
         }
     }
 }

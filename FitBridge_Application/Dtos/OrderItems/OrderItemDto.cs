@@ -19,4 +19,6 @@ public class OrderItemDto
     public Guid? GymCoursePTId { get; set; }
     public Guid? SubscriptionPlansInformationId { get; set; }
     public Guid? FreelancePTPackageId { get; set; }
+    [JsonIgnore]
+    public Guid? UserSubscriptionId { get; set; }
 }

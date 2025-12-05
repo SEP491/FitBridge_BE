@@ -15,7 +15,6 @@ public class OrderItemMappingProfile : Profile
         .ForMember(dest => dest.OriginalProductPrice, opt => opt.MapFrom(src => src.OriginalProductPrice))
         .ForMember(dest => dest.ProductDetailId, opt => opt.MapFrom(src => src.ProductDetailId))
         .ForMember(dest => dest.GymCourseId, opt => opt.MapFrom(src => src.GymCourseId))
-        .ForMember(dest => dest.SubscriptionPlansInformationId, opt => opt.MapFrom(src => src.SubscriptionPlansInformationId))
         .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.FreelancePTPackageId))
         .ForMember(dest => dest.GymPtId, opt => opt.MapFrom(src => src.GymPtId));
         CreateMap<OrderItem, OrderItemForProductOrderResponseDto>()

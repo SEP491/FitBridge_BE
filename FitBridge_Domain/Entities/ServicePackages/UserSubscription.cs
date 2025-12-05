@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities.Identity;
+using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Enums.SubscriptionPlans;
 
 namespace FitBridge_Domain.Entities.ServicePackages;
@@ -15,4 +16,5 @@ public class UserSubscription : BaseEntity
     public SubScriptionStatus Status { get; set; }
     public ApplicationUser User { get; set; }
     public SubscriptionPlansInformation SubscriptionPlansInformation { get; set; }
+    public OrderItem OrderItem { get; set; }
 }

@@ -13,6 +13,5 @@ public class SubscriptionPlansInformation : BaseEntity
     public int? LimitUsage { get; set; }
     public Guid FeatureKeyId { get; set; }
     public FeatureKey FeatureKey { get; set; }
-    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
 }
