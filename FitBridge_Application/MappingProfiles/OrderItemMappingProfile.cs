@@ -1,5 +1,6 @@
 using System;
 using AutoMapper;
+using FitBridge_Application.Dtos.Dashboards;
 using FitBridge_Application.Dtos.OrderItems;
 using FitBridge_Domain.Entities.Orders;
 
