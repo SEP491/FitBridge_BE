@@ -16,9 +16,9 @@ namespace FitBridge_Application.Features.Dashboards.GetAvailableBalanceDetail
     internal class GetAvailableBalanceDetailQueryHandler(
         IUnitOfWork unitOfWork,
         IHttpContextAccessor httpContextAccessor,
-        IUserUtil userUtil) : IRequestHandler<GetAvailableBalanceDetailQuery, PagingResultDto<AvailableBalanceTransactionDto>>
+        IUserUtil userUtil) : IRequestHandler<GetAvailableBalanceDetailQuery, DashboardPagingResultDto<AvailableBalanceTransactionDto>>
     {
-        public async Task<PagingResultDto<AvailableBalanceTransactionDto>> Handle(GetAvailableBalanceDetailQuery request, CancellationToken cancellationToken)
+        public async Task<DashboardPagingResultDto<AvailableBalanceTransactionDto>> Handle(GetAvailableBalanceDetailQuery request, CancellationToken cancellationToken)
         {
             var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext!)
                 ?? throw new NotFoundException(nameof(ApplicationUser));
@@ -61,10 +61,13 @@ namespace FitBridge_Application.Features.Dashboards.GetAvailableBalanceDetail
                     TotalProfit = transaction.Amount,
                     TransactionType = transaction.TransactionType.ToString(),
                     ActualDistributionDate = isWithdrawal ? null : transaction.OrderItem!.ProfitDistributeActualDate,
+                    WithdrawalRequestId = isWithdrawal ? transaction.WithdrawalRequestId : null
                 };
             }).ToList();
 
-            return new PagingResultDto<AvailableBalanceTransactionDto>(totalCount, mappedTransactions);
+            var totalProfitSum = mappedTransactions.Sum(t => t.TotalProfit);
+
+            return new DashboardPagingResultDto<AvailableBalanceTransactionDto>(totalCount, mappedTransactions, totalProfitSum);
         }
     }
 }

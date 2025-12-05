@@ -17,9 +17,9 @@ namespace FitBridge_Application.Features.Dashboards.GetPendingBalanceDetail
         IUnitOfWork unitOfWork,
         IHttpContextAccessor httpContextAccessor,
         ITransactionService transactionService,
-        IUserUtil userUtil) : IRequestHandler<GetPendingBalanceDetailQuery, PagingResultDto<PendingBalanceOrderItemDto>>
+        IUserUtil userUtil) : IRequestHandler<GetPendingBalanceDetailQuery, DashboardPagingResultDto<PendingBalanceOrderItemDto>>
     {
-        public async Task<PagingResultDto<PendingBalanceOrderItemDto>> Handle(GetPendingBalanceDetailQuery request, CancellationToken cancellationToken)
+        public async Task<DashboardPagingResultDto<PendingBalanceOrderItemDto>> Handle(GetPendingBalanceDetailQuery request, CancellationToken cancellationToken)
         {
             var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext!)
                 ?? throw new NotFoundException(nameof(ApplicationUser));
@@ -57,8 +57,9 @@ namespace FitBridge_Application.Features.Dashboards.GetPendingBalanceDetail
             });
 
             var mappedOrderItems = await Task.WhenAll(tasks);
+            var totalProfitSum = mappedOrderItems.Sum(oi => oi.TotalProfit);
 
-            return new PagingResultDto<PendingBalanceOrderItemDto>(totalCount, mappedOrderItems.ToList());
+            return new DashboardPagingResultDto<PendingBalanceOrderItemDto>(totalCount, mappedOrderItems.ToList(), totalProfitSum);
         }
     }
 }

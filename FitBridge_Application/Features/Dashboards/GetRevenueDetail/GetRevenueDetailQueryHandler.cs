@@ -11,15 +11,15 @@ using FitBridge_Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
-namespace FitBridge_Application.Specifications.Dashboards.GetRevenueDetail
+namespace FitBridge_Application.Features.Dashboards.GetRevenueDetail
 {
     internal class GetRevenueDetailQueryHandler(
         IUnitOfWork unitOfWork,
         IHttpContextAccessor httpContextAccessor,
         ITransactionService transactionService,
-        IUserUtil userUtil) : IRequestHandler<GetRevenueDetailQuery, PagingResultDto<RevenueOrderItemDto>>
+        IUserUtil userUtil) : IRequestHandler<GetRevenueDetailQuery, DashboardPagingResultDto<RevenueOrderItemDto>>
     {
-        public async Task<PagingResultDto<RevenueOrderItemDto>> Handle(GetRevenueDetailQuery request, CancellationToken cancellationToken)
+        public async Task<DashboardPagingResultDto<RevenueOrderItemDto>> Handle(GetRevenueDetailQuery request, CancellationToken cancellationToken)
         {
             var accountId = userUtil.GetAccountId(httpContextAccessor.HttpContext!)
                 ?? throw new NotFoundException(nameof(ApplicationUser));
@@ -63,8 +63,9 @@ namespace FitBridge_Application.Specifications.Dashboards.GetRevenueDetail
             });
 
             var mappedOrderItems = await Task.WhenAll(tasks);
+            var totalProfitSum = mappedOrderItems.Sum(oi => oi.TotalProfit);
 
-            return new PagingResultDto<RevenueOrderItemDto>(totalCount, mappedOrderItems.ToList());
+            return new DashboardPagingResultDto<RevenueOrderItemDto>(totalCount, mappedOrderItems.ToList(), totalProfitSum);
         }
     }
 }

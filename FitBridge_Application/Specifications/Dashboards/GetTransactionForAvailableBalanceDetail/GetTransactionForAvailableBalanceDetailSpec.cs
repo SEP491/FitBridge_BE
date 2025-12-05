@@ -1,5 +1,4 @@
-﻿using FitBridge_Application.Specifications.Dashboards.GetAvailableBalanceDetail;
-using FitBridge_Domain.Entities.Orders;
+﻿using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Enums.Orders;
 
 namespace FitBridge_Application.Specifications.Dashboards.GetTransactionForAvailableBalanceDetail
@@ -8,7 +7,7 @@ namespace FitBridge_Application.Specifications.Dashboards.GetTransactionForAvail
     {
         public GetTransactionForAvailableBalanceDetailSpec(Guid userId, GetAvailableBalanceDetailParams parameters) : base(x =>
             (x.TransactionType == TransactionType.DistributeProfit || x.TransactionType == TransactionType.Withdraw)
-            && x.Order!.AccountId == userId
+            && x.WalletId == userId
             // Filter by transaction type if specified
             && (!parameters.TransactionType.HasValue || x.TransactionType == parameters.TransactionType.Value)
             // Filter by date range - From date

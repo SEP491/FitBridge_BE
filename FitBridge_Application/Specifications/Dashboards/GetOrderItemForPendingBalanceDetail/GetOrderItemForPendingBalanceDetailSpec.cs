@@ -12,7 +12,7 @@ namespace FitBridge_Application.Specifications.Dashboards.GetOrderItemForPending
             ((x.FreelancePTPackage != null && x.FreelancePTPackageId == userId) ||
             (x.GymPt != null && x.GymPt.GymOwnerId == userId))
             && x.ProfitDistributeActualDate == null
-            && x.Transactions.Any(t => t.Status == TransactionStatus.Success)
+            && x.Order.Transactions.Any(t => t.Status == TransactionStatus.Success) // check order's transactions
             // Filter by date range - From date
             && (!parameters.From.HasValue || x.CreatedAt >= parameters.From.Value)
             // Filter by date range - To date (inclusive, end of day)

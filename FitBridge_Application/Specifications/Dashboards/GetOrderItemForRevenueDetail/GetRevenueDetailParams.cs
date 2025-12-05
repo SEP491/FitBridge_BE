@@ -1,4 +1,4 @@
-namespace FitBridge_Application.Specifications.Dashboards.GetRevenueDetail
+namespace FitBridge_Application.Specifications.Dashboards.GetOrderItemForRevenueDetail
 {
     public class GetRevenueDetailParams : BaseParams
     {

@@ -1,5 +1,4 @@
 using FitBridge_Application.Commons.Constants;
-using FitBridge_Application.Specifications.Dashboards.GetRevenueDetail;
 using FitBridge_Domain.Entities.Orders;
 using FitBridge_Domain.Enums.Orders;
 
@@ -11,8 +10,7 @@ namespace FitBridge_Application.Specifications.Dashboards.GetOrderItemForRevenue
             // Filter by user - either FreelancePT or GymOwner
             ((x.FreelancePTPackage != null && x.FreelancePTPackageId == userId) ||
             (x.GymPt != null && x.GymPt.GymOwnerId == userId))
-            && x.Transactions.Any(t => t.Status == TransactionStatus.Success)
-            // Filter by date range - From date
+            && x.Order.Transactions.Any(t => t.Status == TransactionStatus.Success) // check order's transactions
             && (!parameters.From.HasValue || x.CreatedAt >= parameters.From.Value)
             // Filter by date range - To date (inclusive, end of day)
             && (!parameters.To.HasValue || x.CreatedAt <= parameters.To.Value.Date.AddDays(1).AddTicks(-1))

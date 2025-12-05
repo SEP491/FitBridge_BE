@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using FitBridge_Domain.Enums.Orders;
 
-namespace FitBridge_Application.Specifications.Dashboards.GetAvailableBalanceDetail
+namespace FitBridge_Application.Specifications.Dashboards.GetTransactionForAvailableBalanceDetail
 {
     public class GetAvailableBalanceDetailParams : BaseParams
     {

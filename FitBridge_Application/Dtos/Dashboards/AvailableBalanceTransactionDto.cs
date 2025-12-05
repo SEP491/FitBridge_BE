@@ -10,6 +10,8 @@
 
         public string TransactionType { get; set; }
 
+        public Guid? WithdrawalRequestId { get; set; }
+
         public Guid? OrderItemId { get; set; }
 
         public string? CourseName { get; set; } // aka. order item name
