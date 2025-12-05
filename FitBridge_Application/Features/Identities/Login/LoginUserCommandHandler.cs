@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Specifications.Accounts;
+using FitBridge_Domain.Exceptions;
 
 namespace FitBridge_Application.Features.Identities.Login;
 
@@ -43,7 +44,7 @@ public class LoginUserCommandHandler(
         }
         catch (Exception ex)
         {
-            throw new Exception(ex.Message);
+            throw new BusinessException(ex.Message);
         }
     }
 
@@ -59,12 +60,12 @@ public class LoginUserCommandHandler(
         if (user is null)
         {
             logger.LogWarning("User not found with identifier: {Identifier}", identifier);
-            throw new Exception($"User with identifier: {identifier} was not found");
+            throw new BusinessException($"User with identifier: {identifier} was not found");
         }
 
         if (!user.EmailConfirmed)
         {
-            throw new Exception("User email is not verified");
+            throw new BusinessException("User email is not verified");
         }
 
         logger.LogDebug("User found: {UserId}", user.Id);
@@ -86,7 +87,7 @@ public class LoginUserCommandHandler(
         if (passwordVerificationResult == PasswordVerificationResult.Failed)
         {
             logger.LogWarning("Password validation failed for user: {UserId}", user.Id);
-            throw new Exception("Incorrect password");
+            throw new BusinessException("Incorrect password");
         }
 
         logger.LogDebug("Password validation successful for user: {UserId}", user.Id);
@@ -113,7 +114,7 @@ public class LoginUserCommandHandler(
         if (!result.Succeeded) //result may not succeed due to invalid 2FA code, not just incorrect password.
         {
             logger.LogWarning("Sign in failed for user: {UserId}. Result: {@SignInResult}", user.Id, result);
-            throw new UnauthorizedAccessException("Your authentication attempt failed, please try again with valid credentials");
+            throw new BusinessException("Login credentials are incorrect");
         }
 
         logger.LogDebug("Sign in successful for user: {UserId}", user.Id);
