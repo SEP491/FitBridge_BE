@@ -1,10 +1,11 @@
 using System;
+using FitBridge_Application.Dtos.Accounts.UserDetails;
+using MediatR;
 
-namespace FitBridge_Application.Dtos.Accounts.UserDetails;
+namespace FitBridge_Application.Features.UserDetails.UpdateUserDetails;
 
-public class UserDetailDto
+public class UpdateUserDetailCommand : IRequest<UserDetailDto>
 {
-    public Guid Id { get; set; }
     public double? Biceps { get; set; }
     public double? ForeArm { get; set; }
     public double? Thigh { get; set; }
@@ -15,6 +16,6 @@ public class UserDetailDto
     public double? Shoulder { get; set; }
     public double? Height { get; set; }
     public double? Weight { get; set; }
-    public int? Experience { get; set; }
     public string? Bio { get; set; }
+    public int? Experience { get; set; }
 }
