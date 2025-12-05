@@ -6,4 +6,5 @@ namespace FitBridge_Application.Features.Subscriptions.GetSubscriptionPlans;
 
 public class GetSubscriptionPlansQuery : IRequest<List<SubscriptionPlanResponseDto>>
 {
+    public bool IsGetHotResearchSubscription { get; set; } = false;
 }

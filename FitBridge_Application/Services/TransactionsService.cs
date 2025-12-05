@@ -21,6 +21,7 @@ using FitBridge_Domain.Entities.ServicePackages;
 using FitBridge_Domain.Enums.SubscriptionPlans;
 using FitBridge_Application.Dtos.Payments.ApplePaymentDto;
 using FitBridge_Domain.Entities.Ecommerce;
+using FitBridge_Application.Specifications.Subscriptions.GetTempSubscription;
 
 namespace FitBridge_Application.Services;
 
@@ -506,7 +507,13 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         {
             throw new NotFoundException("Transaction not found with order code " + orderCode);
         }
-        var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(transactionToPurchaseSubscriptionPlans.Order!.OrderItems.First().SubscriptionPlansInformationId!.Value, includes: new List<string> { "FeatureKey" });
+        var tempSubscriptionSpec = new GetTempSubscriptionSpec(transactionToPurchaseSubscriptionPlans.Order.OrderItems.First().Id);
+        var tempSubscription = await _unitOfWork.Repository<UserSubscription>().GetBySpecificationAsync(tempSubscriptionSpec);
+        if (tempSubscription == null)
+        {
+            throw new NotFoundException("Temp subscription not found");
+        }
+        var subscriptionPlansInformation = await _unitOfWork.Repository<SubscriptionPlansInformation>().GetByIdAsync(tempSubscription.SubscriptionPlanId, includes: new List<string> { "FeatureKey" });
         if (subscriptionPlansInformation == null)
         {
             throw new NotFoundException("Subscription plans information not found");
@@ -521,33 +528,41 @@ public class TransactionsService(IUnitOfWork _unitOfWork, ILogger<TransactionsSe
         {
             assignLimitUsage = subscriptionPlansInformation.LimitUsage;
         }
+        transactionToPurchaseSubscriptionPlans.Order.Status = OrderStatus.Finished;
         transactionToPurchaseSubscriptionPlans.ProfitAmount = transactionToPurchaseSubscriptionPlans.Amount;
 
         var startDate = DateTime.UtcNow;
         var endDate = startDate.AddDays(subscriptionPlansInformation.Duration);
 
-        var newUserSubscription = new UserSubscription
-        {
-            UserId = transactionToPurchaseSubscriptionPlans.Order!.AccountId,
-            SubscriptionPlanId = transactionToPurchaseSubscriptionPlans.Order.OrderItems.First().SubscriptionPlansInformationId!.Value,
-            StartDate = startDate,
-            EndDate = endDate,
-            LimitUsage = assignLimitUsage,
-            CurrentUsage = 0,
-            Status = SubScriptionStatus.Active,
-        };
+        // var newUserSubscription = new UserSubscription
+        // {
+        //     UserId = transactionToPurchaseSubscriptionPlans.Order!.AccountId,
+        //     SubscriptionPlanId = transactionToPurchaseSubscriptionPlans.Order.OrderItems.First().SubscriptionPlansInformationId!.Value,
+        //     StartDate = startDate,
+        //     EndDate = endDate,
+        //     LimitUsage = assignLimitUsage,
+        //     CurrentUsage = 0,
+        //     Status = SubScriptionStatus.Active,
+        // };
+        tempSubscription.StartDate = startDate;
+        tempSubscription.EndDate = endDate;
+        tempSubscription.LimitUsage = assignLimitUsage;
+        tempSubscription.CurrentUsage = 0;
+        tempSubscription.Status = SubScriptionStatus.Active;
+        _unitOfWork.Repository<UserSubscription>().Update(tempSubscription);
         _unitOfWork.Repository<Transaction>().Update(transactionToPurchaseSubscriptionPlans);
-        _unitOfWork.Repository<UserSubscription>().Insert(newUserSubscription);
         await _unitOfWork.CommitAsync();
+
+        await _scheduleJobServices.CancelScheduleJob($"AutoCancelCreatedOrder_{transactionToPurchaseSubscriptionPlans.Order.Id}", "AutoCancelCreatedOrder");
 
         var remindExpiredSubscriptionBeforeDays = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.RemindExpiredSubscriptionBeforeDays);
 
-        await _scheduleJobServices.ScheduleSendRemindExpiredSubscriptionNotiJob(newUserSubscription.Id, endDate.AddDays(-remindExpiredSubscriptionBeforeDays));
+        await _scheduleJobServices.ScheduleSendRemindExpiredSubscriptionNotiJob(tempSubscription.Id, endDate.AddDays(-remindExpiredSubscriptionBeforeDays));
 
-        _logger.LogInformation($"Successfully scheduled send remind expired subscription notification job for user subscription {newUserSubscription.Id} at {endDate.AddDays(-remindExpiredSubscriptionBeforeDays)}");
+        _logger.LogInformation($"Successfully scheduled send remind expired subscription notification job for user subscription {tempSubscription.Id} at {endDate.AddDays(-remindExpiredSubscriptionBeforeDays)}");
 
-        await _scheduleJobServices.ScheduleExpireUserSubscriptionJob(newUserSubscription.Id, endDate);
-        _logger.LogInformation($"Successfully scheduled expire user subscription job for user subscription {newUserSubscription.Id} at {endDate.ToLocalTime}");
+        await _scheduleJobServices.ScheduleExpireUserSubscriptionJob(tempSubscription.Id, endDate);
+        _logger.LogInformation($"Successfully scheduled expire user subscription job for user subscription {tempSubscription.Id} at {endDate.ToLocalTime}");
         return true;
     }
 

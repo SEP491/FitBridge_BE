@@ -22,7 +22,7 @@ public class GetSubscriptionPlansQueryHandler(IUnitOfWork unitOfWork, IMapper ma
             throw new NotFoundException("User not found");
         }
 
-        var subscriptionPlans = await unitOfWork.Repository<SubscriptionPlansInformation>().GetAllWithSpecificationAsync(new GetAllSubscriptionPlansSpecification());
+        var subscriptionPlans = await unitOfWork.Repository<SubscriptionPlansInformation>().GetAllWithSpecificationAsync(new GetAllSubscriptionPlansSpecification(request.IsGetHotResearchSubscription));
         var subscriptionPlanDtos = new List<SubscriptionPlanResponseDto>();
         foreach (var subscriptionPlan in subscriptionPlans)
         {

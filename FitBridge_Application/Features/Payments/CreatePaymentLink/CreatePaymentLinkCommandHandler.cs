@@ -25,6 +25,7 @@ using FitBridge_Application.Services;
 using FitBridge_Application.Specifications.UserSubscriptions.GetUserSubscriptionByUserId;
 using FitBridge_Application.Commons.Constants;
 using FitBridge_Application.Specifications.CustomerPurchaseds.GetCustomerPurchasedAvailableByPtId;
+using FitBridge_Domain.Enums.SubscriptionPlans;
 
 namespace FitBridge_Application.Features.Payments.CreatePaymentLink;
 
@@ -151,11 +152,27 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
 
     public async Task<Guid> CreateOrder(CreatePaymentRequestDto request, string checkoutUrl, Guid userId, OrderStatus status)
     {
+
         var commissionRate = await GetCurrentCommissionRate();
         if (request.OrderItems.Any(oi => oi.ProductDetailId != null))
         {
             commissionRate = 0;
         }
+
+        if (request.OrderItems.Any(oi => oi.SubscriptionPlansInformationId != null))
+        {
+            var tempSubscription = new UserSubscription
+            {
+                UserId = userId,
+                SubscriptionPlanId = request.OrderItems.First().SubscriptionPlansInformationId.Value,
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow,
+                Status = SubScriptionStatus.Created,
+            };
+            _unitOfWork.Repository<UserSubscription>().Insert(tempSubscription);
+            request.OrderItems.First().UserSubscriptionId = tempSubscription.Id;
+        }
+
         var order = _mapper.Map<Order>(request);
         order.SubTotalPrice = request.SubTotalPrice;
         order.TotalAmount = request.TotalAmountPrice;
@@ -166,6 +183,7 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
         order.UpdatedAt = DateTime.UtcNow;
         order.CreatedAt = DateTime.UtcNow;
         order.CommissionRate = commissionRate;
+        
         _unitOfWork.Repository<Order>().Insert(order);
         await _scheduleJobServices.ScheduleAutoCancelCreatedOrderJob(order.Id);
         return order.Id;
@@ -319,6 +337,10 @@ public class CreatePaymentLinkCommandHandler(IUserUtil _userUtil, IHttpContextAc
                 var userSubscription = await _unitOfWork.Repository<UserSubscription>().GetBySpecificationAsync(new GetUserSubscriptionByUserIdSpec(userId, subscriptionPlansInformation.Id));
                 if (userSubscription != null)
                 {
+                    if(userSubscription.Status == SubScriptionStatus.Created)
+                    {
+                        throw new DuplicateException($"User already has a created subscription for this plan, please finish the payment to activate the subscription");
+                    }
                     throw new DuplicateException($"User already has a subscription for this plan, subscription id: {userSubscription.Id}, subscription expiration date: {userSubscription.EndDate}");
                 }
             }

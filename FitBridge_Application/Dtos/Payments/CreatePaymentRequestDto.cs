@@ -21,4 +21,5 @@ public class CreatePaymentRequestDto
     public List<OrderItemDto> OrderItems { get; set; }
     [JsonIgnore]
     public decimal? CommissionRate { get; set; }
+
 }
