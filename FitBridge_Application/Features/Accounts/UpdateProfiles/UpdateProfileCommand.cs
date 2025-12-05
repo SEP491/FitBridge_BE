@@ -26,6 +26,7 @@ public class UpdateProfileCommand : IRequest<UpdateProfileResponseDto>
     public DateOnly? GymFoundationDate { get; set; }
     public DateOnly? IdentityCardDate { get; set; }
     public string? BusinessAddress { get; set; }
+    public int? PtMaxCourse { get; set; }
     public TimeOnly? OpenTime { get; set; }
     public TimeOnly? CloseTime { get; set; }
     public IFormFile? FrontCitizenIdFile { get; set; }

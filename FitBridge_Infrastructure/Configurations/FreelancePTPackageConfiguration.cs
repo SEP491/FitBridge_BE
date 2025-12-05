@@ -20,7 +20,7 @@ public class FreelancePTPackageConfiguration : IEntityTypeConfiguration<Freelanc
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
         builder.Property(e => e.SessionDurationInMinutes).HasDefaultValue(60);
-        
+        builder.Property(e => e.IsDisplayed).HasDefaultValue(true);
         builder.Property(e => e.PtId).IsRequired(true);
         builder.HasOne(e => e.Pt).WithMany(e => e.PTFreelancePackages).HasForeignKey(e => e.PtId);
     }

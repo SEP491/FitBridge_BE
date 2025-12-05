@@ -26,5 +26,6 @@ public class UpdateProfileResponseDto
     public List<string> GymImages { get; set; } = new List<string>();
     public TimeOnly? OpenTime { get; set; }
     public TimeOnly? CloseTime { get; set; }
+    public int? PtMaxCourse { get; set; }
     public UpdateUserDetailDto? UserDetail { get; set; }
 }

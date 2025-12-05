@@ -9,6 +9,7 @@ namespace FitBridge_Application.Specifications.FreelancePtPackages.GetAllFreelan
             x.IsEnabled && x.PtId == ptId &&
             (string.IsNullOrEmpty(parameters.SearchTerm) || parameters.SearchTerm.ToLower().Contains(x.Name)))
         {
+            AddInclude(x => x.Pt);
             if (parameters.DoApplyPaging)
             {
                 AddPaging(parameters.Size * (parameters.Page - 1), parameters.Size - 1);

@@ -27,12 +27,16 @@ namespace FitBridge_API.Controllers
         public async Task<IActionResult> GetFreelancePTPackages([FromQuery] GetAllFreelancePTPackagesParam parameters)
         {
             var result = await mediator.Send(new GetAllFreelancePTPackagesQuery { Params = parameters });
-            var pagination = ResultWithPagination(result.Items, result.Total, parameters.Page, parameters.Size);
+            var pagination = ResultWithPagination(result.Packages.Items, result.Packages.Total, parameters.Page, parameters.Size);
             return Ok(
-                new BaseResponse<Pagination<GetAllFreelancePTPackagesDto>>(
+                new BaseResponse<object>(
                     StatusCodes.Status200OK.ToString(),
                     "Freelance PT Packages retrieved successfully",
-                    pagination));
+                    new
+                    {
+                        Packages = pagination,
+                        result.Summary
+                    }));
         }
 
         /// <summary>

@@ -19,6 +19,7 @@ namespace FitBridge_Application.Features.FreelancePTPackages.UpdateFreelancePTPa
         public int? NumOfSessions { get; set; }
 
         public string? Description { get; set; }
+        public bool? IsDisplayed { get; set; }
 
         public string? ImageUrl { get; set; }
     }

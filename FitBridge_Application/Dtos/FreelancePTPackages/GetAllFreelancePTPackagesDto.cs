@@ -19,7 +19,8 @@
 
         public string? ImageUrl { get; set; }
         public bool? IsPurchased { get; set; }
-
+        public bool IsDisplayed { get; set; }
+        public int CurrentUserPurchased { get; set; }
         public Guid PtId { get; set; }
     }
 }
