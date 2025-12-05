@@ -14,6 +14,7 @@ public class FreelancePTPackage : BaseEntity
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }
     public Guid PtId { get; set; }
+    public bool IsDisplayed { get; set; }
     public ApplicationUser Pt { get; set; }
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }

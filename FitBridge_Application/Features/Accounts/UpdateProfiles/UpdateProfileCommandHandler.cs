@@ -4,6 +4,7 @@ using FitBridge_Application.Dtos.Accounts.Profiles;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
 using FitBridge_Application.Interfaces.Utils;
+using FitBridge_Application.Services;
 using FitBridge_Application.Specifications.Accounts.CheckAccountUpdateData;
 using FitBridge_Domain.Entities.Accounts;
 using FitBridge_Domain.Entities.Identity;
@@ -15,7 +16,7 @@ using System.Linq;
 namespace FitBridge_Application.Features.Accounts.UpdateProfiles;
 
 public class UpdateProfileCommandHandler(IApplicationUserService applicationUserService, IMapper _mapper, IUnitOfWork _unitOfWork, 
-    IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUploadService _uploadService) : IRequestHandler<UpdateProfileCommand, UpdateProfileResponseDto>
+    IUserUtil _userUtil, IHttpContextAccessor _httpContextAccessor, IUploadService _uploadService, SystemConfigurationService systemConfigurationService) : IRequestHandler<UpdateProfileCommand, UpdateProfileResponseDto>
 {
     public async Task<UpdateProfileResponseDto> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
@@ -85,6 +86,18 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
 
     public async Task validateUpdateProfile(UpdateProfileCommand request)
     {
+        if (request.PtMaxCourse != null)
+        {
+            if (request.PtMaxCourse <= 1)
+            {
+                throw new BusinessException("Pt max course must be greater than 1");
+            }
+            var defaultPtMaxCourse = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.DefaultPtMaxCourse);
+            if(request.PtMaxCourse >= defaultPtMaxCourse)
+            {
+                throw new BusinessException($"Pt max course must be less than or equal to {defaultPtMaxCourse}");
+            }
+        }
         if(request.OpenTime != null && request.CloseTime != null)
         {
             if(request.OpenTime >= request.CloseTime)

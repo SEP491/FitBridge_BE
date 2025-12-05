@@ -5,7 +5,7 @@ using MediatR;
 
 namespace FitBridge_Application.Features.FreelancePTPackages.GetAllFreelancePTPackages
 {
-    public class GetAllFreelancePTPackagesQuery : IRequest<PagingResultDto<GetAllFreelancePTPackagesDto>>
+    public class GetAllFreelancePTPackagesQuery : IRequest<AllFreelancePTPackagesDto>
     {
         public GetAllFreelancePTPackagesParam Params { get; set; }
     }

@@ -9,6 +9,7 @@ namespace FitBridge_Application.MappingProfiles
         public FreelancePTPackageMappingProfile()
         {
             CreateMap<FreelancePTPackage, GetAllFreelancePTPackagesDto>();
+
             CreateMap<FreelancePTPackage, GetFreelancePTPackageByIdDto>();
             CreateMap<FreelancePTPackage, CreateFreelancePTPackageDto>();
             CreateMap<FreelancePTPackage, GetFreelancePTPackageWithPt>()

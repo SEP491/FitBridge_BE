@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FitBridge_Application.Interfaces.Repositories;
+using FitBridge_Application.Specifications.CustomerPurchaseds.GetAvailableCustomerPurchasedByFreelancePackage;
 using FitBridge_Application.Specifications.FreelancePtPackages.GetFreelancePtPackageById;
 using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Domain.Exceptions;
@@ -34,10 +35,6 @@ namespace FitBridge_Application.Features.FreelancePTPackages.UpdateFreelancePTPa
             {
                 existingPackage.SessionDurationInMinutes = sessionDuration;
             }
-            if (request.NumOfSessions is int sessions && sessions > 0)
-            {
-                existingPackage.NumOfSessions = sessions;
-            }
             if (!string.IsNullOrEmpty(request.Description))
             {
                 existingPackage.Description = request.Description;
@@ -46,10 +43,29 @@ namespace FitBridge_Application.Features.FreelancePTPackages.UpdateFreelancePTPa
             {
                 existingPackage.ImageUrl = request.ImageUrl;
             }
+            if (request.IsDisplayed.HasValue)
+            {
+                existingPackage.IsDisplayed = request.IsDisplayed.Value;
+            }
+            await ValidateUpdateData(request, existingPackage);
+
 
             unitOfWork.Repository<FreelancePTPackage>().Update(existingPackage);
 
             await unitOfWork.CommitAsync();
+        }
+
+        public async Task ValidateUpdateData(UpdateFreelancePTPackageCommand request, FreelancePTPackage existingPackage)
+        {
+            if (request.NumOfSessions is int sessions && sessions > 0)
+            {
+                var spec = new GetAvailableCustomerPurchasedByFreelancePackageSpec(existingPackage.Id);
+                var availableCustomerPurchased = await unitOfWork.Repository<CustomerPurchased>().GetAllWithSpecificationAsync(spec);
+                if (availableCustomerPurchased.Any())
+                {
+                    throw new DuplicateException("Freelance PT package is already purchased by a customer and cannot update the number of sessions, current number of customers purchased is: " + availableCustomerPurchased.Count);
+                }
+            }
         }
     }
 }

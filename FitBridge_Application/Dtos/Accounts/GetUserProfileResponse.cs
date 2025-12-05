@@ -10,7 +10,7 @@ public class GetUserProfileResponse
     public string? Phone { get; set; }
 
     public DateTime? DOB { get; set; }
-            
+
     public double? Weight { get; set; }
 
     public double? Height { get; set; }
@@ -35,4 +35,6 @@ public class GetUserProfileResponse
     public string? BusinessAddress { get; set; }
     public TimeOnly? OpenTime { get; set; }
     public TimeOnly? CloseTime { get; set; }
+    public int? PtMaxCourse { get; set; }
+    public int? PtCurrentCourse { get; set; }
 }

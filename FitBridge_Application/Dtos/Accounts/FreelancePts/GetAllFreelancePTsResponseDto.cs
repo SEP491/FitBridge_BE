@@ -15,6 +15,8 @@ public class GetAllFreelancePTsResponseDto
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public decimal PriceFrom { get; set; }
+    public int PtMaxCourse { get; set; }
+    public int PtCurrentCourse { get; set; }
     public int ExperienceYears { get; set; }
     public int TotalPurchased { get; set; }
 }
