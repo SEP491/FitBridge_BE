@@ -14,6 +14,8 @@
 
         public int Quantity { get; set; }
 
+        public DateOnly ExpirationDate { get; set; }
+
         public bool IsActive { get; set; }
     }
 }
