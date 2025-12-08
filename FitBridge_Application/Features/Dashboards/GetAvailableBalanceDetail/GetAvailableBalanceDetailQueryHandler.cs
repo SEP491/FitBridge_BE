@@ -25,6 +25,11 @@ namespace FitBridge_Application.Features.Dashboards.GetAvailableBalanceDetail
             var accountRole = userUtil.GetUserRole(httpContextAccessor.HttpContext!)
                 ?? throw new NotFoundException("User role");
 
+            // Get the current wallet to show the balance
+            var userWallet = await unitOfWork.Repository<Wallet>()
+                .GetByIdAsync(accountId)
+                ?? throw new NotFoundException(nameof(Wallet));
+
             var transactionSpec = new GetTransactionForAvailableBalanceDetailSpec(accountId, request.Params);
             var transactions = await unitOfWork.Repository<Transaction>()
                 .GetAllWithSpecificationAsync(transactionSpec);
@@ -61,7 +66,10 @@ namespace FitBridge_Application.Features.Dashboards.GetAvailableBalanceDetail
                     TotalProfit = transaction.Amount,
                     TransactionType = transaction.TransactionType.ToString(),
                     ActualDistributionDate = isWithdrawal ? null : transaction.OrderItem!.ProfitDistributeActualDate,
-                    WithdrawalRequestId = isWithdrawal ? transaction.WithdrawalRequestId : null
+                    WithdrawDate = isWithdrawal && transaction.WithdrawalRequest != null ? transaction.WithdrawalRequest.CreatedAt : null, // by the time admin approved
+                    WithdrawalRequestId = isWithdrawal ? transaction.WithdrawalRequestId : null,
+                    Balance = userWallet.AvailableBalance, // Show current available balance from wallet
+                    Description = transaction.Description
                 };
             }).ToList();
 
