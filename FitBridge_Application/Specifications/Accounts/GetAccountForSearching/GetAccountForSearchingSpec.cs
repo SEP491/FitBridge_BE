@@ -1,5 +1,6 @@
 using System;
 using FitBridge_Domain.Entities.Identity;
+using FitBridge_Domain.Enums.ApplicationUser;
 
 namespace FitBridge_Application.Specifications.Accounts.GetAccountForSearching;
 
@@ -7,8 +8,8 @@ public class GetAccountForSearchingSpec : BaseSpecification<ApplicationUser>
 {
     public GetAccountForSearchingSpec(GetAccountForSearchingParams parameters, List<Guid> userIds) : base(x => ((parameters.SearchTerm == null
     || parameters.SearchTerm.Trim() == ""
-    || x.FullName.ToLower().Contains(parameters.SearchTerm.ToLower())
     || (x.GymName != null && x.GymName.ToLower().Contains(parameters.SearchTerm.ToLower()))
+    || (parameters.SearchType != SearchType.Gym && x.FullName.ToLower().Contains(parameters.SearchTerm.ToLower()))
     || x.GoalTrainings.Any(gt => gt.Name.ToLower().Contains(parameters.SearchTerm.ToLower())))
     && (parameters.ExperienceYears <= 0 || (x.UserDetail != null && x.UserDetail.Experience >= parameters.ExperienceYears))
     && (parameters.Rating <= 0 || (x.Reviews.Any() && x.Reviews.Average(r => r.Rating) >= parameters.Rating))
