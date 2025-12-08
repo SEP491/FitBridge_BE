@@ -22,9 +22,9 @@ namespace FitBridge_Application.Specifications.Dashboards.GetTransactionForAvail
             AddInclude(x => x.Order!.OrderItems);
             AddInclude("OrderItem.GymCourse");
             AddInclude("OrderItem.FreelancePTPackage");
+            AddInclude("OrderItem.Order");
 
-            // Default ordering by transaction id descending
-            AddOrderByDesc(x => x.Id);
+            AddOrderBy(x => x.CreatedAt);
 
             if (parameters.DoApplyPaging)
             {

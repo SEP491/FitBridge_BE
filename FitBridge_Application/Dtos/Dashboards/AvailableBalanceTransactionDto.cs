@@ -8,6 +8,8 @@
 
         public DateOnly? ActualDistributionDate { get; set; }
 
+        public DateTime? WithdrawDate { get; set; }
+
         public string TransactionType { get; set; }
 
         public Guid? WithdrawalRequestId { get; set; }
@@ -15,5 +17,9 @@
         public Guid? OrderItemId { get; set; }
 
         public string? CourseName { get; set; } // aka. order item name
+
+        public decimal Balance { get; set; }
+
+        public string? Description { get; set; }
     }
 }

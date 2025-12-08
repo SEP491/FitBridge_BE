@@ -13,7 +13,7 @@ namespace FitBridge_Application.Specifications.Dashboards.GetOrderItemForPending
             (x.GymPt != null && x.GymPt.GymOwnerId == userId))
             && x.ProfitDistributeActualDate == null
             && x.Order.Transactions.Any(t => t.Status == TransactionStatus.Success) // check order's transactions
-            // Filter by date range - From date
+                                                                                    // Filter by date range - From date
             && (!parameters.From.HasValue || x.CreatedAt >= parameters.From.Value)
             // Filter by date range - To date (inclusive, end of day)
             && (!parameters.To.HasValue || x.CreatedAt <= parameters.To.Value.Date.AddDays(1).AddTicks(-1))
@@ -25,6 +25,10 @@ namespace FitBridge_Application.Specifications.Dashboards.GetOrderItemForPending
             AddInclude(x => x.Order.Coupon);
             AddInclude(x => x.Order.Account);
             AddInclude("Order.Coupon");
+            AddInclude("Order.Transactions");
+            AddInclude("Order.Transactions.PaymentMethod");
+            AddInclude("Transactions");
+            AddInclude("Transactions.PaymentMethod");
 
             if (userRole == ProjectConstant.UserRoles.FreelancePT)
             {
@@ -36,8 +40,7 @@ namespace FitBridge_Application.Specifications.Dashboards.GetOrderItemForPending
                 AddInclude(x => x.GymCourse);
             }
 
-            // Default ordering by order item id descending
-            AddOrderByDesc(x => x.Id);
+            AddOrderBy(x => x.CreatedAt);
 
             if (parameters.DoApplyPaging)
             {

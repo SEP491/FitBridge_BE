@@ -27,5 +27,7 @@
         public Guid CourseId { get; set; }
 
         public decimal TotalProfit { get; set; }
+
+        public TransactionDetailDto? TransactionDetail { get; set; }
     }
 }

@@ -7,6 +7,7 @@ using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Specifications.Dashboards.GetOrderItemForPendingBalanceDetail;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Domain.Entities.Orders;
+using FitBridge_Domain.Enums.Orders;
 using FitBridge_Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -38,6 +39,25 @@ namespace FitBridge_Application.Features.Dashboards.GetPendingBalanceDetail
             {
                 var isGymOwner = accountRole == ProjectConstant.UserRoles.GymOwner;
                 var profit = await transactionService.CalculateMerchantProfit(oi, oi.Order.Coupon);
+
+                // Get the related transaction for this order item
+                var relatedTransaction = oi.Order.Transactions
+                    .FirstOrDefault(t => t.Status == TransactionStatus.Success && t.OrderId == oi.OrderId);
+
+                TransactionDetailDto? transactionDetail = null;
+                if (relatedTransaction != null)
+                {
+                    transactionDetail = new TransactionDetailDto
+                    {
+                        TransactionId = relatedTransaction.Id,
+                        OrderCode = relatedTransaction.OrderCode,
+                        TransactionDate = relatedTransaction.CreatedAt,
+                        PaymentMethod = relatedTransaction.PaymentMethod.MethodType.ToString(),
+                        Amount = relatedTransaction.Amount,
+                        Description = relatedTransaction.Description
+                    };
+                }
+
                 return new PendingBalanceOrderItemDto
                 {
                     OrderItemId = oi.Id,
@@ -52,7 +72,8 @@ namespace FitBridge_Application.Features.Dashboards.GetPendingBalanceDetail
                     CourseName = isGymOwner ? oi.GymCourse!.Name : oi.FreelancePTPackage!.Name,
                     CustomerId = oi.Order.AccountId,
                     CustomerFullName = oi.Order.Account.FullName,
-                    PlannedDistributionDate = oi.ProfitDistributePlannedDate
+                    PlannedDistributionDate = oi.ProfitDistributePlannedDate,
+                    TransactionDetail = transactionDetail
                 };
             });
 
