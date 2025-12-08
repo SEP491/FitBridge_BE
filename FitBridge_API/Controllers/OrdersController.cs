@@ -23,12 +23,12 @@ namespace FitBridge_API.Controllers;
 
 public class OrdersController(IMediator _mediator) : _BaseApiController
 {
-    [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand orderDto)
-    {
-        var order = await _mediator.Send(orderDto);
-        return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "Order created successfully", order));
-    }
+    // [HttpPost]
+    // public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand orderDto)
+    // {
+    //     var order = await _mediator.Send(orderDto);
+    //     return Ok(new BaseResponse<string>(StatusCodes.Status200OK.ToString(), "Order created successfully", order));
+    // }
 
     [HttpGet("customer-purchased/{customerPurchasedId}")]
     public async Task<IActionResult> GetOrderByCustomerPurchasedId([FromRoute] Guid customerPurchasedId)
