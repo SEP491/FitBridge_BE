@@ -27,7 +27,7 @@ public class RegisterCommandHandler(IApplicationUserService _applicationUserServ
             Password = request.Password,
             EmailConfirmed = request.IsTestAccount,
             Longitude = request.Longitude,
-            Latitude = request.Latitude,
+            Latitude = request.Latitude
         };
         await _applicationUserService.InsertUserAsync(user, request.Password);
         await _applicationUserService.AssignRoleAsync(user, ProjectConstant.UserRoles.Customer);
