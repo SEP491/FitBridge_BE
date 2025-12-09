@@ -71,6 +71,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
             }
 
             template.TemplateBody = await templatingService.ParseTemplateAsync(template.TemplateBody, model);
+            template.TemplateTitle = await templatingService.ParseTemplateAsync(template.TemplateTitle, model);
             return template;
         }
 
@@ -87,6 +88,7 @@ namespace FitBridge_Infrastructure.Services.Notifications
             }
 
             template.TemplateBody = await templatingService.ParseTemplateAsync(template.TemplateBody, model);
+            template.TemplateTitle = await templatingService.ParseTemplateAsync(template.TemplateTitle, model);
             return template;
         }
     }
