@@ -1,9 +1,12 @@
-﻿using dotAPNS;
+﻿using Appwrite;
+using Appwrite.Services;
+using dotAPNS;
 using dotAPNS.AspNetCore;
 using FitBridge_Application.Configurations;
 using FitBridge_Application.Dtos.Notifications;
 using FitBridge_Application.Interfaces.Repositories;
 using FitBridge_Application.Interfaces.Services;
+using FitBridge_Application.Interfaces.Services.Messaging;
 using FitBridge_Application.Interfaces.Services.Notifications;
 using FitBridge_Application.Interfaces.Utils;
 using FitBridge_Application.Interfaces.Utils.Seeding;
@@ -11,15 +14,18 @@ using FitBridge_Application.Services;
 using FitBridge_Domain.Entities.Identity;
 using FitBridge_Infrastructure.Jobs.Coupons;
 using FitBridge_Infrastructure.Persistence;
-using FitBridge_Infrastructure.Services.Uploads;
 using FitBridge_Infrastructure.Seeder;
 using FitBridge_Infrastructure.Services;
 using FitBridge_Infrastructure.Services.Implements;
 using FitBridge_Infrastructure.Services.Jobs;
+using FitBridge_Infrastructure.Services.Meetings.Helpers;
+using FitBridge_Infrastructure.Services.Messaging;
 using FitBridge_Infrastructure.Services.Notifications;
 using FitBridge_Infrastructure.Services.Notifications.Helpers;
 using FitBridge_Infrastructure.Services.Templating;
+using FitBridge_Infrastructure.Services.Uploads;
 using FitBridge_Infrastructure.Utils;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,11 +35,6 @@ using Microsoft.Extensions.Options;
 using Quartz;
 using StackExchange.Redis;
 using System.Threading.Channels;
-using Appwrite;
-using Appwrite.Services;
-using FitBridge_Infrastructure.Services.Meetings.Helpers;
-using FitBridge_Application.Interfaces.Services.Messaging;
-using FitBridge_Infrastructure.Services.Messaging;
 
 namespace FitBridge_Infrastructure.Extensions
 {
@@ -46,6 +47,10 @@ namespace FitBridge_Infrastructure.Extensions
                     .UseNpgsql(configuration.GetConnectionString("FitBridgeDb"))
                     .EnableSensitiveDataLogging()
                     .EnableDetailedErrors());
+
+            services.AddDataProtection()
+                    .SetApplicationName("FitBridge")
+                    .PersistKeysToDbContext<FitBridgeDbContext>();
 
             services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
             {
