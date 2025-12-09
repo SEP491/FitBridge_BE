@@ -23,7 +23,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
         var account = await applicationUserService.GetByIdAsync(request.Id.Value, includes: new List<string> { "UserDetail" }, true);
         if (account == null)
         {
-            throw new NotFoundException("Account not found");
+            throw new NotFoundException("Tài khoản không tồn tại");
         }
         
         await validateUpdateProfile(request);
@@ -78,7 +78,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
         }
         catch (Exception ex)
         {
-            throw new BusinessException("Failed to update profile", ex);
+            throw new BusinessException("Lỗi khi cập nhật hồ sơ", ex);
         }
 
         return _mapper.Map<UpdateProfileResponseDto>(account);
@@ -90,19 +90,19 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
         {
             if (request.PtMaxCourse <= 1)
             {
-                throw new BusinessException("Pt max course must be greater than 1");
+                throw new BusinessException("Số lượng học viên tối đa có thể nhận phải lớn hơn 1");
             }
             var defaultPtMaxCourse = (int)await systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.DefaultPtMaxCourse);
-            if(request.PtMaxCourse >= defaultPtMaxCourse)
+            if(request.PtMaxCourse > defaultPtMaxCourse)
             {
-                throw new BusinessException($"Pt max course must be less than or equal to {defaultPtMaxCourse}");
+                throw new BusinessException($"Số lượng học viên tối đa có thể nhận phải nhỏ hơn hoặc bằng {defaultPtMaxCourse}");
             }
         }
         if(request.OpenTime != null && request.CloseTime != null)
         {
             if(request.OpenTime >= request.CloseTime)
             {
-                throw new BusinessException("Open time must be before close time");
+                throw new BusinessException("Giờ mở cửa phải trước giờ đóng cửa");
             }
         }
         if(request.TaxCode != null)
@@ -111,7 +111,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             var existingUser = await applicationUserService.CountAsync(spec);
             if (existingUser > 0)
             {
-                throw new DuplicateUserException("Tax code already exists");
+                throw new DuplicateUserException("Mã số thuế đã tồn tại");
             }
         }
         if(request.CitizenIdNumber != null)
@@ -120,7 +120,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             var existingUser = await applicationUserService.CountAsync(spec);
             if (existingUser > 0)
             {
-                throw new DuplicateUserException("Citizen id number already exists");
+                throw new DuplicateUserException("Số căn cước công dân đã tồn tại");
             }
         }
     }
@@ -134,7 +134,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             {
                 if (account.FreelancePtImages == null || account.FreelancePtImages.Count == 0)
                 {
-                    throw new BusinessException("No images to remove");
+                    throw new BusinessException("Không có ảnh để xóa");
                 }
                 foreach (var imageUrl in request.ImagesToRemove)
                 {
@@ -165,7 +165,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             {
                 if (account.GymImages == null || account.GymImages.Count == 0)
                 {
-                    throw new BusinessException("No images to remove");
+                    throw new BusinessException("Không có ảnh để xóa");
                 }
                 foreach (var imageUrl in request.ImagesToRemove)
                 {
