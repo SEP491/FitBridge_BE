@@ -65,7 +65,7 @@ public class LoginUserCommandHandler(
 
         if (!user.EmailConfirmed)
         {
-            throw new BusinessException("User email is not verified");
+            throw new BusinessException("Email chưa được xác thực. Vui lòng xác thực email để đăng nhập");
         }
 
         logger.LogDebug("User found: {UserId}", user.Id);
@@ -87,7 +87,7 @@ public class LoginUserCommandHandler(
         if (passwordVerificationResult == PasswordVerificationResult.Failed)
         {
             logger.LogWarning("Password validation failed for user: {UserId}", user.Id);
-            throw new BusinessException("Incorrect password");
+            throw new BusinessException("Mật khẩu không chính xác");
         }
 
         logger.LogDebug("Password validation successful for user: {UserId}", user.Id);
@@ -114,7 +114,7 @@ public class LoginUserCommandHandler(
         if (!result.Succeeded) //result may not succeed due to invalid 2FA code, not just incorrect password.
         {
             logger.LogWarning("Sign in failed for user: {UserId}. Result: {@SignInResult}", user.Id, result);
-            throw new BusinessException("Login credentials are incorrect");
+            throw new BusinessException("Thông tin đăng nhập không chính xác");
         }
 
         logger.LogDebug("Sign in successful for user: {UserId}", user.Id);
