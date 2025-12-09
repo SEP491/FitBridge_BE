@@ -1,11 +1,12 @@
 ﻿using FitBridge_Domain.Entities;
 using FitBridge_Domain.Entities.Identity;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitBridge_Infrastructure.Persistence
 {
-    public class FitBridgeDbContext(DbContextOptions<FitBridgeDbContext> options) : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options)
+    public class FitBridgeDbContext(DbContextOptions<FitBridgeDbContext> options) : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options), IDataProtectionKeyContext
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -14,6 +15,8 @@ namespace FitBridge_Infrastructure.Persistence
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(FitBridgeDbContext).Assembly);
         }
+
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
         /// <summary>
         /// Configuring the base entity

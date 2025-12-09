@@ -41,9 +41,9 @@ namespace FitBridge_Domain.Entities.Identity
         public int PtCurrentCourse { get; set; } // Current number of courses a gym pt or freelance pt is teaching
         public int MinimumSlot { get; set; } // Minimum slot register perweek, control by gym owner account
         public DateTime LastSeen { get; set; }
-        public bool IsActive { get; set; }
-        public bool IsEnabled { get; set; }
-        public bool IsContractSigned { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsEnabled { get; set; } = true;
+        public bool IsContractSigned { get; set; } = false;
         public string? FrontCitizenIdUrl { get; set; }
         public string? BackCitizenIdUrl { get; set; }
         public string? CitizenIdNumber { get; set; }
