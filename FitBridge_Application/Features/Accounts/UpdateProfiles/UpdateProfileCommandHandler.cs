@@ -73,6 +73,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
             account.BusinessAddress = request.BusinessAddress ?? account.BusinessAddress;
             account.OpenTime = request.OpenTime ?? account.OpenTime;
             account.CloseTime = request.CloseTime ?? account.CloseTime;
+            account.PtMaxCourse = request.PtMaxCourse ?? account.PtMaxCourse;
             await HandleImagesUpdate(account, request);
             await _unitOfWork.CommitAsync();
         }
@@ -88,7 +89,7 @@ public class UpdateProfileCommandHandler(IApplicationUserService applicationUser
     {
         if (request.PtMaxCourse != null)
         {
-            if (request.PtMaxCourse <= 1)
+            if (request.PtMaxCourse < 1)
             {
                 throw new BusinessException("Số lượng học viên tối đa có thể nhận phải lớn hơn 1");
             }
