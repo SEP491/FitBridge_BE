@@ -26,6 +26,7 @@ public class RegisterAccountCommand : IRequest<RegisterResponseDto>
     public string? CitizenCardPermanentAddress { get; set; }
     public DateOnly? IdentityCardDate { get; set; }
     public string? BusinessAddress { get; set; }
+    public DateOnly? GymFoundationDate { get; set; }
     public TimeOnly? OpenTime { get; set; }
     public TimeOnly? CloseTime { get; set; }
 }
