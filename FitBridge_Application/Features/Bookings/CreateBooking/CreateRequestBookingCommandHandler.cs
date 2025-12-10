@@ -44,7 +44,7 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
         {
             throw new NotEnoughSessionException("Customer purchased not enough sessions");
         }
-        if (customerPurchased.AvailableSessions - request.RequestBookings.Count <= 0)
+        if (customerPurchased.AvailableSessions - request.RequestBookings.Count < 0)
         {
             throw new NotEnoughSessionException($"Available sessions is not enough, current available sessions is: {customerPurchased.AvailableSessions}");
         }
