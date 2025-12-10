@@ -14,16 +14,12 @@ namespace FitBridge_Application.MappingProfiles
         public GymMappingProfiles()
         {
             CreateProjection<ApplicationUser, GetGymDetailsDto>()
-                .ForMember(dest => dest.Dob, opt => opt.MapFrom(
-                    src => new DateOnly(src.Dob.Year, src.Dob.Month, src.Dob.Day)))
                 .ForMember(dest => dest.GymImages, opt => opt.MapFrom(
                     src => src.GymImages.Select(gi => new GymImageDto { Url = gi }).ToList()))
                 .ForMember(dest => dest.RepresentName, opt => opt.MapFrom(
                     src => src.FullName));
 
             CreateProjection<ApplicationUser, GetAllGymsDto>()
-                .ForMember(dest => dest.Dob, opt => opt.MapFrom(
-                    src => new DateOnly(src.Dob.Year, src.Dob.Month, src.Dob.Day)))
                 .ForMember(dest => dest.GymImages, opt => opt.MapFrom(
                     src => src.GymImages.Select(gi => new GymImageDto { Url = gi }).ToList()))
                 .ForMember(dest => dest.RepresentName, opt => opt.MapFrom(
@@ -46,8 +42,6 @@ namespace FitBridge_Application.MappingProfiles
                     src => src.UserDetail!.Experience));
 
             CreateMap<ApplicationUser, GetAllGymsForSearchDto>()
-                .ForMember(dest => dest.Dob, opt => opt.MapFrom(
-                    src => new DateOnly(src.Dob.Year, src.Dob.Month, src.Dob.Day)))
                 .ForMember(dest => dest.GymImages, opt => opt.MapFrom(
                     src => src.GymImages.Select(gi => new GymImageDto { Url = gi }).ToList()))
                 .ForMember(dest => dest.RepresentName, opt => opt.MapFrom(
