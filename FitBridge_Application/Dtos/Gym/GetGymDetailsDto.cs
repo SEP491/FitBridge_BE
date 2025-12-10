@@ -2,6 +2,8 @@
 {
     public class GetGymDetailsDto
     {
+        public Guid Id { get; set; }
+
         public string GymName { get; set; } = string.Empty;
 
         public string RepresentName { get; set; } = string.Empty;
