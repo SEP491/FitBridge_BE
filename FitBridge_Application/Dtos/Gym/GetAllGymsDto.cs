@@ -19,5 +19,19 @@
         public bool HotResearch { get; set; } = false;
 
         public string GymDescription { get; set; } = string.Empty;
+        public DateOnly? GymFoundationDate { get; set; }
+        public TimeOnly? OpenTime { get; set; }
+        public TimeOnly? CloseTime { get; set; }
+        public DateTime CreatedAt { get; set; }
+
+        // Business Information
+        public string? TaxCode { get; set; }
+        public string? AvatarUrl { get; set; }
+        public string? CitizenIdNumber { get; set; }
+        public string? IdentityCardPlace { get; set; }
+        public string? CitizenCardPermanentAddress { get; set; }
+        public DateOnly? IdentityCardDate { get; set; }
+        public string? FrontCitizenIdUrl { get; set; }
+        public string? BackCitizenIdUrl { get; set; }
     }
 }
