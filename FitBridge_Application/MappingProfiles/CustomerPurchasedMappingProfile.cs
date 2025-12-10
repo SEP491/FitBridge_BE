@@ -51,7 +51,8 @@ public class CustomerPurchasedMappingProfile : Profile
             .ForMember(dest => dest.PtName, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage != null ? src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Pt.FullName : string.Empty))
             .ForMember(dest => dest.PtImageUrl, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage != null ? src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.Pt.AvatarUrl : string.Empty))
             .ForMember(dest => dest.PurchaseDate, opt => opt.MapFrom(src => src.CreatedAt))
-            .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId));
+            .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId))
+            .ForMember(x => x.SessionDurationInMinutes, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.SessionDurationInMinutes));
 
         CreateProjection<CustomerPurchased, GetCustomerPurchasedForFreelancePt>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
@@ -62,6 +63,7 @@ public class CustomerPurchasedMappingProfile : Profile
             .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId))
             .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
             .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName))
-            .ForMember(dest => dest.CustomerImageUrl, opt => opt.MapFrom(src => src.Customer.AvatarUrl));
+            .ForMember(dest => dest.CustomerImageUrl, opt => opt.MapFrom(src => src.Customer.AvatarUrl))
+            .ForMember(dest => dest.sessionDurationInMinutes, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.SessionDurationInMinutes));
     }
 }

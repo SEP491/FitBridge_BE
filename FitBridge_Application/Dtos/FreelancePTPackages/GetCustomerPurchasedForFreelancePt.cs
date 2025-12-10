@@ -11,6 +11,7 @@ public class GetCustomerPurchasedForFreelancePt
     public DateOnly ExpirationDate { get; set; }
     public Guid? FreelancePTPackageId { get; set; }
     public Guid CustomerId { get; set; }
+    public int sessionDurationInMinutes { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerImageUrl { get; set; } = string.Empty;
 }

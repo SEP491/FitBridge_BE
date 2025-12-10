@@ -12,6 +12,7 @@ public class PtCertificates : BaseEntity
     public DateOnly ProvidedDate {get;set;}
     public DateOnly? ExpirationDate{get;set;}
     public CertificateStatus CertificateStatus { get; set; }
+    public string? Note { get; set; }
     public CertificateMetadata CertificateMetadata { get; set; }
 
     public ApplicationUser Pt { get; set; }

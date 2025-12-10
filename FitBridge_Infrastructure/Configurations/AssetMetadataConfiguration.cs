@@ -14,9 +14,9 @@ public class AssetMetadataConfiguration : IEntityTypeConfiguration<AssetMetadata
         builder.ToTable("AssetMetadata");
         builder.Property(e => e.Name).IsRequired(true);
         builder.Property(e => e.AssetType).IsRequired(true).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<AssetType>(s));
-        builder.Property(e => e.EquipmentCategoryType).IsRequired(true).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<EquipmentCategoryType>(s));
+        builder.Property(e => e.EquipmentCategoryType).IsRequired(false).HasConversion(convertToProviderExpression: s => s.ToString(), convertFromProviderExpression: s => Enum.Parse<EquipmentCategoryType>(s));
         builder.Property(e => e.Description).IsRequired(true);
-        builder.Property(e => e.TargetMuscularGroups).IsRequired(true);
+        builder.Property(e => e.TargetMuscularGroups).IsRequired(false);
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);

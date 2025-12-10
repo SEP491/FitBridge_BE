@@ -52,13 +52,14 @@ public class RegisterAccountCommandHandler(IApplicationUserService _applicationU
             Latitude = request.Latitude,
             EmailConfirmed = true,
             IsContractSigned = false,
-            CitizenIdNumber = request.CitizenIdNumber?? null,
+            CitizenIdNumber = request.CitizenIdNumber ?? null,
             IdentityCardPlace = request.IdentityCardPlace ?? null,
             CitizenCardPermanentAddress = request.CitizenCardPermanentAddress ?? null,
             IdentityCardDate = request.IdentityCardDate ?? null,
             BusinessAddress = request.BusinessAddress ?? null,
             OpenTime = request.OpenTime ?? null,
             CloseTime = request.CloseTime ?? null,
+            GymFoundationDate = request.GymFoundationDate ?? null,
         };
         if (request.FrontCitizenIdFile != null)
         {

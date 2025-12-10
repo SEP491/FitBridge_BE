@@ -1,4 +1,6 @@
-﻿namespace FitBridge_Application.Dtos.Gym
+﻿using FitBridge_Application.Dtos.GymAssets;
+
+namespace FitBridge_Application.Dtos.Gym
 {
     public class GetGymDetailsDto
     {
@@ -19,5 +21,6 @@
         public bool HotResearch { get; set; } = false;
 
         public string GymDescription { get; set; } = string.Empty;
+        public List<GymAssetResponseDto> GymAssets { get; set; } = [];
     }
 }

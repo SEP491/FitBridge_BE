@@ -12,9 +12,7 @@ public enum MuscleGroupEnum
     Thighs,
     Glutes,      // mông
     Calves,      // bắp chân
-
     AbsCore,    // bụng / core
-
     FullBody,   // bài toàn thân
     Other
 }

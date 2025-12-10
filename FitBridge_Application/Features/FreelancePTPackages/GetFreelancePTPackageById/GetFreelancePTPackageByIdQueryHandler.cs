@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FitBridge_Application.Dtos.FreelancePTPackages;
 using FitBridge_Application.Interfaces.Repositories;
+using FitBridge_Application.Specifications.CustomerPurchaseds.GetAvailableCustomerPurchasedByFreelancePackage;
 using FitBridge_Application.Specifications.FreelancePtPackages.GetFreelancePtPackageById;
 using FitBridge_Domain.Entities.Gyms;
 using FitBridge_Domain.Exceptions;
@@ -14,10 +15,15 @@ namespace FitBridge_Application.Features.FreelancePTPackages.GetFreelancePTPacka
     {
         public async Task<GetFreelancePTPackageByIdDto> Handle(GetFreelancePTPackageByIdQuery request, CancellationToken cancellationToken)
         {
+
             var spec = new GetFreelancePtPackageByIdSpec(request.PackageId);
             var existingPackage = await unitOfWork.Repository<FreelancePTPackage>()
                 .GetBySpecificationProjectedAsync<GetFreelancePTPackageByIdDto>(spec, mapper.ConfigurationProvider)
                 ?? throw new NotFoundException(nameof(FreelancePTPackage));
+
+            var countSpec = new GetAvailableCustomerPurchasedByFreelancePackageSpec(existingPackage.Id);
+            var availableCustomerPurchased = await unitOfWork.Repository<CustomerPurchased>().CountAsync(countSpec);
+            existingPackage.CurrentUserPurchased = availableCustomerPurchased;
 
             return existingPackage;
         }
