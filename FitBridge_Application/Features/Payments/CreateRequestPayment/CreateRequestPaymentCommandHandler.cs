@@ -40,8 +40,7 @@ namespace FitBridge_Application.Features.Payments.CreateRequestPayment
 
             var newWithdrawalRequest = InsertWithdrawalRequest(accountId, request);
 
-            var validatedWallet = await ValidateWalletBalance(newWithdrawalRequest);
-            UpdateWalletBalance(validatedWallet, newWithdrawalRequest.Amount);
+            await ValidateWalletBalance(newWithdrawalRequest);
 
             await unitOfWork.CommitAsync();
 
@@ -50,14 +49,7 @@ namespace FitBridge_Application.Features.Payments.CreateRequestPayment
             return new RequestPaymentResponseDto { Id = newWithdrawalRequest.Id };
         }
 
-        private void UpdateWalletBalance(Wallet wallet, decimal amount)
-        {
-            wallet.AvailableBalance -= amount;
-            wallet.UpdatedAt = DateTime.UtcNow;
-            unitOfWork.Repository<Wallet>().Update(wallet);
-        }
-
-        private async Task<Wallet> ValidateWalletBalance(WithdrawalRequest withdrawalRequest)
+        private async Task ValidateWalletBalance(WithdrawalRequest withdrawalRequest)
         {
             var wallet = await unitOfWork.Repository<Wallet>()
                 .GetByIdAsync(withdrawalRequest.AccountId)
@@ -67,7 +59,6 @@ namespace FitBridge_Application.Features.Payments.CreateRequestPayment
             {
                 throw new InsufficientWalletBalanceException(wallet.AvailableBalance, withdrawalRequest.Amount);
             }
-            return wallet;
         }
 
         private WithdrawalRequest InsertWithdrawalRequest(Guid accountId, CreateRequestPaymentCommand request)
