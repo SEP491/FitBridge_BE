@@ -8,8 +8,6 @@
 
         public string RepresentName { get; set; } = string.Empty;
 
-        public DateOnly Dob { get; set; }
-
         public string GymAddress { get; set; } = string.Empty;
 
         public List<GymImageDto> GymImages { get; set; } = [];
