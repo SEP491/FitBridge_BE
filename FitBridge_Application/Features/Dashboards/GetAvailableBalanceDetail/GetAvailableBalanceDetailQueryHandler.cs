@@ -63,7 +63,7 @@ namespace FitBridge_Application.Features.Dashboards.GetAvailableBalanceDetail
                     OrderItemId = isWithdrawal ? null : transaction.OrderItemId!.Value,
                     CourseName = GetCourseName(),
                     TransactionId = transaction.Id,
-                    TotalProfit = isWithdrawal ? transaction.Amount : transaction.Amount * -1,
+                    TotalProfit = isWithdrawal ? transaction.Amount * -1 : transaction.Amount,
                     TransactionType = transaction.TransactionType.ToString(),
                     ActualDistributionDate = isWithdrawal ? null : transaction.OrderItem!.ProfitDistributeActualDate,
                     WithdrawDate = isWithdrawal && transaction.WithdrawalRequest != null ? transaction.WithdrawalRequest.CreatedAt : null, // by the time admin approved
