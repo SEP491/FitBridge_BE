@@ -18,8 +18,6 @@
 
         public string? CourseName { get; set; } // aka. order item name
 
-        public decimal Balance { get; set; }
-
         public string? Description { get; set; }
     }
 }

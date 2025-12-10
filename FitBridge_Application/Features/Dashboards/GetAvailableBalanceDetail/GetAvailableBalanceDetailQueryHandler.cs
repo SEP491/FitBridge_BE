@@ -68,7 +68,6 @@ namespace FitBridge_Application.Features.Dashboards.GetAvailableBalanceDetail
                     ActualDistributionDate = isWithdrawal ? null : transaction.OrderItem!.ProfitDistributeActualDate,
                     WithdrawDate = isWithdrawal && transaction.WithdrawalRequest != null ? transaction.WithdrawalRequest.CreatedAt : null, // by the time admin approved
                     WithdrawalRequestId = isWithdrawal ? transaction.WithdrawalRequestId : null,
-                    Balance = userWallet.AvailableBalance, // Show current available balance from wallet
                     Description = transaction.Description
                 };
             }).ToList();

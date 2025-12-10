@@ -23,6 +23,7 @@ namespace FitBridge_Application.Specifications.Dashboards.GetTransactionForAvail
             AddInclude("OrderItem.GymCourse");
             AddInclude("OrderItem.FreelancePTPackage");
             AddInclude("OrderItem.Order");
+            AddInclude(x => x.WithdrawalRequest);
 
             AddOrderBy(x => x.CreatedAt);
 
