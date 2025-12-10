@@ -9,7 +9,7 @@ namespace FitBridge_Application.Specifications.Dashboards.GetOrderItemForPending
     {
         public GetOrderItemForPendingBalanceDetailSpec(Guid userId, string userRole, GetPendingBalanceDetailParams parameters) : base(x =>
             // Filter by user - either FreelancePT or GymOwner
-            ((x.FreelancePTPackage != null && x.FreelancePTPackageId == userId) ||
+            ((x.FreelancePTPackage != null && x.FreelancePTPackage.PtId == userId) ||
             (x.GymPt != null && x.GymPt.GymOwnerId == userId))
             && x.ProfitDistributeActualDate == null
             && x.Order.Transactions.Any(t => t.Status == TransactionStatus.Success) // check order's transactions
@@ -24,10 +24,9 @@ namespace FitBridge_Application.Specifications.Dashboards.GetOrderItemForPending
         {
             AddInclude(x => x.Order.Coupon);
             AddInclude(x => x.Order.Account);
-            AddInclude("Order.Coupon");
-            AddInclude("Order.Transactions");
+            AddInclude("Order.Transactions"); // distributed transaction
             AddInclude("Order.Transactions.PaymentMethod");
-            AddInclude("Transactions");
+            AddInclude("Transactions"); // withdrawn transaction
             AddInclude("Transactions.PaymentMethod");
 
             if (userRole == ProjectConstant.UserRoles.FreelancePT)
