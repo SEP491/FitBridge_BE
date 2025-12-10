@@ -1,4 +1,6 @@
-﻿namespace FitBridge_Application.Dtos.Gym
+﻿using FitBridge_Application.Dtos.GymAssets;
+
+namespace FitBridge_Application.Dtos.Gym
 {
     public class GetAllGymsDto
     {
@@ -33,5 +35,6 @@
         public DateOnly? IdentityCardDate { get; set; }
         public string? FrontCitizenIdUrl { get; set; }
         public string? BackCitizenIdUrl { get; set; }
+        public List<GymAssetResponseDto> GymAssets { get; set; } = [];
     }
 }

@@ -18,6 +18,7 @@ namespace FitBridge_Application.Specifications.Gym.GetGymById
             {
                 AddInclude(x => x.GymCoursePTs);
             }
+            AddInclude(x => x.GymAssets);
         }
     }
 }
