@@ -19,5 +19,6 @@
         public string? ImageUrl { get; set; }
 
         public Guid PtId { get; set; }
+        public int CurrentUserPurchased { get; set; }
     }
 }
