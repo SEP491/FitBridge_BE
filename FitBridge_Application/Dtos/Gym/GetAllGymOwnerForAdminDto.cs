@@ -1,4 +1,5 @@
 using System;
+using FitBridge_Application.Dtos.GymAssets;
 
 namespace FitBridge_Application.Dtos.Gym;
 
@@ -17,7 +18,7 @@ public class GetAllGymOwnerForAdminDto
     public DateTime CreatedAt { get; set; }
     public string? AvatarUrl { get; set; }
     public bool IsActive { get; set; }
-    public double? Longitude { get; set; } 
+    public double? Longitude { get; set; }
     public double? Latitude { get; set; }
     public string? GymDescription { get; set; }
     public string? IdentityCardPlace { get; set; }
@@ -25,7 +26,8 @@ public class GetAllGymOwnerForAdminDto
     public string? CitizenIdNumber { get; set; }
     public DateOnly? IdentityCardDate { get; set; }
     public string? BusinessAddress { get; set; }
-    public string? FrontCitizenIdUrl { get; set; }  
-    public string? BackCitizenIdUrl { get; set; }   
+    public string? FrontCitizenIdUrl { get; set; }
+    public string? BackCitizenIdUrl { get; set; }
     public List<string> GymImages { get; set; } = new List<string>();
+    public List<GymAssetResponseDto> GymAssets { get; set; } = [];
 }

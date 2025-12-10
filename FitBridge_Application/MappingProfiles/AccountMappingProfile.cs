@@ -86,7 +86,6 @@ public class AccountMappingProfile : Profile
             .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.PhoneNumber))
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
-            .ForMember(dest => dest.Dob, opt => opt.MapFrom(src => src.Dob))
             .ForMember(dest => dest.GymName, opt => opt.MapFrom(src => src.GymName))
             .ForMember(dest => dest.TaxCode, opt => opt.MapFrom(src => src.TaxCode))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
