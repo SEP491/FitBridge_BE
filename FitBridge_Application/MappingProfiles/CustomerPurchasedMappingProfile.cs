@@ -63,6 +63,7 @@ public class CustomerPurchasedMappingProfile : Profile
             .ForMember(dest => dest.FreelancePTPackageId, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackageId))
             .ForMember(dest => dest.CustomerId, opt => opt.MapFrom(src => src.CustomerId))
             .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FullName))
-            .ForMember(dest => dest.CustomerImageUrl, opt => opt.MapFrom(src => src.Customer.AvatarUrl));
+            .ForMember(dest => dest.CustomerImageUrl, opt => opt.MapFrom(src => src.Customer.AvatarUrl))
+            .ForMember(dest => dest.sessionDurationInMinutes, opt => opt.MapFrom(src => src.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.SessionDurationInMinutes));
     }
 }
