@@ -42,11 +42,11 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
         var ptId = customerPurchased.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.PtId;
         if (customerPurchased.AvailableSessions <= 0)
         {
-            throw new NotEnoughSessionException("Customer purchased not enough sessions");
+            throw new NotEnoughSessionException("Số lượng buổi tập đã hết. Vui lòng gia hạn gói để có thêm buổi tập");
         }
         if (customerPurchased.AvailableSessions - request.RequestBookings.Count < 0)
         {
-            throw new NotEnoughSessionException($"Available sessions is not enough, current available sessions is: {customerPurchased.AvailableSessions}");
+            throw new NotEnoughSessionException($"Số lượng buổi tập hiện tại không đủ để tạo thêm {request.RequestBookings.Count} yêu cầu, số lượng buổi tập hiện tại là: {customerPurchased.AvailableSessions}");
         }
         var maximumPracticeTime = customerPurchased.OrderItems.OrderByDescending(x => x.CreatedAt).First().FreelancePTPackage.SessionDurationInMinutes;
         await ValidateBookingRequest(request.RequestBookings, maximumPracticeTime, customerPurchased.CustomerId, ptId);
@@ -87,16 +87,16 @@ public class CreateRequestBookingCommandHandler(IUserUtil _userUtil, IHttpContex
         {
             if (requestBooking.BookingDate < DateOnly.FromDateTime(DateTime.UtcNow))
             {
-                throw new BusinessException($"Booking date {requestBooking.BookingDate} must be in the future");
+                throw new BusinessException($"Ngày đặt lịch {requestBooking.BookingDate} phải là ngày trong tương lai");
             }
 
             if (requestBooking.PtFreelanceStartTime >= requestBooking.PtFreelanceEndTime)
             {
-                throw new BusinessException($"End time must be after start time");
+                throw new BusinessException($"Thời gian kết thúc phải sau thời gian bắt đầu");
             }
             if (requestBooking.PtFreelanceEndTime - requestBooking.PtFreelanceStartTime > TimeSpan.FromMinutes(maximumPracticeTime))
             {
-                throw new BusinessException($"Practice time must be less than {maximumPracticeTime} minutes");
+                throw new BusinessException($"Thời gian tập phải ít hơn {maximumPracticeTime} phút");
             }
             await bookingService.ValidateBookingRequestByDto(requestBooking, customerId, ptId);
         }

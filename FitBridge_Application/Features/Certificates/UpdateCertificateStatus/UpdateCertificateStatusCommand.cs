@@ -10,4 +10,5 @@ public class UpdateCertificateStatusCommand : IRequest<bool>
     [JsonIgnore]
     public Guid CertificateId { get; set; }
     public CertificateStatus CertificateStatus { get; set; }
+    public string Note { get; set; }
 }

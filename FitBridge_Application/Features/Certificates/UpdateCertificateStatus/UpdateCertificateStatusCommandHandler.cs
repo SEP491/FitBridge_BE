@@ -19,6 +19,7 @@ public class UpdateCertificateStatusCommandHandler(IUnitOfWork _unitOfWork, IMap
             throw new NotFoundException(nameof(PtCertificates));
         }
         certificate.CertificateStatus = request.CertificateStatus;
+        certificate.Note = request.Note;
         if (request.CertificateStatus == CertificateStatus.Active)
         {
             if (certificate.ExpirationDate != null)

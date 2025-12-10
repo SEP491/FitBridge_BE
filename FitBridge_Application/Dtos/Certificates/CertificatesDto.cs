@@ -14,5 +14,6 @@ public class CertificatesDto
     public DateOnly ProvidedDate { get; set; }
     public DateOnly? ExpirationDate { get; set; }
     public CertificateStatus CertificateStatus { get; set; }
+    public string? Note { get; set; }
     public CertificateMetadataDto CertificateMetadata { get; set; }
 }

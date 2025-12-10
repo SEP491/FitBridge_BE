@@ -21,6 +21,7 @@ public class PtCertificatesConfiguration : IEntityTypeConfiguration<PtCertificat
         builder.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.UpdatedAt).HasDefaultValueSql("NOW()");
         builder.Property(e => e.IsEnabled).HasDefaultValue(true);
+        builder.Property(e => e.Note).IsRequired(false);
         
         builder.HasOne(e => e.Pt).WithMany(e => e.PtCertificates).HasForeignKey(e => e.PtId);
         builder.HasOne(e => e.CertificateMetadata).WithMany(e => e.PtCertificates).HasForeignKey(e => e.CertificateMetadataId);
