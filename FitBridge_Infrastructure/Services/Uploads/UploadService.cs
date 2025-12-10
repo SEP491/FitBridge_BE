@@ -37,9 +37,9 @@ public class UploadService(IOptions<AppWriteSettings> _appWriteSettings, Storage
             }
         }
 
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".pdf" };
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".pdf", ".HEIF", ".heif" };
         if (string.IsNullOrEmpty(fileExtension) || !allowedExtensions.Contains(fileExtension))
-            throw new ArgumentException("Only image and pdf files are allowed (.jpg, .jpeg, .png, .gif, .bmp, .webp, .pdf).");
+            throw new ArgumentException("Only image and pdf files are allowed (.jpg, .jpeg, .png, .gif, .bmp, .webp, .pdf, .HEIF, .heif).");
 
         if (string.IsNullOrEmpty(file.FileName))
             throw new ArgumentException("File name cannot be empty.");
