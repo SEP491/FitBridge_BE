@@ -26,6 +26,15 @@ namespace FitBridge_Application.Features.FreelancePTPackages.GetAllFreelancePTPa
             var spec = new GetAllFreelancePTPackagesSpec(request.Params, userId);
             var packages = await unitOfWork.Repository<FreelancePTPackage>()
                 .GetAllWithSpecificationAsync(spec);
+
+            if(packages.Count == 0)
+            {
+                return new AllFreelancePTPackagesDto
+                {
+                    Packages = new PagingResultDto<GetAllFreelancePTPackagesDto>(0, new List<GetAllFreelancePTPackagesDto>()),
+                    Summary = new FreelancePtPackageSummaryDto()
+                };
+            }
             var packagesDto = mapper.Map<IReadOnlyList<GetAllFreelancePTPackagesDto>>(packages);
             foreach (var package in packagesDto)
             {
