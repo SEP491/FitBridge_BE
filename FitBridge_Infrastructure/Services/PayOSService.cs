@@ -78,8 +78,8 @@ public class PayOSService : IPayOSService
             var expirationMinutes =(int) await _systemConfigurationService.GetSystemConfigurationAutoConvertDataTypeAsync(ProjectConstant.SystemConfigurationKeys.PaymentLinkExpirationMinutes);
             var paymentData = new PaymentData(
                 orderCode: orderCode,
-                //amount: (int)request.TotalAmount,
-                amount: 5000,
+                amount: (int)request.TotalAmountPrice,
+                // amount: 5000,
                 description: user.PhoneNumber,
                 items: items,
                 cancelUrl: $"{_settings.CancelUrl}?code=01&message&orderCode={orderCode}&amount={request.TotalAmountPrice}",
