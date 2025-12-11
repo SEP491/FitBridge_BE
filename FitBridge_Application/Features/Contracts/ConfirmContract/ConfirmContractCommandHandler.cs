@@ -30,6 +30,7 @@ public class ConfirmContractCommandHandler(IUnitOfWork _unitOfWork, IApplication
         contract.ContractStatus = ContractStatus.Finished;
         contract.UpdatedAt = DateTime.UtcNow;
         await _scheduleJobServices.ScheduleAutoExpiredContractAccountJob(contract.Id, contract.EndDate.ToDateTime(TimeOnly.MaxValue));
+        await _applicationUserService.UpdateAsync(customer);
         _unitOfWork.Repository<ContractRecord>().Update(contract);
         await _unitOfWork.CommitAsync();
         return contract.Id;
