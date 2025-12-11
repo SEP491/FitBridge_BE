@@ -34,6 +34,7 @@ public class GetFreelancePTByIdQueryHandler(IApplicationUserService _application
         var freelancePtDto = _mapper.Map<GetFreelancePtByIdResponseDto>(freelancePt);
         var customerPurchasedSpec = new GetCustomerPurchasedByFreelancePtIdCountSpec(freelancePt.Id);
         var customerPurchaseds = await _unitOfWork.Repository<CustomerPurchased>().GetAllWithSpecificationAsync(customerPurchasedSpec);
+        freelancePtDto.FreelancePTPackages = freelancePtDto.FreelancePTPackages.Where(x => x.IsEnabled).ToList();
         var totalPurchased = customerPurchaseds.Sum(x => x.OrderItems.Count);
         foreach (var package in freelancePtDto.FreelancePTPackages)
         {

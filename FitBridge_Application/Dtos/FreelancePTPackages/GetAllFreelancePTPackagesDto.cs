@@ -22,5 +22,6 @@
         public bool IsDisplayed { get; set; }
         public int CurrentUserPurchased { get; set; }
         public Guid PtId { get; set; }
+        public bool IsEnabled { get; set; }
     }
 }
