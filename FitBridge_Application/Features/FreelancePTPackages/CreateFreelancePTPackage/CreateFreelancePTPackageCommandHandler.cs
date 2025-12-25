@@ -27,7 +27,8 @@ namespace FitBridge_Application.Features.FreelancePTPackages.CreateFreelancePTPa
                 NumOfSessions = request.NumOfSessions,
                 Description = request.Description,
                 ImageUrl = request.ImageUrl,
-                PtId = accountId!.Value
+                PtId = accountId!.Value,
+                IsDisplayed = request.IsDisplayed
             };
 
             unitOfWork.Repository<FreelancePTPackage>().Insert(newPackage);
