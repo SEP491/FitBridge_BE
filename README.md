@@ -19,6 +19,7 @@ FitBridge is a multi-platform solution. Explore our other repositories:
 *   📱 **Mobile App (Native)**: [FitBridge_Native](https://github.com/SEP491/FitBridge_Native.git)
 *   💻 **Web Portal**: [FitBridge_Web](https://github.com/SEP491/FitBridge_Web.git)
 *   🤖 **AI Chatbot**: [FitBridge_Bot](https://github.com/SEP491/FitBridge_Bot.git)
+*   **Full Documentation**: [Documentation](https://github.com/SEP491/FitBridge_BE/blob/main/docs/FitBridge_BE_Documentation.md)
 
 ---
 
@@ -118,6 +119,3 @@ The solution follows the **Clean Architecture** principles:
 
 5.  **Explore API**
     Visit Swagger UI at `https://localhost:5001/swagger/index.html` (port may vary).
-
-### Full document for this project
-* [Documentation](https://github.com/SEP491/FitBridge_BE/blob/main/docs/FitBridge_BE_Documentation.md)
